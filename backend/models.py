@@ -29,6 +29,7 @@ class Child(db.Model):
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     name = db.Column(db.String, nullable=False)
     age = db.Column(db.Integer, nullable=False)
+    gender = db.Column(db.Integer, nullable=False)
     streak = db.Column(db.Integer, default=0)
     badges = db.Column(db.Integer, default=0)
     parent_id = db.Column(db.Integer, db.ForeignKey('parents.id'), nullable=False)
