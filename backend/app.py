@@ -63,24 +63,37 @@ def register_parent():
 def login():
     if not request.is_json:
         return jsonify({"error": "Request content type must be application/json"}), 415
+
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+
     if not username or not password:
         return jsonify({"error": "Username and password are required"}), 400
+
     user = User.query.filter_by(username=username).first()
+
     if user and check_password_hash(user.password, password):
         access_token = create_access_token(
             identity=str(user.id),
             additional_claims={"role": user.role}
         )
+        if user.role == 'parent':
+            dashboard_route = '/parent_dashboard'
+        elif user.role == 'child':
+            dashboard_route = '/child_dashboard'
+        else:
+            dashboard_route = '/'
+
         return jsonify({
             "message": "Login successful",
             "access_token": access_token,
-            "role": user.role
+            "role": user.role,
+            "redirect_to": dashboard_route
         }), 200
     else:
         return jsonify({"error": "Invalid username or password"}), 401
+
 #------------------------------ Add Child-----------------------------------------------------
 
 @app.route('/add-child', methods=['POST'])
