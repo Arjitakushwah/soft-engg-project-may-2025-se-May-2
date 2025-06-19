@@ -104,6 +104,7 @@ def add_child(current_user_id, current_user_role):
     password = data.get('password')
     name = data.get('name')
     age = data.get('age')
+    gender = data.get('gender')
     if not all([username, password, name, age]):
         return jsonify({'error': 'All fields (username, password, name, age) are required.'}), 400
     if User.query.filter_by(username=username).first():
@@ -126,6 +127,7 @@ def add_child(current_user_id, current_user_role):
             parent_id=current_user_id,
             name=name,
             age=int(age),
+            gender = gender,
             streak=0,
             badges=0
         )
