@@ -4,7 +4,13 @@
       <h1>Your Adventure in Learning Begins!</h1>
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
       <button class="cta-button">Let's Go!</button>
-      <p class="login-prompt">Already have an account? <a href="#">Log In</a></p>
+      <p class="login-prompt">Already have an account? 
+        <router-link
+              to="/login"
+              class="text-decoration-underline me-md-auto mb-2 mb-md-0"
+            >Log In</router-link>
+        <!--<a href="/soft-engg-project-may-2025-se-May-2/frontend/src/components/Login.vue">Log In</a>-->
+      </p>
     </header>
 
     <main class="features-showcase">
