@@ -11,10 +11,12 @@ from utils import jwt_required
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
 
+
 # Initialize database
 db.init_app(app)
 JWTManager(app)
 migrate = Migrate(app, db)
+
 
 @app.route('/')
 def home():
@@ -138,9 +140,8 @@ def add_child(current_user_id, current_user_role):
         db.session.rollback()
         print("Error:", e)
         return jsonify({'error': 'SOmething wrong'}), 500
-
-
-
+    
+from api import *
 
 
 
