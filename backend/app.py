@@ -11,10 +11,12 @@ from utils import jwt_required
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
 
+
 # Initialize database
 db.init_app(app)
 JWTManager(app)
 migrate = Migrate(app, db)
+
 
 @app.route('/')
 def home():
@@ -104,6 +106,7 @@ def add_child(current_user_id, current_user_role):
     password = data.get('password')
     name = data.get('name')
     age = data.get('age')
+    gender = data.get('gender')
     if not all([username, password, name, age]):
         return jsonify({'error': 'All fields (username, password, name, age) are required.'}), 400
     if User.query.filter_by(username=username).first():
@@ -126,6 +129,7 @@ def add_child(current_user_id, current_user_role):
             parent_id=current_user_id,
             name=name,
             age=int(age),
+            gender = gender,
             streak=0,
             badges=0
         )
@@ -136,9 +140,8 @@ def add_child(current_user_id, current_user_role):
         db.session.rollback()
         print("Error:", e)
         return jsonify({'error': 'SOmething wrong'}), 500
-
-
-
+    
+from api import *
 
 
 
