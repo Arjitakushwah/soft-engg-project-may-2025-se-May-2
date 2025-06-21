@@ -63,6 +63,9 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const form = ref({
   username: '',
@@ -85,12 +88,20 @@ const addChild = async () => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}` 
     },
     body: JSON.stringify(form.value)
   })
+
   const data = await res.json()
-  message.value = res.ok ? data.message : data.error
+  if (res.ok) {
+    message.value = data.message
+    setTimeout(() => {
+      router.push('/login')  
+    }, 2000)
+  } else {
+    message.value = data.error
+  }
 }
 </script>
 
