@@ -38,27 +38,24 @@ import { useRouter } from 'vue-router'
 
 const username = ref('')
 const password = ref('')
-const role = ref('child') // default
+const role = ref('child') // default role
 const error = ref('')
 const router = useRouter()
 
-const login = async () => {
-  const res = await fetch('http://127.0.0.1:5000/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: username.value,
-      password: password.value,
-      role: role.value // ✅ Send role to backend
-    })
-  })
+const login = () => {
+  // Dummy login check – allow anything for now
+  if (username.value && password.value) {
+    console.log(`Logged in as ${role.value}: ${username.value}`)
+    alert(`Login successful as ${role.value}! Redirecting...`)
 
-  const data = await res.json()
-  if (!res.ok) {
-    error.value = data.error || 'Login failed'
+    // Simulated redirection
+    if (role.value === 'parent') {
+      router.push('/parent-dashboard')
+    } else {
+      router.push('/')
+    }
   } else {
-    localStorage.setItem('token', data.access_token)
-    if (data.redirect_to) router.push(data.redirect_to)
+    error.value = 'Please enter username and password'
   }
 }
 </script>

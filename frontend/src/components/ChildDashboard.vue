@@ -3,14 +3,14 @@
     <header class="dashboard-header">
       <div class="branding">
         <h2 class="greeting">Hi, <span class="username">{{ childName }}</span></h2>
-        </div>
-        <p class="greeting">Welcome to your Dashboard</p>
-      
+      </div>
+      <p class="greeting">Welcome to your Dashboard</p>
       <button @click="logout" class="logout-button">Logout</button>
     </header>
 
     <main class="main-content">
-      <!-- Future content can be added here -->
+      <!-- Future child content goes here -->
+      <p>This is your personal space to manage tasks, read stories, and more.</p>
     </main>
   </div>
 </template>
@@ -22,20 +22,10 @@ import { useRouter } from 'vue-router'
 const childName = ref('Child')
 const router = useRouter()
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  const res = await fetch('http://127.0.0.1:5000/child_dashboard', {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  })
-
-  const data = await res.json()
-  if (res.ok) {
-    childName.value = data.username || data.name
-  } else {
-    childName.value = 'Child'
-  }
+onMounted(() => {
+  // Dummy name retrieval from localStorage or static fallback
+  const storedName = localStorage.getItem('childName')
+  childName.value = storedName || 'Child'
 })
 
 const logout = () => {
@@ -77,11 +67,6 @@ const logout = () => {
 
 .username {
   color: #00f7ff;
-}
-
-.subtitle {
-  font-size: 1rem;
-  color: #cbd5e1;
 }
 
 .logout-button {

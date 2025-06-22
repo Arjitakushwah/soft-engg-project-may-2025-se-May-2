@@ -74,33 +74,26 @@ const form = ref({
   age: '',
   gender: 'Male'
 })
+
 const message = ref('')
 
+// Dynamically set class for success or error message
 const messageClass = computed(() => {
   if (message.value.includes('successfully')) return 'text-success'
   if (message.value) return 'text-danger'
   return ''
 })
 
-const addChild = async () => {
-  const token = localStorage.getItem('token')
-  const res = await fetch('http://127.0.0.1:5000/add-child', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}` 
-    },
-    body: JSON.stringify(form.value)
-  })
-
-  const data = await res.json()
-  if (res.ok) {
-    message.value = data.message
+const addChild = () => {
+  // Dummy logic to simulate success
+  if (form.value.username && form.value.password && form.value.name) {
+    console.log('Child added (dummy):', form.value)
+    message.value = 'Child profile added successfully! Redirecting...'
     setTimeout(() => {
-      router.push('/login')  
+      router.push('/parent-dashboard')
     }, 2000)
   } else {
-    message.value = data.error
+    message.value = 'Please fill in all required fields.'
   }
 }
 </script>

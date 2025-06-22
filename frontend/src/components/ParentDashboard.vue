@@ -2,16 +2,21 @@
   <div class="dashboard-container">
     <header class="dashboard-header">
       <h2>Hi {{ parentName }}</h2>
-      <h2 class="welcome">Welcome to your Parent Dashboard </h2>
+      <h2 class="welcome">Welcome to your Parent Dashboard</h2>
       <button @click="logout" class="logout-button">Logout</button>
     </header>
 
     <div class="dashboard-body">
       <aside class="sidebar">
         <router-link to="/add-child" class="sidebar-link">➕ Add Child</router-link>
+        <router-link to="/child-activity" class="sidebar-link">📊 View Child Activity</router-link>
+        <router-link to="/report" class="sidebar-link">📄 Monthly Reports</router-link>
       </aside>
 
-
+      <main class="main-content">
+        <h3>This is your dashboard overview (dummy)</h3>
+        <p>You can manage your child's profile, view journaling patterns, and access reports here.</p>
+      </main>
     </div>
   </div>
 </template>
@@ -20,16 +25,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const parentName = ref('')
+const parentName = ref('Parent') // Dummy name
 const router = useRouter()
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  const res = await fetch('http://127.0.0.1:5000/parent_dashboard', {
-    headers: { Authorization: `Bearer ${token}` }
-  })
-  const data = await res.json()
-  parentName.value = res.ok ? data.name || data.username : 'Parent'
+onMounted(() => {
+  // For now, simulate retrieving parent info (e.g., from localStorage or static)
+  const storedName = localStorage.getItem('parentName')
+  parentName.value = storedName || 'Parent'
 })
 
 const logout = () => {
@@ -76,9 +78,12 @@ const logout = () => {
 }
 
 .sidebar {
-  width: 200px;
+  width: 220px;
   background-color: #354f52;
   padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .sidebar-link {
@@ -105,19 +110,5 @@ const logout = () => {
   font-size: 1.8rem;
   margin-bottom: 1.5rem;
   color: #51ff97;
-}
-
-.action-button {
-  display: inline-block;
-  background-color: #457b9d;
-  color: white;
-  text-decoration: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-.action-button:hover {
-  background-color: #1d3557;
 }
 </style>

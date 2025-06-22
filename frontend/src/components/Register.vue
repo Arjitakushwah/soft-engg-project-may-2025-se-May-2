@@ -36,21 +36,24 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const form = ref({ name: '', username: '', email: '', password: '' })
+const form = ref({
+  name: '',
+  username: '',
+  email: '',
+  password: ''
+})
+
 const error = ref('')
 const router = useRouter()
 
-const registerParent = async () => {
-  const res = await fetch('http://127.0.0.1:5000/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(form.value)
-  })
-  const data = await res.json()
-  if (!res.ok) {
-    error.value = data.error || 'Registration failed'
-  } else {
+const registerParent = () => {
+  // Simulate successful registration
+  if (form.value.email && form.value.password) {
+    console.log('Dummy Register:', form.value)
+    alert('Registration successful (dummy)! Redirecting to login...')
     router.push('/login')
+  } else {
+    error.value = 'Please fill in all fields'
   }
 }
 </script>
