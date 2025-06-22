@@ -5,11 +5,14 @@ from config import Config
 from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
+from flask_cors import CORS
 
 
 # Initialize Flask app
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
+CORS(app)
+
 
 
 # Initialize database
