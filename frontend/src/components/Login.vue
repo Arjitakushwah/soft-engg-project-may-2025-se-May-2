@@ -36,17 +36,21 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
-const router = useRouter()
 const username = ref('')
 const password = ref('')
-const role = ref('parent')
+const role = ref('child') // default
 const error = ref('')
+const router = useRouter()
 
 const login = async () => {
   const res = await fetch('http://127.0.0.1:5000/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: username.value, password: password.value })
+    body: JSON.stringify({
+      username: username.value,
+      password: password.value,
+      role: role.value // ✅ Send role to backend
+    })
   })
 
   const data = await res.json()

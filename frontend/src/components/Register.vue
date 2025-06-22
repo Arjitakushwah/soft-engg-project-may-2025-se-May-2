@@ -22,6 +22,12 @@
 
       <!-- Error Message -->
       <p v-if="error" class="text-danger mt-3 text-center">{{ error }}</p>
+
+      <!-- Link to Login -->
+      <p class="text-center mt-4">
+        Already have an account?
+        <router-link to="/login" class="login-link">Login</router-link>
+      </p>
     </div>
   </div>
 </template>
@@ -68,5 +74,15 @@ const registerParent = async () => {
 
 .btn-success:hover {
   background-color: #218838;
+}
+
+.login-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.login-link:hover {
+  text-decoration: underline;
 }
 </style>
