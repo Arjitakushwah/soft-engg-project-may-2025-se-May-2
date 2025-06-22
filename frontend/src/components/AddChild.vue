@@ -90,7 +90,7 @@ const addChild = () => {
     console.log('Child added (dummy):', form.value)
     message.value = 'Child profile added successfully! Redirecting...'
     setTimeout(() => {
-      router.push('/parent-dashboard')
+      router.push('/parent_dashboard')
     }, 2000)
   } else {
     message.value = 'Please fill in all required fields.'

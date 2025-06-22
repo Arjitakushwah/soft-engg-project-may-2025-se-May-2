@@ -50,9 +50,9 @@ const login = () => {
 
     // Simulated redirection
     if (role.value === 'parent') {
-      router.push('/parent-dashboard')
+      router.push('/parent_dashboard')
     } else {
-      router.push('/')
+      router.push('/child_dashboard')
     }
   } else {
     error.value = 'Please enter username and password'
