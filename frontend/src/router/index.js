@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../components/HomePage.vue'
+
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import AddChild from '../components/AddChild.vue'
@@ -18,23 +19,6 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes
-})
-
-export default router
-
-import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '../components/HomePage.vue'
-
-const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/',
-      name: 'HomePage',
-      component: HomePage,
-    },
-    
-  ],
 })
 
 export default router
