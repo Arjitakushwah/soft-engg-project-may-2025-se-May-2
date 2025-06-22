@@ -143,6 +143,15 @@ def add_child(current_user_id, current_user_role):
         db.session.rollback()
         print("Error:", e)
         return jsonify({'error': 'SOmething wrong'}), 500
+#------------------------------------Get Parent Name---------------------------------------------------------
+@app.route('/api/parent-name', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_parent_name(current_user_id, current_user_role):
+    parent = Parent.query.get(current_user_id)
+    if not parent:
+        return jsonify({'error': 'Parent not found'}), 404
+    return jsonify({'name': parent.name})
+
     
 from api import *
 
