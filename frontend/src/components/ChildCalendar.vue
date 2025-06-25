@@ -4,25 +4,18 @@
       <div class="branding">
         <h2 class="greeting">Hi, <span class="username">{{ childName }}</span></h2>
         </div>
-        <p class="greeting">Welcome to your Dashboard</p>
+        <p class="greeting">Calendar Report</p>
       
       <button @click="logout" class="logout-button">Logout</button>
     </header>
 
     <main class="main-content">
       <!-- Future content can be added here -->
-       <div class="profile-box">
-          <div class="profile-header">{{ childName }}'s Profile</div>
-          <p><strong>Streak</strong></p>
-          <p>6 days</p>
-          <p><strong>Badges</strong></p>
-          <div class="stars">
-            <span class="star filled">★</span>
-            <span class="star filled">★</span>
-            <span class="star filled">★</span>
-            <span class="star">★</span>
-            <span class="star">★</span>
-          </div>
+       <div class="calendar-container">
+        <h2>Calendar Report</h2>
+        <FullCalendar
+            :options="calendarOptions"
+            />
         </div>
     </main>
   </div>
@@ -31,13 +24,30 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
 
 const childName = ref('Child')
 const router = useRouter()
+const calendarOptions = ref({
+  plugins: [dayGridPlugin],
+  initialView: 'dayGridMonth',
+  initialDate: '2025-06-01',
+  contentHeight: 400,
+  headerToolbar: {
+    left: 'prev,next today',
+    center: 'title',
+    right: ''
+  },
+  events: [
+    { title: 'Event 1', date: '2025-06-20' },
+    { title: 'Event 2', date: '2025-06-25' }
+  ]
+})
 
 onMounted(async () => {
   const token = localStorage.getItem('token')
-  const res = await fetch('http://127.0.0.1:5000/child_dashboard', {
+  const res = await fetch('http://127.0.0.1:5000/child_calendar', {
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -113,6 +123,40 @@ const logout = () => {
 }
 
 .main-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   padding: 2rem;
+  background-color: #f6f9fc;
+  min-height: calc(100vh - 100px); /* Adjust based on header height */
 }
+
+.calendar-container {
+  background: white;
+  padding: 16px;
+  max-width: 800px; 
+  width: 100%; 
+  color: black;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-sizing: border-box;
+}
+
+.fc {
+  font-size: 12px;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1rem;
+}
+
+.fc-daygrid-day-number {
+  font-size: 0.75rem;
+}
+
+.fc-event-title {
+  font-size: 0.7rem;
+}
+
 </style>

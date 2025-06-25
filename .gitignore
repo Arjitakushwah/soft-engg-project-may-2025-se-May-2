@@ -8,3 +8,4 @@ __pycache__/
 *.pyd
 *.pdb
 
+##npm install @fullcalendar/vue3 @fullcalendar/core @fullcalendar/daygrid
