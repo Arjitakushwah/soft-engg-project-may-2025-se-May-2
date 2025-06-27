@@ -1,11 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <header class="dashboard-header">
-      <h2>Hi {{ parentName }}</h2>
       <h2 class="welcome">Welcome to your Parent Dashboard </h2>
-      <button @click="logout" class="logout-button">Logout</button>
-    </header>
-
     <div class="dashboard-body">
       <aside class="sidebar">
         <router-link to="/add-child" class="sidebar-link">➕ Add Child</router-link>
@@ -46,28 +41,6 @@ const logout = () => {
   color: #333;
   display: flex;
   flex-direction: column;
-}
-
-.dashboard-header {
-  background-color: #2f3e46;
-  color: #ffffff;
-  padding: 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logout-button {
-  background-color: #ef476f;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-weight: bold;
-  cursor: pointer;
-}
-.logout-button:hover {
-  background-color: #d6325c;
 }
 
 .dashboard-body {

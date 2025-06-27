@@ -1,14 +1,5 @@
 <template>
   <div class="dashboard-container">
-    <header class="dashboard-header">
-      <div class="branding">
-        <h2 class="greeting">Hi, <span class="username">{{ childName }}</span></h2>
-        </div>
-        <p class="greeting">To-Do-Lisit</p>
-      
-      <button @click="logout" class="logout-button">Logout</button>
-    </header>
-
     <main class="main-content">
     <div class="task-box">
       <div class="task-header">
@@ -99,7 +90,6 @@ const tasks = ref([])
 function loadTasksForDate(date) {
   const key = getDateKey(date)
   if (!tasksByDate.value[key]) {
-    // If no task exists for the date, initialize with default tasks
     tasksByDate.value[key] = defaultTasks.map(task => ({ ...task }))
   }
   tasks.value = tasksByDate.value[key]
@@ -135,7 +125,7 @@ function addTask() {
   if (newTask.value.trim()) {
     const taskObj = { name: newTask.value.trim(), completed: false }
     tasksByDate.value[key].push(taskObj)
-    tasks.value = tasksByDate.value[key]  // refresh tasks list
+    tasks.value = tasksByDate.value[key]  
     newTask.value = ''
   }
 }
@@ -164,15 +154,9 @@ onMounted(async () => {
   } else {
     childName.value = 'Child'
   }
-
-  // Initial task load
   loadTasksForDate(currentDate.value)
 })
 
-const logout = () => {
-  localStorage.clear()
-  router.push('/login')
-}
 </script>
 
 
@@ -184,51 +168,6 @@ const logout = () => {
   color: #333;
   display: flex;
   flex-direction: column;
-}
-
-.dashboard-header {
-  background-color: #1e1e2f;
-  color: white;
-  padding: 1.5rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.branding {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.greeting {
-  font-size: 1.6rem;
-  margin: 0;
-}
-
-.username {
-  color: #00f7ff;
-}
-
-.subtitle {
-  font-size: 1rem;
-  color: #cbd5e1;
-}
-
-.logout-button {
-  background-color: #ff4757;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.logout-button:hover {
-  background-color: #e63946;
 }
 
 .main-content {

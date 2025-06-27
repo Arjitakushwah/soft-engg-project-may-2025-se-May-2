@@ -1,14 +1,5 @@
 <template>
   <div class="dashboard-container">
-    <header class="dashboard-header">
-      <div class="branding">
-        <h2 class="greeting">Hi, <span class="username">{{ childName }}</span></h2>
-        </div>
-        <p class="greeting">Calendar Report</p>
-      
-      <button @click="logout" class="logout-button">Logout</button>
-    </header>
-
     <main class="main-content">
       <!-- Future content can be added here -->
        <div class="calendar-container">
@@ -16,19 +7,16 @@
         <FullCalendar
             :options="calendarOptions"
             />
-            <!-- Tasks Box Right to Calendar -->
-<div v-if="selectedTasks.length" class="task-box">
-  <h3>Tasks for {{ selectedDate }}</h3>
-  <ul>
-    <li v-for="(task, index) in selectedTasks" :key="index">
-      <span v-if="selectedDate < today">{{ task.status === 'completed' ? '✅' : '❌' }}</span>
-      <span v-else-if="selectedDate === today">🟡</span>
-      {{ task.title }}
-    </li>
-  </ul>
-</div>
-
-          
+          <div v-if="selectedTasks.length" class="task-box">
+            <h3>Tasks for {{ selectedDate }}</h3>
+            <ul>
+              <li v-for="(task, index) in selectedTasks" :key="index">
+                <span v-if="selectedDate < today">{{ task.status === 'completed' ? '✅' : '❌' }}</span>
+                <span v-else-if="selectedDate === today">🟡</span>
+                {{ task.title }}
+              </li>
+            </ul>
+          </div>
         </div>
     </main>
   </div>
@@ -52,21 +40,14 @@ const childName = ref('Child')
 const router = useRouter()
 const selectedDate = ref('')
 const selectedTasks = ref([])
-
-
-// Get today as 'YYYY-MM-DD'
 const today = new Date().toISOString().split('T')[0]
-
-// Get all dates with at least one task
 const groupedDates = [...new Set(rawEvents.map(e => e.date))]
 
-// Show "Tasks" label on calendar
 const simplifiedEvents = groupedDates.map(date => ({
   title: 'Tasks',
   date,
   status: 'grouped'
 }))
-
 
 const calendarOptions = ref({
   plugins: [dayGridPlugin],
@@ -87,7 +68,6 @@ const calendarOptions = ref({
   eventClick: function(info) {
   const date = info.event.startStr
 
-  // If same date clicked again, toggle visibility
   if (selectedDate.value === date && selectedTasks.value.length > 0) {
     selectedTasks.value = []
     selectedDate.value = ''
@@ -117,11 +97,6 @@ onMounted(async () => {
   }
 })
 
-const logout = () => {
-  localStorage.clear()
-  router.push('/login')
-}
-
 </script>
 
 <style scoped>
@@ -134,50 +109,6 @@ const logout = () => {
   flex-direction: column;
 }
 
-.dashboard-header {
-  background-color: #1e1e2f;
-  color: white;
-  padding: 1.5rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.branding {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.greeting {
-  font-size: 1.6rem;
-  margin: 0;
-}
-
-.username {
-  color: #00f7ff;
-}
-
-.subtitle {
-  font-size: 1rem;
-  color: #cbd5e1;
-}
-
-.logout-button {
-  background-color: #ff4757;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.logout-button:hover {
-  background-color: #e63946;
-}
 
 .main-content {
   display: flex;

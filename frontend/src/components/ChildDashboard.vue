@@ -1,14 +1,8 @@
 <template>
   <div class="dashboard-container">
-    <header class="dashboard-header">
-      <div class="branding">
-        <h2 class="greeting">Hi, <span class="username">{{ childName }}</span></h2>
-        </div>
-        <p class="greeting">Welcome to your Dashboard</p>
-      
-      <button @click="logout" class="logout-button">Logout</button>
-    </header>
-
+    <div class="center-section">
+      <p class="welcome-text">Welcome to your Dashboard</p>
+    </div>
     <main class="main-content">
       <div class="cards-grid">
         <!-- Child Name Box -->
@@ -62,10 +56,6 @@ onMounted(async () => {
   }
 })
 
-const logout = () => {
-  localStorage.clear()
-  router.push('/login')
-}
 </script>
 
 <style scoped>

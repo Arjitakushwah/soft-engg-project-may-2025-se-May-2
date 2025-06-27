@@ -22,7 +22,7 @@ export default {
   },
   computed: {
     isAuthRoute() {
-      return ['/login', '/register'].includes(this.$route.path);
+      return ['/', '/login', '/register'].includes(this.$route.path);
     },
   },
 };
