@@ -13,44 +13,41 @@
       <!-- Future content can be added here -->
        <div class="profile-box">
           <div class="profile-header">{{ childName }}'s Profile</div>
-            <div class="quiz-page">
-            <h2 v-if="storyTitle">Quiz on "{{ storyTitle }}"</h2>
-            <p v-else>Please go to the story page and click on Quiz to start.</p>
+            <div class="quiz-page" v-if="storyTitle && question.text">
+            <h2>Quiz on "{{ storyTitle }}"</h2>
+            <p><strong>Q:</strong> {{ question.text }}</p>
 
-            <div v-if="storyTitle" v-for="(q, index) in questions" :key="index" class="question-block">
-            <p><strong>Q{{ index + 1 }}:</strong> {{ q.question }}</p>
             <div class="options">
-                <div
-                v-for="(opt, i) in q.options"
-                :key="i"
+              <div
+                v-for="(opt, index) in question.options"
+                :key="index"
                 class="option-row"
                 :class="{
-                    'correct-answer': submitted && opt === q.answer,
-                    'wrong-answer': submitted && q.selected === opt && q.selected !== q.answer
+                  'correct-answer': submitted && opt === question.answer,
+                  'wrong-answer': submitted && question.selected === opt && question.selected !== question.answer
                 }"
-                >
+              >
                 <label>
-                    <input
+                  <input
                     type="radio"
-                    :name="'q' + index"
                     :value="opt"
-                    v-model="q.selected"
+                    v-model="question.selected"
                     :disabled="submitted"
-                    />
-                    {{ opt }}
+                  />
+                  {{ opt }}
                 </label>
-                </div>
+              </div>
             </div>
-            <div v-if="submitted && q.selected !== q.answer" class="explanation">
-                Correct Answer: <strong>{{ q.answer }}</strong>
-            </div>
+
+            <div v-if="submitted && question.selected !== question.answer" class="explanation">
+              Correct Answer: <strong>{{ question.answer }}</strong>
             </div>
 
             <div v-if="storyTitle" class="btn-group">
-            <button @click="router.back()">Back</button>
-            <button @click="submitted = true">Submit</button>
+              <button @click="router.back()">Back</button>
+              <button @click="submitted = true" :disabled="!question.selected">Submit</button>
             </div>
-            </div>
+          </div>
         </div>
     </main>
   </div>
@@ -62,45 +59,20 @@ import { useRouter, useRoute } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
-const submitted = ref(false)
+const questionText = ref(route.query.question || '')
 const storyTitle = ref(route.query.story || '')
+const rawQuestion = ref(route.query.question ? JSON.parse(route.query.question) : null)
+const submitted = ref(false)
 const childName = ref('Child')
 
+// prepare one question
+const question = ref({
+  text: rawQuestion.value?.text || '',
+  options: rawQuestion.value?.options || [],
+  answer: rawQuestion.value?.answer || '',
+  selected: ''
+})
 
-
-// Example fixed question list (you can customize this)
-const questions = ref([
-  {
-    question: 'What did the character discover?',
-    options: ['A treasure', 'A magical book', 'A spaceship', 'A secret door'],
-    answer: 'A magical book',
-    selected: ''
-  },
-  {
-    question: 'What kind of animals did they meet?',
-    options: ['Robots', 'Talking animals', 'Aliens', 'Pirates'],
-    answer: 'Talking animals',
-    selected: ''
-  },
-  {
-    question: 'What did the character learn?',
-    options: ['Greed', 'Revenge', 'Compassion', 'Silence'],
-    answer: 'Compassion',
-    selected: ''
-  },
-  {
-    question: 'How did the journey end?',
-    options: ['They were trapped forever', 'They returned wiser', 'They lost the book', 'They forgot everything'],
-    answer: 'They returned wiser',
-    selected: ''
-  },
-  {
-    question: 'What was the main theme?',
-    options: ['Magic and mischief', 'Honesty and courage', 'Adventure and learning', 'Fear and darkness'],
-    answer: 'Adventure and learning',
-    selected: ''
-  }
-])
 
 onMounted(async () => {
   const token = localStorage.getItem('token')

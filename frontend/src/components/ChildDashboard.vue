@@ -10,12 +10,22 @@
     </header>
 
     <main class="main-content">
-      <!-- Future content can be added here -->
-       <div class="profile-box">
-          <div class="profile-header">{{ childName }}'s Profile</div>
-          <p><strong>Streak</strong></p>
-          <p>6 days</p>
-          <p><strong>Badges</strong></p>
+      <div class="cards-grid">
+        <!-- Child Name Box -->
+        <div class="card name-card">
+          <h3>Profile</h3>
+          <p><strong>Name:</strong> {{ childName }}</p>
+        </div>
+
+        <!-- Number Card -->
+        <div class="card number-card">
+          <h3>Streak</h3>
+          <p class="number">5</p>
+        </div>
+
+        <!-- Stars / Badges Card -->
+        <div class="card badge-card">
+          <h3>Badges Earned</h3>
           <div class="stars">
             <span class="star filled">★</span>
             <span class="star filled">★</span>
@@ -24,6 +34,7 @@
             <span class="star">★</span>
           </div>
         </div>
+      </div>
     </main>
   </div>
 </template>
@@ -115,4 +126,51 @@ const logout = () => {
 .main-content {
   padding: 2rem;
 }
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.name-card h3,
+.number-card h3,
+.badge-card h3 {
+  margin-bottom: 0.8rem;
+  color: #333;
+}
+
+.number {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #0077ff;
+}
+
+.stars {
+  font-size: 1.8rem;
+  color: #f5c518;
+}
+
+.star {
+  color: #ccc;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
 </style>

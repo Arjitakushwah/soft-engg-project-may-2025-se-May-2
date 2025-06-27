@@ -12,14 +12,21 @@
     <main class="main-content">
     <div class="task-box">
       <div class="task-header">
-        <h3>{{ todayDate }}</h3>
-            <input
-                v-model="newTask"
-                placeholder="Add new Task"
-                class="task-button-input"
-                @keyup.enter="addTask"
-            />
+      <div class="date-nav">
+        <button @click="goToPreviousDay" class="nav-arrow">&lt;</button>
+        <span class="date-text">{{ todayDate }}</span>
+        <button @click="goToNextDay" class="nav-arrow">&gt;</button>
       </div>
+
+      <input
+        v-model="newTask"
+        placeholder="Add new Task"
+        class="task-button-input"
+        @keyup.enter="addTask"
+        :disabled="!isCurrentDateToday"
+      />
+    </div>
+
 
       <p><strong>Tasks for today</strong></p>
 
@@ -27,11 +34,20 @@
         <span>{{ task.name }}</span>
         <button
           :class="task.completed ? 'completed' : 'pending'"
-          @click="toggleTask(index)"
+          @click="isCurrentDateToday && toggleTask(index)"
+          :disabled="!isCurrentDateToday"
         >
           {{ task.completed ? 'Completed' : 'Pending' }}
         </button>
-        <button class="delete-btn" @click="deleteTask(index)">Delete</button>
+
+        <button
+          class="delete-btn"
+          @click="isCurrentDateToday && deleteTask(index)"
+          :disabled="!isCurrentDateToday"
+        >
+          Delete
+        </button>
+
       </div>
     </div>
   </main>
@@ -42,23 +58,84 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+// Format helper
+function formatDate(date) {
+  return date.toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+function getDateKey(date) {
+  return date.toISOString().split('T')[0]
+}
+
 const childName = ref('Child')
 const router = useRouter()
-const today = new Date()
-const options = { day: 'numeric', month: 'long', year: 'numeric' }
-const todayDate = today.toLocaleDateString('en-GB', options)
+
+const currentDate = ref(new Date())
+const todayDate = ref(formatDate(currentDate.value))
+const isCurrentDateToday = ref(isToday(currentDate.value))
+
+
 const newTask = ref('')
-const tasks = ref([
-  { name: 'School', completed: true },
-  { name: 'Lunch', completed: true },
+
+// Default template tasks
+const defaultTasks = [
+  { name: 'School', completed: false },
+  { name: 'Lunch', completed: false },
   { name: 'Homework', completed: false },
   { name: 'Tuition', completed: false },
   { name: 'Football', completed: false }
-])
+]
+
+// Object to store tasks by date
+const tasksByDate = ref({
+  [getDateKey(currentDate.value)]: defaultTasks.map(task => ({ ...task }))  // clone
+})
+
+const tasks = ref([])
+
+function loadTasksForDate(date) {
+  const key = getDateKey(date)
+  if (!tasksByDate.value[key]) {
+    // If no task exists for the date, initialize with default tasks
+    tasksByDate.value[key] = defaultTasks.map(task => ({ ...task }))
+  }
+  tasks.value = tasksByDate.value[key]
+  todayDate.value = formatDate(date)
+  isCurrentDateToday.value = isToday(date)
+}
+
+function isToday(date) {
+  const today = new Date()
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  )
+}
+
+function goToPreviousDay() {
+  currentDate.value.setDate(currentDate.value.getDate() - 1)
+  loadTasksForDate(currentDate.value)
+}
+
+function goToNextDay() {
+  currentDate.value.setDate(currentDate.value.getDate() + 1)
+  loadTasksForDate(currentDate.value)
+}
 
 function addTask() {
+  const key = getDateKey(currentDate.value)
+  if (!tasksByDate.value[key]) {
+    tasksByDate.value[key] = []
+  }
+
   if (newTask.value.trim()) {
-    tasks.value.push({ name: newTask.value.trim(), completed: false })
+    const taskObj = { name: newTask.value.trim(), completed: false }
+    tasksByDate.value[key].push(taskObj)
+    tasks.value = tasksByDate.value[key]  // refresh tasks list
     newTask.value = ''
   }
 }
@@ -68,9 +145,10 @@ function toggleTask(index) {
 }
 
 function deleteTask(index) {
+  const key = getDateKey(currentDate.value)
+  tasksByDate.value[key].splice(index, 1)
   tasks.value.splice(index, 1)
 }
-
 
 onMounted(async () => {
   const token = localStorage.getItem('token')
@@ -86,6 +164,9 @@ onMounted(async () => {
   } else {
     childName.value = 'Child'
   }
+
+  // Initial task load
+  loadTasksForDate(currentDate.value)
 })
 
 const logout = () => {
@@ -93,6 +174,7 @@ const logout = () => {
   router.push('/login')
 }
 </script>
+
 
 <style scoped>
 .dashboard-container {
@@ -175,40 +257,46 @@ const logout = () => {
 .task-button-input {
   border: 1px solid #000;
   background-color: #cce0ff;
-  padding: 6px 12px;
+  padding: 4px 10px;               /* Smaller padding */
   font-weight: bold;
   font-family: inherit;
-  font-size: 14px;
-  width: 160px;
+  font-size: 13px;                 /* Slightly smaller text */
+  width: 120px;                    /* Slightly smaller width */
+  border-radius: 8px;              /* Rounded corners */
   text-align: center;
   cursor: text;
 }
 
 .task-row {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 120px 80px; /* 3 columns: name, status, delete */
   align-items: center;
+  gap: 10px;
   margin: 0.5rem 0;
-  font-size: 1rem;
+}
+
+.pending,
+.completed {
+  width: 100px;            /* consistent width */
+  text-align: center;      /* center the text */
+  padding: 6px 0;          /* equal vertical padding */
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
 }
 
 .pending {
   background-color: red;
   color: white;
-  border: none;
-  padding: 4px 12px;
-  cursor: pointer;
-  font-weight: bold;
 }
 
 .completed {
   background-color: green;
   color: white;
-  border: none;
-  padding: 4px 12px;
-  cursor: pointer;
-  font-weight: bold;
 }
+
 
 .task-actions {
   display: flex;
@@ -227,6 +315,33 @@ const logout = () => {
 
 .delete-btn:hover {
   background-color: #555;
+}
+
+.back-arrow {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  margin-right: 10px;
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.nav-arrow {
+  background: none;
+  border: 1px solid #333;
+  font-size: 0.9rem;       /* smaller text */
+  padding: 2px 6px;        /* smaller button box */
+  margin: 0 6px;
+  border-radius: 4px;      /* slightly rounded */
+  cursor: pointer;
+  color: #333;
+  background-color: #f0f0f0;
 }
 
 

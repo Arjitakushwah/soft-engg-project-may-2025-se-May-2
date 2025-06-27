@@ -15,24 +15,16 @@
           <div class="profile-header">{{ childName }}'s Profile</div>
           <div class="story-container">
                 <div class="input-header">
-                <input
-                    v-model="storyTitle"
-                    placeholder="Enter story title"
-                    @keyup.enter="generateStory"
-                    class="input-as-button"
-                />
-                </div>
+                <button @click="generateStory" class="input-as-button">
+                  I want a new story
+                </button>
+              </div>
 
-                <div v-if="displayTitle" class="story-card">
-                    <h3>{{ displayTitle }}</h3>
-                    <p>{{ storyContent }}</p>
-                    <button
-                        class="quiz-btn"
-                        @click="goToQuiz"
-                        >
-                        Quiz
-                    </button>
-                </div>
+              <div v-if="displayTitle" class="story-card">
+                <h3>{{ displayTitle }}</h3>
+                <p>{{ storyContent }}</p>
+                <button class="quiz-btn" @click="goToQuiz">Quiz</button>
+              </div>
             </div>
         </div>
     </main>
@@ -48,18 +40,52 @@ const childName = ref('Child')
 const storyTitle = ref('')
 const displayTitle = ref('')
 const storyContent = ref('')
+const selectedQuestion = ref('')
 
+
+
+const storyQuestion = ref('')
+const storyList = [
+  {
+    title: 'The Lost Marble',
+    content: name => `One day, ${name} found a shiny red marble on the school playground. They knew it wasn’t theirs, but they liked it so much that they slipped it into their pocket. Later, their friend Ravi was sad—he had lost his favorite marble. ${name} felt a twist in the tummy. At home, they told their mom, who gently said, “Being honest is always the right choice.” The next day, ${name} returned the marble to Ravi and said sorry. Ravi smiled and forgave them. ${name} felt light and happy.`,
+    question: {
+      text: 'What lesson did the child learn from the marble incident?',
+      options: ['Be sneaky', 'Be honest', 'Take things quietly', 'Keep secrets'],
+      answer: 'Be honest'
+    }
+  },
+  {
+    title: 'The Broken Toy',
+    content: name => `${name} borrowed a toy from their friend but accidentally broke it. They felt bad and didn’t know what to do. Finally, they told the truth to their friend and offered to fix it. Their friend appreciated the honesty.`,
+    question: {
+      text: 'How did the child handle breaking the toy?',
+      options: ['Ignored it', 'Blamed someone else', 'Told the truth', 'Hid the toy'],
+      answer: 'Told the truth'
+    }
+  }
+]
+
+let currentIndex = 0
 
 function generateStory() {
-  if (storyTitle.value.trim()) {
-    displayTitle.value = storyTitle.value.trim()
-    storyContent.value = `One day, ${name} found a shiny red marble on the school playground. They knew it wasn’t theirs, but they liked it so much that they slipped it into their pocket. Later, their friend Ravi was sad—he had lost his favorite marble. ${name} felt a twist in the tummy. At home, they told their mom, who gently said, “Being honest is always the right choice.” The next day, ${name} returned the marble to Ravi and said sorry. Ravi smiled and forgave them. ${name} felt light and happy.`
-    storyTitle.value = ''
-  }
+  const story = storyList[currentIndex % storyList.length]
+  displayTitle.value = story.title
+  storyContent.value = story.content(childName.value)
+
+  // pass question details to quiz
+  selectedQuestion.value = JSON.stringify(story.question)
+  currentIndex++
 }
 
 function goToQuiz() {
-  router.push({ name: 'QuizPage', query: { story: displayTitle.value } })
+  router.push({
+    name: 'QuizPage',
+    query: {
+      story: displayTitle.value,
+      question: selectedQuestion.value
+    }
+  })
 }
 
 onMounted(async () => {

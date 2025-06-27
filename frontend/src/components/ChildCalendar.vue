@@ -16,6 +16,19 @@
         <FullCalendar
             :options="calendarOptions"
             />
+            <!-- Tasks Box Right to Calendar -->
+<div v-if="selectedTasks.length" class="task-box">
+  <h3>Tasks for {{ selectedDate }}</h3>
+  <ul>
+    <li v-for="(task, index) in selectedTasks" :key="index">
+      <span v-if="selectedDate < today">{{ task.status === 'completed' ? '✅' : '❌' }}</span>
+      <span v-else-if="selectedDate === today">🟡</span>
+      {{ task.title }}
+    </li>
+  </ul>
+</div>
+
+          
         </div>
     </main>
   </div>
@@ -27,22 +40,63 @@ import { useRouter } from 'vue-router'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 
+// Static sample data
+const rawEvents = [
+  { title: 'Math Quiz', date: '2025-06-20', status: 'completed' },
+  { title: 'Science Homework', date: '2025-06-20', status: 'pending' },
+  { title: 'Reading Task', date: '2025-06-20', status: 'not_completed' },
+  { title: 'Drawing', date: '2025-06-26', status: 'pending' },
+]
+
 const childName = ref('Child')
 const router = useRouter()
+const selectedDate = ref('')
+const selectedTasks = ref([])
+
+
+// Get today as 'YYYY-MM-DD'
+const today = new Date().toISOString().split('T')[0]
+
+// Get all dates with at least one task
+const groupedDates = [...new Set(rawEvents.map(e => e.date))]
+
+// Show "Tasks" label on calendar
+const simplifiedEvents = groupedDates.map(date => ({
+  title: 'Tasks',
+  date,
+  status: 'grouped'
+}))
+
+
 const calendarOptions = ref({
   plugins: [dayGridPlugin],
   initialView: 'dayGridMonth',
   initialDate: '2025-06-01',
-  contentHeight: 400,
+  contentHeight: 300,
   headerToolbar: {
     left: 'prev,next today',
     center: 'title',
     right: ''
   },
-  events: [
-    { title: 'Event 1', date: '2025-06-20' },
-    { title: 'Event 2', date: '2025-06-25' }
-  ]
+  events: simplifiedEvents,
+  eventContent: function(arg) {
+    return {
+      html: `<div style="color: black; font-weight: bold;">${arg.event.title}</div>`
+    }
+  },
+  eventClick: function(info) {
+  const date = info.event.startStr
+
+  // If same date clicked again, toggle visibility
+  if (selectedDate.value === date && selectedTasks.value.length > 0) {
+    selectedTasks.value = []
+    selectedDate.value = ''
+  } else {
+    selectedDate.value = date
+    selectedTasks.value = rawEvents.filter(e => e.date === date)
+  }
+}
+
 })
 
 onMounted(async () => {
@@ -56,6 +110,8 @@ onMounted(async () => {
   const data = await res.json()
   if (res.ok) {
     childName.value = data.username || data.name
+    // If dynamic events:
+    // rawEvents.value = data.events
   } else {
     childName.value = 'Child'
   }
@@ -65,6 +121,7 @@ const logout = () => {
   localStorage.clear()
   router.push('/login')
 }
+
 </script>
 
 <style scoped>
@@ -133,8 +190,8 @@ const logout = () => {
 
 .calendar-container {
   background: white;
-  padding: 16px;
-  max-width: 800px; 
+  padding: 10px;
+  max-width: 300px; 
   width: 100%; 
   color: black;
   margin: 0 auto;
@@ -158,5 +215,37 @@ const logout = () => {
 .fc-event-title {
   font-size: 0.7rem;
 }
+
+.fc-daygrid-event {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.task-box {
+  position: absolute;
+  top: 180px; /* adjust as needed */
+  left: 350px; /* adjust as needed */
+  width: 250px;
+  padding: 10px;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.task-box h3 {
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+.task-box ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+.task-box li {
+  margin: 0.5rem 0;
+}
+
 
 </style>

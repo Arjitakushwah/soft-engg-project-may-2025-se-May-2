@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../components/HomePage.vue'
-
+import Navbar from '../components/Navbar.vue'
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
 import AddChild from '../components/AddChild.vue'
@@ -14,6 +14,7 @@ import QuizPage from '../components/QuizPage.vue'
 
 const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
+  { path: '/navbar', name: 'Navbar', component: Navbar },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
   { path: '/add-child', name: 'AddChild', component: AddChild },
