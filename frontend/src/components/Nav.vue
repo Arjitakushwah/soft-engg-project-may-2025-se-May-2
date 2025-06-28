@@ -66,9 +66,7 @@ const logout = () => {
 
 <style scoped>
 .navbar {
-  background-color: #f4cfc5 !important; /* Light blue */
-  border-bottom: 1px solid #cbd5e1;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  background-color: #f0eae9 !important; /* Light blue */
 }
 
 .app-title {
@@ -87,26 +85,43 @@ const logout = () => {
 
 /* Buttons */
 .btn-outline-primary {
+  background-color:white;
   border-color: #3b82f6;
-  color: #3b82f6;
+  color: #ff6a88;
+  border: none;
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-family: 'Fredoka One', cursive;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
 }
 
 .btn-outline-primary:hover {
-  background-color: #3b82f6;
-  color: white;
+  transform: scale(1.05);
+  background-color: #faf2f4;
 }
 
 .btn-primary {
-  background-color: #3b82f6;
+  background-color:white;
   border-color: #3b82f6;
+  color: #ff6a88;
+  border: none;
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-family: 'Fredoka One', cursive;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
 }
 
 .btn-primary:hover {
-  background-color: #2563eb;
-  border-color: #2563eb;
+  transform: scale(1.05);
+  background-color: #faf2f4;
 }
 
 .btn-outline-success {
+  background: white;
   border-color: #1e3a8a;
   color: #1e3a8a;
 }

@@ -56,8 +56,8 @@ onMounted(() => {
   flex-grow: 1;
   padding: 30px;
   overflow-y: auto;
-  background-color: #ffffff; /* example: white background */
-  color: #1e293b; /* optional: adjust text color */
+  background-color: #ffffff; 
+  color: #1e293b; 
 }
 
 </style>

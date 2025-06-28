@@ -63,7 +63,7 @@
   
   onMounted(async () => {
     const token = localStorage.getItem('token')
-    const res = await fetch('http://127.0.0.1:5000/child_story', {
+    const res = await fetch('', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
