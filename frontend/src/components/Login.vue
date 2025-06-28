@@ -1,33 +1,37 @@
+<!-- src/components/Login.vue -->
 <template>
-  <div class="login-container container mt-5">
-    <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
-      <h2 class="text-center mb-4">Login</h2>
+  <div>
+    <NavBar />
 
-      <!-- Role Selection -->
-      <div class="mb-3 d-flex justify-content-center gap-3">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
-          <label class="form-check-label" for="roleParent">Parent</label>
+    <div class="login-container container mt-5">
+      <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
+        <h2 class="text-center mb-4">Login</h2>
+
+        <!-- Role Selection -->
+        <div class="mb-3 d-flex justify-content-center gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
+            <label class="form-check-label" for="roleParent">Parent</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" value="child" v-model="role" id="roleChild" />
+            <label class="form-check-label" for="roleChild">Child</label>
+          </div>
         </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" value="child" v-model="role" id="roleChild" />
-          <label class="form-check-label" for="roleChild">Child</label>
-        </div>
+
+        <!-- Login Form -->
+        <form @submit.prevent="login">
+          <div class="mb-3">
+            <input type="text" class="form-control" v-model="username" placeholder="Username" required />
+          </div>
+          <div class="mb-3">
+            <input type="password" class="form-control" v-model="password" placeholder="Password" required />
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Login as {{ role }}</button>
+        </form>
+
+        <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
       </div>
-
-      <!-- Login Form -->
-      <form @submit.prevent="login">
-        <div class="mb-3">
-          <input type="text" class="form-control" v-model="username" placeholder="Username" required />
-        </div>
-        <div class="mb-3">
-          <input type="password" class="form-control" v-model="password" placeholder="Password" required />
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login as {{ role }}</button>
-      </form>
-
-      <!-- Error Message -->
-      <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
     </div>
   </div>
 </template>
@@ -35,30 +39,36 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import NavBar from '@/components/Nav.vue'
 
 const username = ref('')
 const password = ref('')
-const role = ref('child') // default role
+const role = ref('parent') // default to parent
 const error = ref('')
 const router = useRouter()
 
 const login = () => {
-  // Dummy login check – allow anything for now
   if (username.value && password.value) {
-    console.log(`Logged in as ${role.value}: ${username.value}`)
-    alert(`Login successful as ${role.value}! Redirecting...`)
+    // Dummy logic for login
+    localStorage.setItem('userRole', role.value)
+    localStorage.setItem('username', username.value)
 
-    // Simulated redirection
     if (role.value === 'parent') {
+      // Save dummy parent info
+      localStorage.setItem('parent', JSON.stringify({
+        username: username.value,
+        name: username.value
+      }))
       router.push('/parent_dashboard')
     } else {
       router.push('/child_dashboard')
     }
   } else {
-    error.value = 'Please enter username and password'
+    error.value = 'Please enter both username and password'
   }
 }
 </script>
+
 
 <style scoped>
 .login-container {
@@ -82,3 +92,4 @@ const login = () => {
   background-color: #ff4870;
 }
 </style>
+

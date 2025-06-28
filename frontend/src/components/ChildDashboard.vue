@@ -1,17 +1,19 @@
+<!-- src/views/ChildDashboard.vue -->
 <template>
-  <div class="dashboard-container">
-    <header class="dashboard-header">
-      <div class="branding">
-        <h2 class="greeting">Hi, <span class="username">{{ childName }}</span></h2>
-      </div>
-      <p class="greeting">Welcome to your Dashboard</p>
-      <button @click="logout" class="logout-button">Logout</button>
-    </header>
+  <div class="dashboard-wrapper">
+    <!-- Navbar -->
+    <NavBar />
 
-    <main class="main-content">
-      <!-- Future child content goes here -->
-      <p>This is your personal space to manage tasks, read stories, and more.</p>
-    </main>
+    <!-- Layout -->
+    <div class="layout-body">
+      <!-- Sidebar -->
+      <Sidebar :role="role" @navigate="navigateToPage" />
+
+      <!-- Dynamic Main Content -->
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
   </div>
 </template>
 
@@ -19,72 +21,43 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const childName = ref('Child')
+// Components
+import NavBar from '@/components/Nav.vue'
+import Sidebar from '@/components/Sidebar.vue'
+
+const role = 'child'
 const router = useRouter()
 
-onMounted(() => {
-  // Dummy name retrieval from localStorage or static fallback
-  const storedName = localStorage.getItem('childName')
-  childName.value = storedName || 'Child'
-})
-
-const logout = () => {
-  localStorage.clear()
-  router.push('/login')
+// Used by Sidebar to navigate to the correct child route
+const navigateToPage = (page) => {
+  router.push({ name: page })
 }
+
+onMounted(() => {
+  const storedName = localStorage.getItem('username') || 'Child'
+})
 </script>
 
 <style scoped>
-.dashboard-container {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #f6f9fc;
-  min-height: 100vh;
-  color: #333;
+.dashboard-wrapper {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  font-family: 'Comic Neue', sans-serif;
 }
 
-.dashboard-header {
-  background-color: #1e1e2f;
-  color: white;
-  padding: 1.5rem 2rem;
+.layout-body {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.branding {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.greeting {
-  font-size: 1.6rem;
-  margin: 0;
-}
-
-.username {
-  color: #00f7ff;
-}
-
-.logout-button {
-  background-color: #ff4757;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-.logout-button:hover {
-  background-color: #e63946;
+  flex: 1;
+  background-color: #f3f4f6;
 }
 
 .main-content {
-  padding: 2rem;
+  flex-grow: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background-color: #ffffff; /* example: white background */
+  color: #1e293b; /* optional: adjust text color */
 }
+
 </style>

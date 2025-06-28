@@ -5,45 +5,17 @@
 
       <form @submit.prevent="addChild">
         <div class="mb-3">
-          <input
-            v-model="form.username"
-            type="text"
-            class="form-control"
-            placeholder="Child Username"
-            required
-          />
+          <input v-model="form.username" type="text" class="form-control" placeholder="Child Username" required />
         </div>
-
         <div class="mb-3">
-          <input
-            v-model="form.password"
-            type="password"
-            class="form-control"
-            placeholder="Child Password"
-            required
-          />
+          <input v-model="form.password" type="password" class="form-control" placeholder="Child Password" required />
         </div>
-
         <div class="mb-3">
-          <input
-            v-model="form.name"
-            type="text"
-            class="form-control"
-            placeholder="Child Name"
-            required
-          />
+          <input v-model="form.name" type="text" class="form-control" placeholder="Child Name" required />
         </div>
-
         <div class="mb-3">
-          <input
-            v-model="form.age"
-            type="number"
-            class="form-control"
-            placeholder="Child Age"
-            required
-          />
+          <input v-model="form.age" type="number" class="form-control" placeholder="Child Age" required />
         </div>
-
         <div class="mb-4">
           <select v-model="form.gender" class="form-select" required>
             <option disabled value="">Select Gender</option>
@@ -62,7 +34,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -72,12 +44,23 @@ const form = ref({
   password: '',
   name: '',
   age: '',
-  gender: 'Male'
+  gender: ''
 })
 
 const message = ref('')
+const parentUsername = ref('')
 
-// Dynamically set class for success or error message
+onMounted(() => {
+  const role = localStorage.getItem('userRole')
+  const parent = JSON.parse(localStorage.getItem('parent'))
+
+  if (role !== 'parent' || !parent) {
+    router.push('/login')
+  }
+
+  parentUsername.value = parent.username
+})
+
 const messageClass = computed(() => {
   if (message.value.includes('successfully')) return 'text-success'
   if (message.value) return 'text-danger'
@@ -85,15 +68,31 @@ const messageClass = computed(() => {
 })
 
 const addChild = () => {
-  // Dummy logic to simulate success
-  if (form.value.username && form.value.password && form.value.name) {
-    console.log('Child added (dummy):', form.value)
-    message.value = 'Child profile added successfully! Redirecting...'
+  if (form.value.username && form.value.password && form.value.name && form.value.age && form.value.gender) {
+    const newChild = {
+      id: Date.now(),
+      ...form.value,
+      parentUsername: parentUsername.value
+    }
+
+    const existing = JSON.parse(localStorage.getItem('childList')) || []
+    existing.push(newChild)
+    localStorage.setItem('childList', JSON.stringify(existing))
+
+    message.value = 'Child profile added successfully!'
+    form.value = {
+      username: '',
+      password: '',
+      name: '',
+      age: '',
+      gender: ''
+    }
+
     setTimeout(() => {
       router.push('/parent_dashboard')
     }, 2000)
   } else {
-    message.value = 'Please fill in all required fields.'
+    message.value = 'Please fill all the fields.'
   }
 }
 </script>
@@ -118,3 +117,5 @@ const addChild = () => {
   background-color: #148a9e;
 }
 </style>
+
+
