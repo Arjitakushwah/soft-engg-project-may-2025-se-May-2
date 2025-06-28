@@ -42,25 +42,49 @@ const role = ref('child') // default
 const error = ref('')
 const router = useRouter()
 
-const login = async () => {
-  const res = await fetch('http://127.0.0.1:5000/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: username.value,
-      password: password.value,
-      role: role.value // ✅ Send role to backend
-    })
-  })
+const users = {
+  parent1: { password: 'parentpass', role: 'parent', name: 'Parent One' },
+  child1: { password: 'childpass', role: 'child', name: 'Child One' }
+}
 
-  const data = await res.json()
-  if (!res.ok) {
-    error.value = data.error || 'Login failed'
+const login = () => {
+  const user = users[username.value.trim().toLowerCase()]
+  if (!user || user.role !== role.value || user.password !== password.value) {
+    error.value = 'Invalid credentials. Try parent1/parentpass or child1/childpass.'
+    return
+  }
+
+  // Save session data
+  localStorage.setItem('name', user.name)
+  localStorage.setItem('role', user.role)
+
+  // Redirect
+  if (user.role === 'parent') {
+    router.push('/parent_dashboard')
   } else {
-    localStorage.setItem('token', data.access_token)
-    if (data.redirect_to) router.push(data.redirect_to)
+    router.push('/child_dashboard')
   }
 }
+
+// const login = async () => {
+//   const res = await fetch('http://127.0.0.1:5000/login', {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({
+//       username: username.value,
+//       password: password.value,
+//       role: role.value // ✅ Send role to backend
+//     })
+//   })
+
+//   const data = await res.json()
+//   if (!res.ok) {
+//     error.value = data.error || 'Login failed'
+//   } else {
+//     localStorage.setItem('token', data.access_token)
+//     if (data.redirect_to) router.push(data.redirect_to)
+//   }
+// }
 </script>
 
 <style scoped>

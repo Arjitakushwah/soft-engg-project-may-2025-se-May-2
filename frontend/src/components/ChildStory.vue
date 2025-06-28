@@ -4,11 +4,13 @@
       <!-- Future content can be added here -->
        <div class="profile-box">
           <div class="profile-header">{{ childName }}'s Profile</div>
-          <div class="story-container">
                 <div class="input-header">
-                <button @click="generateStory" class="input-as-button">
-                  I want a new story
-                </button>
+                <input
+                  v-model="storyPrompt"
+                  placeholder="Enter a story topic"
+                  class="story-button-input"
+                  @keyup.enter="generateStory"
+                />
               </div>
 
               <div v-if="displayTitle" class="story-card">
@@ -17,7 +19,6 @@
                 <button class="quiz-btn" @click="goToQuiz">Quiz</button>
               </div>
             </div>
-        </div>
     </main>
   </div>
 </template>
@@ -33,6 +34,27 @@ const displayTitle = ref('')
 const storyContent = ref('')
 const selectedQuestion = ref('')
 const storyQuestion = ref('')
+const storyPrompt = ref('')
+
+function generateStory() {
+  const input = storyPrompt.value.toLowerCase()
+
+  // Match by keyword
+  const matchedStory = storyList.find(story =>
+    input.includes('marble') && story.title === 'The Lost Marble' ||
+    input.includes('honest') && story.title === 'The Lost Marble' ||
+    input.includes('toy') && story.title === 'The Broken Toy' ||
+    input.includes('truth') && story.title === 'The Broken Toy'
+  )
+
+  const story = matchedStory || storyList[currentIndex % storyList.length]
+
+  displayTitle.value = story.title
+  storyContent.value = story.content(childName.value)
+  selectedQuestion.value = JSON.stringify(story.question)
+  currentIndex++
+}
+
 const storyList = [
   {
     title: 'The Lost Marble',
@@ -56,13 +78,6 @@ const storyList = [
 
 let currentIndex = 0
 
-function generateStory() {
-  const story = storyList[currentIndex % storyList.length]
-  displayTitle.value = story.title
-  storyContent.value = story.content(childName.value)
-  selectedQuestion.value = JSON.stringify(story.question)
-  currentIndex++
-}
 
 function goToQuiz() {
   router.push({
@@ -141,5 +156,19 @@ onMounted(async () => {
   cursor: pointer;
   font-weight: bold;
 }
+
+.story-button-input {
+  border: 1px solid #000;
+  background-color: #cce0ff;
+  padding: 4px 10px;               /* Smaller padding */
+  font-weight: bold;
+  font-family: inherit;
+  font-size: 13px;                 /* Slightly smaller text */
+  width: 150px;                    /* Slightly smaller width */
+  border-radius: 8px;              /* Rounded corners */
+  text-align: center;
+  cursor: text;
+}
+
 
 </style>

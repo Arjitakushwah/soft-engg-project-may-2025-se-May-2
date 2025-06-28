@@ -1,12 +1,16 @@
 <template>
   <div class="dashboard-container">
-      <h2 class="welcome">Welcome to your Parent Dashboard </h2>
+    <h2 class="welcome">Welcome Parent Dashboard </h2>
+
     <div class="dashboard-body">
       <aside class="sidebar">
         <router-link to="/add-child" class="sidebar-link">➕ Add Child</router-link>
       </aside>
 
-
+      <main class="main-content">
+        <h3>Manage Your Child's Progress and Activities</h3>
+        <p>Use the sidebar to add a child, view reports, or assign tasks.</p>
+      </main>
     </div>
   </div>
 </template>
@@ -15,16 +19,28 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
-const parentName = ref('')
+const parentName = ref('Parent')
 const router = useRouter()
 
-onMounted(async () => {
+onMounted(() => {
+  const role = localStorage.getItem('role')
+  const name = localStorage.getItem('name')
+
+  if (role !== 'parent') {
+    router.push('/login')
+  } else {
+    parentName.value = name || 'Parent'
+  }
+
+  // Optional: Fetch from backend if needed later
+  /*
   const token = localStorage.getItem('token')
   const res = await fetch('http://127.0.0.1:5000/parent_dashboard', {
     headers: { Authorization: `Bearer ${token}` }
   })
   const data = await res.json()
   parentName.value = res.ok ? data.name || data.username : 'Parent'
+  */
 })
 
 const logout = () => {
@@ -43,6 +59,12 @@ const logout = () => {
   flex-direction: column;
 }
 
+.welcome {
+  font-size: 1.8rem;
+  margin: 1.5rem;
+  color: black;
+}
+
 .dashboard-body {
   display: flex;
   flex: 1;
@@ -52,6 +74,7 @@ const logout = () => {
   width: 200px;
   background-color: #354f52;
   padding: 1.5rem 1rem;
+  min-height: calc(100vh - 5rem);
 }
 
 .sidebar-link {
@@ -72,25 +95,5 @@ const logout = () => {
   flex: 1;
   padding: 2rem;
   background-color: #f9fbfc;
-}
-
-.welcome {
-  font-size: 1.8rem;
-  margin-bottom: 1.5rem;
-  color: #51ff97;
-}
-
-.action-button {
-  display: inline-block;
-  background-color: #457b9d;
-  color: white;
-  text-decoration: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-.action-button:hover {
-  background-color: #1d3557;
 }
 </style>

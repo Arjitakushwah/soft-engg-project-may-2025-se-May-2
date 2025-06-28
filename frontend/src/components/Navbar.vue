@@ -1,12 +1,15 @@
 <template>
-  <header class="custom-navbar">
-    <div class="left-section">
-      <h2>Hi, <span class="highlight">{{ greetingName }}</span></h2>
+  <header class="dashboard-header">
+    <div class="branding">
+      <button class="home-button" @click="goHome">🏠</button>
+      <h2 class="greeting">
+        Hi, <span class="username">{{ displayName }}</span>
+      </h2>
     </div>
-    <div class="right-section">
-      <button @click="goToDashboard" class="logout-button">
-        {{ dashboardLabel }}
-      </button>
+
+    <div class="nav-actions">
+      <button v-if="role === 'child'" @click="goToChildDashboard" class="logout-button">Dashboard</button>
+      <button v-if="role === 'parent'" @click="goToParentDashboard" class="logout-button">Dashboard</button>
       <button @click="logout" class="logout-button">Logout</button>
     </div>
   </header>
@@ -18,38 +21,29 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// reactive values
 const role = ref('')
-const userName = ref('User')
-const greetingName = ref('User')
-const dashboardLabel = ref('Dashboard')
+const displayName = ref('User')
 
 onMounted(() => {
-  // Simulate localStorage data (for frontend-only mode)
-  if (!localStorage.getItem('role')) {
-    // You can switch these values to test
-    localStorage.setItem('role', 'Child')      //  'child'
-    localStorage.setItem('name', 'child') 
-    //localStorage.setItem('role', 'parent')      //  'parent'
-    //localStorage.setItem('name', 'Parent')      
-  }
-
-  role.value = localStorage.getItem('role')
-  userName.value = localStorage.getItem('name') || 'User'
-
-  // set greeting and label
-  greetingName.value = role.value === 'parent' ? 'Parent' : userName.value
-  dashboardLabel.value = role.value === 'parent' ? 'Parent Dashboard' : 'Child Dashboard'
+  role.value = localStorage.getItem('role') || ''
+  const name = localStorage.getItem('name') || 'User'
+  displayName.value = name
 })
 
-const goToDashboard = () => {
-  if (role.value === 'parent') {
-    localStorage.clear()
-    router.push('/parent_dashboard')
-  } else {
-    localStorage.clear()
+const goToChildDashboard = () => {
+  if (router.currentRoute.value.path !== '/child_dashboard') {
     router.push('/child_dashboard')
   }
+}
+
+const goToParentDashboard = () => {
+  if (router.currentRoute.value.path !== '/parent_dashboard') {
+    router.push('/parent_dashboard')
+  }
+}
+
+const goHome = () => {
+  router.push('/')
 }
 
 const logout = () => {
@@ -59,36 +53,55 @@ const logout = () => {
 </script>
 
 <style scoped>
-.custom-navbar {
+.dashboard-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background-color: #1e1e2f;
+  color: white;
+  padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #1d1d2e;
-  padding: 20px 30px;
-  color: white;
 }
 
-.left-section h2 {
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.greeting {
+  font-size: 1.6rem;
   margin: 0;
-  font-size: 24px;
 }
 
-.left-section .highlight {
-  color: #00f8ff;
+.username {
+  color: #00f7ff;
 }
 
-.right-section .logout-button {
-  background-color: #ff4d5a;
+.nav-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.logout-button,
+.home-button {
+  background-color: #ff4757;
   color: white;
   border: none;
-  border-radius: 10px;
-  padding: 10px 20px;
-  font-weight: bold;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s ease;
 }
 
-.logout-button:hover {
-  background-color: #e03a46;
+.logout-button:hover,
+.home-button:hover {
+  background-color: #e63946;
 }
 </style>

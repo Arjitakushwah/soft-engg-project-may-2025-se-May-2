@@ -131,6 +131,7 @@ onMounted(async () => {
 }
 
 .option-row {
+  max-width: 400px;
   margin: 8px 0;
   padding: 6px 10px;
   border-radius: 6px;

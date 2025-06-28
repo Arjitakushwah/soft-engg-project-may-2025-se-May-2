@@ -7,7 +7,6 @@
         <button @click="$router.push('/login')">Login</button>
       </div>
     </nav>
-
     <header class="hero">
       <h1>Your Adventure in Learning Begins!</h1>
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
