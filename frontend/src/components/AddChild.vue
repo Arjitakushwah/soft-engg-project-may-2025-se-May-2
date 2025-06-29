@@ -117,5 +117,3 @@ const addChild = () => {
   background-color: #148a9e;
 }
 </style>
-
-

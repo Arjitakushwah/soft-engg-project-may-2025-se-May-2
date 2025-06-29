@@ -1,15 +1,8 @@
-<!-- src/views/ParentDashboard.vue -->
 <template>
   <div class="parent-dashboard-bg">
-    <!-- Reusable Navbar -->
     <NavBar @logout="handleLogout" />
-
-    <!-- Body Layout -->
     <div class="dashboard-body">
-      <!-- Sidebar -->
       <Sidebar :role="role" @navigate="navigateToPage" />
-
-      <!-- Main Area with route view -->
       <main class="main-content">
         <router-view />
       </main>
@@ -25,13 +18,10 @@ import Sidebar from '@/components/Sidebar.vue'
 
 const router = useRouter()
 const role = 'parent'
-
-
 onMounted(() => {
   const storedName = localStorage.getItem('username') || "Parent"
 
 })
-
 const handleLogout = () => {
   localStorage.clear()
   router.push('/login')

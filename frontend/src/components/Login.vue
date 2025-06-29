@@ -1,13 +1,10 @@
-<!-- src/components/Login.vue -->
 <template>
   <div>
     <NavBar />
-
     <div class="login-container container mt-5">
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
         <h2 class="text-center mb-4">Login</h2>
 
-        <!-- Role Selection -->
         <div class="mb-3 d-flex justify-content-center gap-3">
           <div class="form-check">
             <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
@@ -18,8 +15,6 @@
             <label class="form-check-label" for="roleChild">Child</label>
           </div>
         </div>
-
-        <!-- Login Form -->
         <form @submit.prevent="login">
           <div class="mb-3">
             <input type="text" class="form-control" v-model="username" placeholder="Username" required />
@@ -29,7 +24,6 @@
           </div>
           <button type="submit" class="btn btn-primary w-100">Login as {{ role }}</button>
         </form>
-
         <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
       </div>
     </div>
@@ -43,18 +37,18 @@ import NavBar from '@/components/Nav.vue'
 
 const username = ref('')
 const password = ref('')
-const role = ref('parent') // default to parent
+const role = ref('parent')
 const error = ref('')
 const router = useRouter()
 
 const login = () => {
   if (username.value && password.value) {
-    // Dummy logic for login
+
     localStorage.setItem('userRole', role.value)
     localStorage.setItem('username', username.value)
 
     if (role.value === 'parent') {
-      // Save dummy parent info
+
       localStorage.setItem('parent', JSON.stringify({
         username: username.value,
         name: username.value
@@ -92,4 +86,3 @@ const login = () => {
   background-color: #ff4870;
 }
 </style>
-

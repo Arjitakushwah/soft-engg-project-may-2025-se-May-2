@@ -1,30 +1,19 @@
-<!-- src/components/Nav.vue -->
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-      <!-- App Name -->
       <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
-
-      <!-- Greeting -->
       <span v-if="userRole !== 'guest'" class="me-3 welcome-text">
         Welcome, {{ username }}!
       </span>
-
-      <!-- Navigation Buttons -->
       <div class="d-flex">
-        <!-- Guest -->
         <template v-if="userRole === 'guest'">
           <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
           <router-link to="/register" class="btn btn-primary">Register</router-link>
         </template>
-
-        <!-- Parent -->
         <template v-else-if="userRole === 'parent'">
           <button @click="goToDashboard" class="btn btn-outline-success me-2">Dashboard</button>
           <button @click="logout" class="btn btn-danger">Logout</button>
         </template>
-
-        <!-- Child -->
         <template v-else-if="userRole === 'child'">
           <button @click="goToDashboard" class="btn btn-outline-success me-2">My Dashboard</button>
           <button @click="logout" class="btn btn-danger">Logout</button>
@@ -37,10 +26,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-
 const router = useRouter()
 const emit = defineEmits(['navigate', 'logout'])
-
 const userRole = ref('guest')
 const username = ref('')
 
@@ -54,7 +41,7 @@ const goToDashboard = () => {
   if (role === 'child') {
     router.push({ path: '/child_dashboard' })
   } else if (role === 'parent') {
-    router.push({ path:'/Parent_Dashboard' })
+    router.push({ path: '/Parent_Dashboard' })
   }
 }
 
@@ -66,13 +53,13 @@ const logout = () => {
 
 <style scoped>
 .navbar {
-  background-color: #f0eae9 !important; /* Light blue */
+  background-color: #f0eae9 !important;
 }
 
 .app-title {
   font-family: 'Fredoka One', cursive;
   font-size: 1.6rem;
-  color: #1e3a8a !important; /* Dark blue */
+  color: #1e3a8a !important;
   text-decoration: none;
 }
 
@@ -83,9 +70,8 @@ const logout = () => {
   color: #1e3a8a;
 }
 
-/* Buttons */
 .btn-outline-primary {
-  background-color:white;
+  background-color: white;
   border-color: #3b82f6;
   color: #ff6a88;
   border: none;
@@ -103,7 +89,7 @@ const logout = () => {
 }
 
 .btn-primary {
-  background-color:white;
+  background-color: white;
   border-color: #3b82f6;
   color: #ff6a88;
   border: none;

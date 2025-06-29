@@ -7,12 +7,10 @@
         <button @click="$router.push('/login')">Login</button>
       </div>
     </nav>
-
     <header class="hero">
       <h1>Your Adventure in Learning Begins!</h1>
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
     </header>
-
     <main class="features-showcase">
       <h2>What will you discover today?</h2>
       <div class="features-grid">
@@ -53,4 +51,4 @@ export default {
 
 <style scoped>
 @import '../assets/styles/HomePage.css';
-</style> 
+</style>

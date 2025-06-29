@@ -1,15 +1,8 @@
-<!-- src/views/ChildDashboard.vue -->
 <template>
   <div class="dashboard-wrapper">
-    <!-- Navbar -->
     <NavBar />
-
-    <!-- Layout -->
     <div class="layout-body">
-      <!-- Sidebar -->
       <Sidebar :role="role" @navigate="navigateToPage" />
-
-      <!-- Dynamic Main Content -->
       <main class="main-content">
         <router-view />
       </main>
@@ -20,15 +13,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-
-// Components
 import NavBar from '@/components/Nav.vue'
 import Sidebar from '@/components/Sidebar.vue'
 
 const role = 'child'
 const router = useRouter()
 
-// Used by Sidebar to navigate to the correct child route
 const navigateToPage = (page) => {
   router.push({ name: page })
 }
@@ -56,8 +46,7 @@ onMounted(() => {
   flex-grow: 1;
   padding: 30px;
   overflow-y: auto;
-  background-color: #ffffff; 
-  color: #1e293b; 
+  background-color: #ffffff;
+  color: #1e293b;
 }
-
 </style>

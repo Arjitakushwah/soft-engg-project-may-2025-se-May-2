@@ -2,18 +2,14 @@
   <div class="parent-calendar-bg">
     <main class="main-content">
       <div class="calendar-container">
-        <!-- Child Selector -->
         <div class="child-select">
           <label for="child">Select Child:</label>
           <select id="child" v-model="selectedChild">
             <option v-for="child in children" :key="child" :value="child">{{ child }}</option>
           </select>
         </div>
-
         <h2>{{ selectedChild }}'s Calendar Report</h2>
         <FullCalendar :options="calendarOptions" />
-
-        <!-- Task Modal -->
         <div v-if="showModal" class="modal-overlay">
           <div class="modal-content">
             <h3>Tasks for {{ selectedDate }}</h3>
@@ -42,10 +38,7 @@ const selectedChild = ref(children[0])
 const selectedDate = ref('')
 const selectedTasks = ref([])
 const showModal = ref(false)
-
 const today = new Date().toISOString().split('T')[0]
-
-// Dummy event data
 const rawEvents = [
   { title: 'English Essay', date: '2025-06-21', status: 'completed' },
   { title: 'Math Homework', date: '2025-06-22', status: 'pending' },
@@ -96,8 +89,8 @@ const calendarOptions = ref({
 
 .parent-calendar-bg {
   font-family: 'Comic Neue', cursive;
-  
-  
+
+
   color: #333;
   display: flex;
   flex-direction: column;
@@ -187,6 +180,7 @@ const calendarOptions = ref({
 .task-box li {
   margin: 0.5rem 0;
 }
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -238,5 +232,4 @@ const calendarOptions = ref({
   font-family: 'Comic Neue', cursive;
   cursor: pointer;
 }
-
 </style>

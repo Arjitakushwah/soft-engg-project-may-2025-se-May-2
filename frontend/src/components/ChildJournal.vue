@@ -1,49 +1,31 @@
-
 <template>
-    <div class="journal-container">
-      <!-- Search Bar -->
-      <div class="search-container">
-        <input
-          type="text"
-          placeholder="Search journal by date (e.g. 2024-06-28)"
-          v-model="search_Text"
-        />
-        <button @click="performSearch">Search</button>
-      </div>
-  
-      <!-- Emoji Mood Selector -->
-      <div class="emoji-selector">
-        <label class="emoji-label">How are you feeling today?</label>
-        <div class="emoji-options">
-          <span
-            v-for="emoji in emojis"
-            :key="emoji"
-            :class="['emoji', selectedEmoji === emoji ? 'selected' : '']"
-            @click="selectEmoji(emoji)"
-          >
-            {{ emoji }}
-          </span>
-        </div>
-      </div>
-  
-      <!-- Journal Form -->
-      <form @submit.prevent="submitJournal">
-        <div class="text-container">
-          <label for="message">Write your journal entry:</label><br />
-          <textarea
-            id="message"
-            v-model="journalText"
-            placeholder="Reflect on your day..."
-            required
-          ></textarea>
-        </div>
-  
-        <div class="button-container">
-          <button type="submit">Submit Journal</button>
-        </div>
-      </form>
+  <div class="journal-container">
+    <div class="search-container">
+      <input type="text" placeholder="Search journal by date (e.g. 2024-06-28)" v-model="search_Text" />
+      <button @click="performSearch">Search</button>
     </div>
-  </template>
+    <div class="emoji-selector">
+      <label class="emoji-label">How are you feeling today?</label>
+      <div class="emoji-options">
+        <span v-for="emoji in emojis" :key="emoji" :class="['emoji', selectedEmoji === emoji ? 'selected' : '']"
+          @click="selectEmoji(emoji)">
+          {{ emoji }}
+        </span>
+      </div>
+    </div>
+
+    <form @submit.prevent="submitJournal">
+      <div class="text-container">
+        <label for="message">Write your journal entry:</label><br />
+        <textarea id="message" v-model="journalText" placeholder="Reflect on your day..." required></textarea>
+      </div>
+
+      <div class="button-container">
+        <button type="submit">Submit Journal</button>
+      </div>
+    </form>
+  </div>
+</template>
 <script setup>
 import { ref } from 'vue'
 
@@ -54,7 +36,7 @@ const journalText = ref('')
 
 const performSearch = () => {
   console.log('Search for date:', search_Text.value)
-  // Optional: Filter journal entries by date
+
 }
 
 const selectEmoji = (emoji) => {
@@ -86,7 +68,7 @@ const submitJournal = () => {
 .journal-container {
   font-family: 'Comic Neue', cursive;
   width: 90%;
-max-width: 900px;
+  max-width: 900px;
   margin: auto;
   padding: 2rem;
   background: #f9f9fb;
@@ -181,4 +163,3 @@ button[type='submit']:hover {
   background-color: #0f9c75;
 }
 </style>
-  
