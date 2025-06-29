@@ -22,8 +22,7 @@ const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
-  { path: '/add-child', name: 'AddChild', component: AddChild },
-  { path: '/parent_dashboard', name: 'ParentDashboard', component: ParentDashboard },
+  
   {
     path: '/child_dashboard',
     name: 'ChildDashboard',
@@ -47,7 +46,7 @@ const routes = [
       {
         path: '',
         name: 'dashboard_parent',
-        component: ParentHome, // ✅ Use this as default dashboard
+        component: ParentHome, 
       },
       {
         path: 'add_child',
