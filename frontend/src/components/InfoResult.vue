@@ -38,6 +38,7 @@ function markAsRead() {
 
 }
 </script>
+
 <style scoped>
 .card {
   max-width: 90%;

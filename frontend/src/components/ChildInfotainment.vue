@@ -4,7 +4,6 @@
       <input type="text" placeholder="Search your topic here" v-model="searchText" />
       <button @click="performSearch">Search</button>
     </div>
-
     <h3 class="section-title">Explore Topics</h3>
     <div class="topic-list">
       <div class="topic-card" v-for="(desc, topic) in topicData" :key="topic" @click="goToResult(topic)">

@@ -22,13 +22,11 @@ const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
-  
+
   {
-    path: '/child_dashboard',
-    name: 'ChildDashboard',
-    component: ChildDashboard,
+    path: '/child_dashboard', name: 'ChildDashboard', component: ChildDashboard,
     children: [
-      { path: '', name: 'dashboard_child', component: ChildHome }, // default route
+      { path: '', name: 'dashboard_child', component: ChildHome },
       { path: 'calendar', name: 'ChildCalender', component: ChildCalender },
       { path: 'todo', name: 'ChildToDoList', component: ChildToDoList },
       { path: 'story', name: 'ChildStory', component: ChildStory },
@@ -39,30 +37,12 @@ const routes = [
     ]
   },
   {
-    path: '/parent_dashboard',
-    component: ParentDashboard,
-    name:'ParentDashboard',
+    path: '/parent_dashboard', component: ParentDashboard, name: 'ParentDashboard',
     children: [
-      {
-        path: '',
-        name: 'dashboard_parent',
-        component: ParentHome, 
-      },
-      {
-        path: 'add_child',
-        name: 'AddChild',
-        component: AddChild,
-      },
-      {
-        path: 'calendar',
-        name: 'ParentCalendar',
-        component: ParentCalendar,
-      },
-      {
-        path: 'journal_analysis',
-        name: 'ParentJournalAnalysis',
-        component: ParentJournalAnalysis,
-      },
+      {path: '', name: 'dashboard_parent', component: ParentHome},
+      {path: 'add_child',name: 'AddChild', component: AddChild},
+      {path: 'calendar', name: 'ParentCalendar', component: ParentCalendar},
+      {path: 'journal_analysis', name: 'ParentJournalAnalysis', component: ParentJournalAnalysis},
     ],
   }
 ]

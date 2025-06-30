@@ -2,15 +2,11 @@
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
     <div class="container-fluid d-flex justify-content-between align-items-center">
       <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
-      <span v-if="userRole !== 'guest'" class="me-3 welcome-text">
+      <span class="me-3 welcome-text">
         Welcome, {{ username }}!
       </span>
       <div class="d-flex">
-        <template v-if="userRole === 'guest'">
-          <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
-          <router-link to="/register" class="btn btn-primary">Register</router-link>
-        </template>
-        <template v-else-if="userRole === 'parent'">
+        <template v-if="userRole === 'parent'">
           <button @click="goToDashboard" class="btn btn-outline-success me-2">Dashboard</button>
           <button @click="logout" class="btn btn-danger">Logout</button>
         </template>
@@ -28,11 +24,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 const router = useRouter()
 const emit = defineEmits(['navigate', 'logout'])
-const userRole = ref('guest')
+const userRole = ref('')
 const username = ref('')
 
 onMounted(() => {
-  userRole.value = localStorage.getItem('userRole') || 'guest'
+  userRole.value = localStorage.getItem('userRole') 
   username.value = localStorage.getItem('username') || ''
 })
 

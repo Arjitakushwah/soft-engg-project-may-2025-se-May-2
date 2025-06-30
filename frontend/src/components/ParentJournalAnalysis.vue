@@ -198,7 +198,6 @@ export default {
   border: 1px solid #ccc;
 }
 
-
 @media (max-width: 900px) {
   .charts-grid {
     grid-template-columns: 1fr;

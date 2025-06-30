@@ -24,7 +24,6 @@ onMounted(() => {
   const parent = JSON.parse(localStorage.getItem('parent'))
 
   if (!parent) return
-
   parentName.value = parent.name
 
   const dummyChildren = [

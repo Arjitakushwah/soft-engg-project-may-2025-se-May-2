@@ -1,10 +1,17 @@
 <template>
   <div>
-    <NavBar />
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+      <div class="container-fluid d-flex justify-content-between align-items-center">
+        <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
+        <div class="d-flex">
+          <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
+          <router-link to="/register" class="btn btn-primary">Register</router-link>
+        </div>
+      </div>
+    </nav>
     <div class="login-container container mt-5">
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
         <h2 class="text-center mb-4">Login</h2>
-
         <div class="mb-3 d-flex justify-content-center gap-3">
           <div class="form-check">
             <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
@@ -22,7 +29,7 @@
           <div class="mb-3">
             <input type="password" class="form-control" v-model="password" placeholder="Password" required />
           </div>
-          <button type="submit" class="btn btn-primary w-100">Login as {{ role }}</button>
+          <button type="submit" class="btn btn-success w-100">Login as {{ role }}</button>
         </form>
         <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
       </div>
@@ -63,8 +70,54 @@ const login = () => {
 }
 </script>
 
-
 <style scoped>
+.navbar {
+  background-color: #f0eae9 !important;
+}
+
+.app-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.6rem;
+  color: #ff6a88 !important;
+  text-decoration: none;
+}
+
+.btn-outline-primary {
+  background-color: white;
+  border-color: #3b82f6;
+  color: #ff6a88;
+  border: none;
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-family: 'Fredoka One', cursive;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.btn-outline-primary:hover {
+  transform: scale(1.05);
+  background-color: #faf2f4;
+}
+
+.btn-primary {
+  background-color: white;
+  border-color: #3b82f6;
+  color: #ff6a88;
+  border: none;
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-family: 'Fredoka One', cursive;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  background-color: #faf2f4;
+}
+
 .login-container {
   font-family: 'Comic Neue', cursive;
 }
@@ -74,15 +127,13 @@ const login = () => {
   border-radius: 20px;
 }
 
-.btn-primary {
+.btn-success {
   background-color: #ff6a88;
-  border: none;
-  font-weight: bold;
   font-family: 'Fredoka One', cursive;
-  transition: background-color 0.3s ease;
+  border: none;
 }
 
-.btn-primary:hover {
-  background-color: #ff4870;
+.btn-success:hover {
+  background-color: #ff6a88;
 }
 </style>

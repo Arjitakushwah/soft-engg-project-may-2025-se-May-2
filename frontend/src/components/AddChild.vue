@@ -2,7 +2,6 @@
   <div class="add-child-container container mt-5">
     <div class="card shadow-lg p-4 mx-auto" style="max-width: 500px;">
       <h2 class="text-center mb-4">Add Child Profile</h2>
-
       <form @submit.prevent="addChild">
         <div class="mb-3">
           <input v-model="form.username" type="text" class="form-control" placeholder="Child Username" required />
@@ -24,10 +23,8 @@
             <option>Other</option>
           </select>
         </div>
-
         <button type="submit" class="btn btn-info w-100 text-white fw-bold">Add Child</button>
       </form>
-
       <p class="mt-3 text-center" :class="messageClass">{{ message }}</p>
     </div>
   </div>
