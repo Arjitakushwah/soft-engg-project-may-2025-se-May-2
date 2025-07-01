@@ -116,20 +116,22 @@ class JournalEntry(db.Model):
 
 # ---------- Infotainment Content Model ----------
 
-class InfotainmentDailyContent(db.Model):
-    __tablename__ = 'infotainment_daily_content'
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False, unique=True)
-    content = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+# class InfotainmentDailyContent(db.Model):
+#     __tablename__ = 'infotainment_daily_content'
+#     id = db.Column(db.Integer, primary_key=True)
+#     date = db.Column(db.Date, nullable=False, unique=True)
+#     content = db.Column(db.String, nullable=False)
+#     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ---------- Infotainment Read Log ----------
+# # ---------- Infotainment Read Log ----------
 
 class InfotainmentReadLog(db.Model):
     __tablename__ = 'infotainment_read_log'
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
+   
+    child_prompt=db.Column(db.Text, nullable=False)
     date = db.Column(db.Date, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     marked_at = db.Column(db.DateTime, default=datetime.utcnow)
-    child = db.relationship("Child", back_populates="infotainment_logs")
+    child = db.relationship("Child", back_populates="infotainment_read_log")

@@ -8,6 +8,7 @@ from crewai import Crew, Agent, Task, Process, LLM
 app.config['SQLALCHEMY_ECHO'] = True
 
 from agents.story_agent import generate_story
+from agents.news_agent import generate_news
 import json
 import os
 from dotenv import load_dotenv
