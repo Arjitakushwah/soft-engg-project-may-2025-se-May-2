@@ -35,7 +35,8 @@ class Child(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('parents.id'), nullable=False)
     parent = db.relationship("Parent", back_populates="children")
     to_do_items = db.relationship("ToDoItem", back_populates="child")
-    story_attempts = db.relationship("StoryAttempt", back_populates="child")
+    # story_attempts = db.relationship("StoryAttempt", back_populates="child")
+    dailyStory=  db.relationship("DailyStory", back_populates="child")
     journal_entries = db.relationship("JournalEntry", back_populates="child")
     infotainment_logs = db.relationship("InfotainmentReadLog", back_populates="child")
 
@@ -55,34 +56,51 @@ class ToDoItem(db.Model):
 class DailyStory(db.Model):
     __tablename__ = 'daily_stories'
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False, unique=True)
-    title = db.Column(db.String, nullable=False)
-    content = db.Column(db.String, nullable=False)
-    quiz = db.relationship("QuizQuestion", back_populates="story", uselist=False)
+    child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    child_prompt= db.Column(db.Text, nullable=False)
+    title = db.Column(db.Text, nullable=False)
+    theme = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    question = db.Column(db.Text, nullable=False)
+    option_a = db.Column(db.Text, nullable=False)
+    option_b = db.Column(db.Text, nullable=False)
+    option_c = db.Column(db.Text, nullable=False)
+    option_d = db.Column(db.Text, nullable=False)
+    correct_option = db.Column(db.Text, nullable=False )
+    submitted_option = db.Column(db.Text, nullable=False,default='not submitted')
 
-class QuizQuestion(db.Model):
-    __tablename__ = 'quiz_questions'
-    id = db.Column(db.Integer, primary_key=True)
-    story_id = db.Column(db.Integer, db.ForeignKey('daily_stories.id'), nullable=False)
-    question = db.Column(db.String, nullable=False)
-    option_a = db.Column(db.String, nullable=False)
-    option_b = db.Column(db.String, nullable=False)
-    option_c = db.Column(db.String, nullable=False)
-    option_d = db.Column(db.String, nullable=False)
-    correct_option = db.Column(db.String, nullable=False)
-    story = db.relationship("DailyStory", back_populates="quiz")
+    #can be wrong , correct , not submitted
+    
+    is_correct = db.Column(db.String, nullable=False , default='not submitted')
+
+    child = db.relationship("Child", back_populates="daily_stories")
+
+    
+
+# class QuizQuestion(db.Model):
+#     __tablename__ = 'quiz_questions'
+#     id = db.Column(db.Integer, primary_key=True)
+#     story_id = db.Column(db.Integer, db.ForeignKey('daily_stories.id'), nullable=False)
+#     question = db.Column(db.String, nullable=False)
+#     option_a = db.Column(db.String, nullable=False)
+#     option_b = db.Column(db.String, nullable=False)
+#     option_c = db.Column(db.String, nullable=False)
+#     option_d = db.Column(db.String, nullable=False)
+#     correct_option = db.Column(db.String, nullable=False)
+#     story = db.relationship("DailyStory", back_populates="quiz")
 
 # ---------- Story Attempt Model ----------
 
-class StoryAttempt(db.Model):
-    __tablename__ = 'story_attempts'
-    id = db.Column(db.Integer, primary_key=True)
-    child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
-    story_id = db.Column(db.Integer, db.ForeignKey('daily_stories.id'), nullable=False)
-    submitted_option = db.Column(db.String, nullable=False)
-    submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
-    child = db.relationship("Child", back_populates="story_attempts")
-    story = db.relationship("DailyStory")
+# class StoryAttempt(db.Model):
+#     __tablename__ = 'story_attempts'
+#     id = db.Column(db.Integer, primary_key=True)
+#     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
+#     story_id = db.Column(db.Integer, db.ForeignKey('daily_stories.id'), nullable=False)
+#     submitted_option = db.Column(db.String, nullable=False)
+#     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
+#     child = db.relationship("Child", back_populates="story_attempts")
+#     story = db.relationship("DailyStory")
 
 # ---------- Journal Entry Model ----------
 
@@ -98,20 +116,22 @@ class JournalEntry(db.Model):
 
 # ---------- Infotainment Content Model ----------
 
-class InfotainmentDailyContent(db.Model):
-    __tablename__ = 'infotainment_daily_content'
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False, unique=True)
-    content = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+# class InfotainmentDailyContent(db.Model):
+#     __tablename__ = 'infotainment_daily_content'
+#     id = db.Column(db.Integer, primary_key=True)
+#     date = db.Column(db.Date, nullable=False, unique=True)
+#     content = db.Column(db.String, nullable=False)
+#     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ---------- Infotainment Read Log ----------
+# # ---------- Infotainment Read Log ----------
 
 class InfotainmentReadLog(db.Model):
     __tablename__ = 'infotainment_read_log'
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
+   
+    child_prompt=db.Column(db.Text, nullable=False)
     date = db.Column(db.Date, nullable=False)
     is_read = db.Column(db.Boolean, default=False)
     marked_at = db.Column(db.DateTime, default=datetime.utcnow)
-    child = db.relationship("Child", back_populates="infotainment_logs")
+    child = db.relationship("Child", back_populates="infotainment_read_log")

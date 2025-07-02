@@ -1,2 +1,11 @@
 venv/
 .venv/
+.venv_backup/
+__pycache__/    
+*.pyc
+*.pyo
+
+*.pyd
+*.pdb
+
+backend/prod.env

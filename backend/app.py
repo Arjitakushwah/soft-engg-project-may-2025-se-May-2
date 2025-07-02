@@ -5,11 +5,14 @@ from config import Config
 from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
+from flask_cors import CORS
 
 
 # Initialize Flask app
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
+CORS(app)
+
 
 
 # Initialize database
@@ -69,23 +72,25 @@ def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+    role = data.get('role')  
 
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
+    if not username or not password or not role:
+        return jsonify({"error": "Username, password, and role are required"}), 400
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(username=username, role=role).first() 
 
     if user and check_password_hash(user.password, password):
         access_token = create_access_token(
             identity=str(user.id),
             additional_claims={"role": user.role}
         )
-        if user.role == 'parent':
-            dashboard_route = '/parent_dashboard'
-        elif user.role == 'child':
-            dashboard_route = '/child_dashboard'
-        else:
-            dashboard_route = '/'
+
+        
+        dashboard_route = (
+            '/parent_dashboard' if user.role == 'parent' else
+            '/child_dashboard' if user.role == 'child' else
+            '/'
+        )
 
         return jsonify({
             "message": "Login successful",
@@ -94,7 +99,8 @@ def login():
             "redirect_to": dashboard_route
         }), 200
     else:
-        return jsonify({"error": "Invalid username or password"}), 401
+        return jsonify({"error": "Invalid username, password, or role"}), 401
+
 
 #------------------------------ Add Child-----------------------------------------------------
 
@@ -140,6 +146,34 @@ def add_child(current_user_id, current_user_role):
         db.session.rollback()
         print("Error:", e)
         return jsonify({'error': 'SOmething wrong'}), 500
+
+#------------------------------------Get Parent Info---------------------------------------------------------
+@app.route('/parent_dashboard', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_parent_info(current_user_id, current_user_role):
+    parent = Parent.query.get(current_user_id)
+    user = User.query.get(current_user_id)
+    if not parent or not user:
+        return jsonify({'error': 'Parent not found'}), 404
+    return jsonify({'name': parent.name, 'username': user.username})
+
+#------------------------------------Get Child Info---------------------------------------------------------
+@app.route('/child_dashboard', methods=['GET'])
+@jwt_required(required_role='child')
+def get_child_info(current_user_id, current_user_role):
+    child = Child.query.get(current_user_id)
+    if not child:
+        return jsonify({'error': 'Child not found'}), 404
+
+    user = User.query.get(current_user_id)  # get username from User table
+
+    return jsonify({
+        'name': child.name,
+        'username': user.username,  #
+    })
+
+
+
     
 from api import *
 
