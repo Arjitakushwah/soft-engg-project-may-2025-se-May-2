@@ -1,87 +1,84 @@
 <template>
-  <div class="login-container container mt-5">
-    <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
-      <h2 class="text-center mb-4">Login</h2>
-
-      <!-- Role Selection -->
-      <div class="mb-3 d-flex justify-content-center gap-3">
-        <div class="form-check">
-          <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
-          <label class="form-check-label" for="roleParent">Parent</label>
-        </div>
-        <div class="form-check">
-          <input class="form-check-input" type="radio" value="child" v-model="role" id="roleChild" />
-          <label class="form-check-label" for="roleChild">Child</label>
-        </div>
+  <div class="bg-light">
+    <div class="d-flex justify-content-center align-items-center min-vh-100">
+      <div class="card shadow p-4" style="width: 100%; max-width: 300px;">
+        <h3 class="text-decoration-underline text-center mb-4">Log In</h3>
+        <form @submit.prevent="login">
+          <div class="mb-3">
+            <div class="text-danger" v-if="error">*{{ error }}</div>
+            <label for="email" class="form-label">Username</label>
+            <input
+              type="email"
+              class="form-control"
+              id="email"
+              placeholder="name@example.com"
+              v-model="cred.email"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              placeholder="Password"
+              v-model="cred.password"
+              required
+            />
+          </div>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <router-link
+              to="/register"
+              class="text-decoration-underline me-md-auto mb-2 mb-md-0"
+            >Sign Up</router-link>
+            <button class="btn btn-primary me-md-2" type="submit">Log In</button>
+          </div>
+        </form>
       </div>
-
-      <!-- Login Form -->
-      <form @submit.prevent="login">
-        <div class="mb-3">
-          <input type="text" class="form-control" v-model="username" placeholder="Username" required />
-        </div>
-        <div class="mb-3">
-          <input type="password" class="form-control" v-model="password" placeholder="Password" required />
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login as {{ role }}</button>
-      </form>
-
-      <!-- Error Message -->
-      <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
     </div>
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+<script>
+export default {
+  name: "Login",
+  data() {
+    return {
+      cred: {
+        email: null,
+        password: null,
+      },
+      error: null,
+    };
+  },
+  methods: {
+    async login() {
+      try {
+        const res = await fetch("/user-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.cred),
+        });
 
-const username = ref('')
-const password = ref('')
-const role = ref('child') // default
-const error = ref('')
-const router = useRouter()
+        const data = await res.json();
 
-const login = async () => {
-  const res = await fetch('http://127.0.0.1:5000/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: username.value,
-      password: password.value,
-      role: role.value // ✅ Send role to backend
-    })
-  })
-
-  const data = await res.json()
-  if (!res.ok) {
-    error.value = data.error || 'Login failed'
-  } else {
-    localStorage.setItem('token', data.access_token)
-    if (data.redirect_to) router.push(data.redirect_to)
-  }
-}
+        if (res.ok) {
+          localStorage.setItem("auth-token", data.token);
+          localStorage.setItem("role", data.role);
+          this.$router.push({ path: "/" });
+        } else {
+          this.error = data.message;
+        }
+      } catch (err) {
+        this.error = "Something went wrong. Please try again.";
+        console.error(err);
+      }
+    },
+  },
+};
 </script>
 
 <style scoped>
-.login-container {
-  font-family: 'Comic Neue', cursive;
-}
-
-.card {
-  background: linear-gradient(135deg, #fff0f5, #f0f8ff);
-  border-radius: 20px;
-}
-
-.btn-primary {
-  background-color: #ff6a88;
-  border: none;
-  font-weight: bold;
-  font-family: 'Fredoka One', cursive;
-  transition: background-color 0.3s ease;
-}
-
-.btn-primary:hover {
-  background-color: #ff4870;
-}
+/* Optional: Add component-specific styles here */
 </style>

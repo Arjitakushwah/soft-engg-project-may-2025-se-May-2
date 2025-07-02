@@ -1,5 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../components/HomePage.vue'
+import Login from '../components/Login.vue'
+import Parent_signup from '../components/Parent_signup.vue'
+import Side_Panel from '../components/Side_Panel.vue'
+import Result from '../components/search_result.vue'
 
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
