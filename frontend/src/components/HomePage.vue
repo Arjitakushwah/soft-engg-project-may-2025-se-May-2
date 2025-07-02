@@ -12,21 +12,22 @@
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
     </header>
     <main class="features-showcase">
-      <h2>What will you discover today?</h2>
+      <h2>What’s Inside for You?</h2>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">🧭</div>
-          <h3>Interactive Quests</h3>
-          <p>Go on learning journeys and complete creative challenges!</p>
+          <div class="feature-icon">📖</div>
+          <h3>Daily Journaling</h3>
+          <p>Help children express their thoughts and emotions with engaging journal prompts.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🎨</div>
-          <h3>Creative Studio</h3>
-          <p>Draw, paint, and build stories with your imagination.</p>
+          <div class="feature-icon">📅</div>
+          <h3>Task Planner</h3>
+          <p>Track daily learning tasks, set routines, and visualize progress on calendars.</p>
+        
         </div>
         <div class="feature-card">
           <div class="feature-icon">🧩</div>
-          <h3>Fun Facts & Puzzles</h3>
+          <h3>Fun Facts</h3>
           <p>Crack codes, learn amazing facts and sharpen your brain.</p>
         </div>
         <div class="feature-card">
