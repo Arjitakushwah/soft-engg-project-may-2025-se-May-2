@@ -13,8 +13,6 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
 CORS(app)
 
-
-
 # Initialize database
 db.init_app(app)
 JWTManager(app)
@@ -72,12 +70,12 @@ def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-    role = data.get('role')  
+    
 
-    if not username or not password or not role:
-        return jsonify({"error": "Username, password, and role are required"}), 400
+    if not username or not password:
+        return jsonify({"error": "Username and password are required"}), 400
 
-    user = User.query.filter_by(username=username, role=role).first() 
+    user = User.query.filter_by(username=username).first() 
 
     if user and check_password_hash(user.password, password):
         access_token = create_access_token(

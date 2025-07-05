@@ -28,3 +28,9 @@ coverage
 *.sw?
 .vite
 *.tsbuildinfo
+# Ignore virtual environment
+venv/
+# Ignore environment files
+prod.env
+exaa.env
+
