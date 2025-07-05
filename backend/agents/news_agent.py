@@ -9,18 +9,16 @@ from crewai import Task, Crew, Agent , LLM
 from dotenv import load_dotenv
 load_dotenv("exaa.env")
 
-
 exa_api_key = os.getenv("exa_api_key")
 
-# llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)
 
-@tool("Exa search and get contents")
+@tool('Exa search and get contents')
 def search_and_get_contents_tool(question: str) -> str:
     
-    """Tool using Exa's Python SDK 
-    to run semantic search and return result highlights."""
-
-    # print("tool usage check1 ")
+    """
+    Tool using Exa's Python SDK to run semantic search and return result highlights.
+   
+    """
 
     exa = Exa(exa_api_key)
 
@@ -41,11 +39,7 @@ def search_and_get_contents_tool(question: str) -> str:
 
     return parsedResult
 
-
-
 def generate_news(prompt , llm ):
-    
-    
     news_agent = Agent(
     role="Child-Focused News Journalist and Researcher",
     goal="Provide accurate, simplified, and age-appropriate news for children aged 8 to 14 in an engaging markdown format.",
@@ -85,12 +79,9 @@ def generate_news(prompt , llm ):
     )
 
     crew_inputs={"prompt":prompt}
-
     result = crew.kickoff(inputs=crew_inputs)
     first_output_obj = result.tasks_output[0]
     first_output = first_output_obj.raw
-   
-
     if first_output.startswith("```markdown"):
         first_output = first_output.removeprefix("```markdown")
     if first_output.endswith("```"):

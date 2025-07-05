@@ -1,8 +1,6 @@
-import os
-# from dotenv import load_dotenv
-from crewai import  Agent, Task, Process, LLM , Crew
+from crewai import  Agent, Task, Crew
 import json
-import os
+
 
 
 def generate_story(prompt , llm ):
