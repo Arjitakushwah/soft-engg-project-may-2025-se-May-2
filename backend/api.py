@@ -1,10 +1,21 @@
 from datetime import datetime, date
 from utils import jwt_required
 from flask import request, jsonify
-from models import db, ToDoItem, User
+from models import db, ToDoItem, User ,DailyStory
 from app import app
 from pytz import timezone
+from crewai import Crew, Agent, Task, Process, LLM
+app.config['SQLALCHEMY_ECHO'] = True
 
+from agents.story_agent import generate_story
+from agents.news_agent import generate_news
+import json
+import os
+from dotenv import load_dotenv
+load_dotenv("prod.env")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)
 # Use for return current date and time according to user local timezone
 def ist_today():
     return datetime.now(timezone("Asia/Kolkata")).date()
@@ -244,3 +255,95 @@ def update_task_status(task_id, current_user_id, current_user_role):
 
 
 
+@app.route('/generate_story', methods=['POST'])
+@jwt_required(required_role='child')
+def create_daily_story(current_user_id, current_user_role):
+    data = request.get_json()
+
+    
+
+    child_prompt = data.get('child_prompt')
+
+    if not child_prompt:
+        return jsonify({'error': 'child_prompt is required'}), 400
+
+    try:
+        story_data = generate_story(child_prompt,llm)
+        # print("Generated story:", story_data)
+
+        # print(type(story_data))
+        
+
+        if not isinstance(story_data, dict) or "quiz" not in story_data:
+            return jsonify({'error': 'Story generation failed', 'details': story_data}), 500
+
+        # print("I am here")
+        # print(story_data.keys())
+        options = story_data['quiz'].get('options')
+        # print("quiz keys:", story_data['quiz'].keys())
+
+        
+        title=story_data['title']
+        theme=story_data['theme']
+        content=story_data['content']
+        question = story_data['quiz'].get('question')
+        correct_option = story_data['quiz'].get('answer')
+        option_a=options[0]
+        # print("quiz optiona :", option_a)
+        
+        option_b=options[1]
+        # print("quiz option b :", option_b)
+        option_c=options[2]
+        option_d=options[3]
+        submitted_option="not submitted"
+        # print(story_data['title'])
+        
+        # print(options)
+       
+        new_story = DailyStory(child_id=current_user_id, 
+                               date=date.today() ,
+                               child_prompt=child_prompt ,
+                               title=title,
+                               theme=theme,
+                               content=content,
+                               question=question , 
+                               option_a=option_a,
+                              option_b=option_b,
+                              option_c=option_c,
+                              option_d=option_d ,
+                              submitted_option=submitted_option ,
+                              correct_option=correct_option,
+                              is_correct="not submitted" )
+        # print("after new story")
+        try:
+            
+            db.session.add(new_story)
+            db.session.commit()
+            
+        except Exception as e:
+            db.session.rollback()
+            print("DB Error:", e)
+            
+            return jsonify({'error': str(e)}), 500
+
+ 
+        return jsonify({
+            'message': 'Story generated successfully',
+            'story': {
+                'title': new_story.title,
+                'theme': new_story.theme,
+                'content': new_story.content,
+                'quiz': {
+                    'question': new_story.question,
+                    'options': [new_story.option_a, new_story.option_b, new_story.option_c, new_story.option_d],
+                    'answer': new_story.correct_option
+                }
+            }
+        }), 201
+
+    except Exception as e:
+        
+        db.session.rollback()
+        print("Outer Error:", e)  
+        
+        return jsonify({'error': str(e)}), 500
