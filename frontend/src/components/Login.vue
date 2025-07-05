@@ -1,84 +1,139 @@
 <template>
-  <div class="bg-light">
-    <div class="d-flex justify-content-center align-items-center min-vh-100">
-      <div class="card shadow p-4" style="width: 100%; max-width: 300px;">
-        <h3 class="text-decoration-underline text-center mb-4">Log In</h3>
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+      <div class="container-fluid d-flex justify-content-between align-items-center">
+        <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
+        <div class="d-flex">
+          <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
+          <router-link to="/register" class="btn btn-primary">Register</router-link>
+        </div>
+      </div>
+    </nav>
+    <div class="login-container container mt-5">
+      <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
+        <h2 class="text-center mb-4">Login</h2>
+        <div class="mb-3 d-flex justify-content-center gap-3">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
+            <label class="form-check-label" for="roleParent">Parent</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" value="child" v-model="role" id="roleChild" />
+            <label class="form-check-label" for="roleChild">Child</label>
+          </div>
+        </div>
         <form @submit.prevent="login">
           <div class="mb-3">
-            <div class="text-danger" v-if="error">*{{ error }}</div>
-            <label for="email" class="form-label">Username</label>
-            <input
-              type="email"
-              class="form-control"
-              id="email"
-              placeholder="name@example.com"
-              v-model="cred.email"
-              required
-            />
+            <input type="text" class="form-control" v-model="username" placeholder="Username" required />
           </div>
           <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input
-              type="password"
-              class="form-control"
-              id="password"
-              placeholder="Password"
-              v-model="cred.password"
-              required
-            />
+            <input type="password" class="form-control" v-model="password" placeholder="Password" required />
           </div>
-          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <router-link
-              to="/register"
-              class="text-decoration-underline me-md-auto mb-2 mb-md-0"
-            >Sign Up</router-link>
-            <button class="btn btn-primary me-md-2" type="submit">Log In</button>
-          </div>
+          <button type="submit" class="btn btn-success w-100">Login as {{ role }}</button>
         </form>
+        <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  name: "Login",
-  data() {
-    return {
-      cred: {
-        email: null,
-        password: null,
-      },
-      error: null,
-    };
-  },
-  methods: {
-    async login() {
-      try {
-        const res = await fetch("/user-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(this.cred),
-        });
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import NavBar from '@/components/Nav.vue'
 
-        const data = await res.json();
+const username = ref('')
+const password = ref('')
+const role = ref('parent')
+const error = ref('')
+const router = useRouter()
 
-        if (res.ok) {
-          localStorage.setItem("auth-token", data.token);
-          localStorage.setItem("role", data.role);
-          this.$router.push({ path: "/" });
-        } else {
-          this.error = data.message;
-        }
-      } catch (err) {
-        this.error = "Something went wrong. Please try again.";
-        console.error(err);
-      }
-    },
-  },
-};
+const login = () => {
+  if (username.value && password.value) {
+
+    localStorage.setItem('userRole', role.value)
+    localStorage.setItem('username', username.value)
+
+    if (role.value === 'parent') {
+
+      localStorage.setItem('parent', JSON.stringify({
+        username: username.value,
+        name: username.value
+      }))
+      router.push('/parent_dashboard')
+    } else {
+      router.push('/child_dashboard')
+    }
+  } else {
+    error.value = 'Please enter both username and password'
+  }
+}
 </script>
 
 <style scoped>
-/* Optional: Add component-specific styles here */
+.navbar {
+  background-color: #f0eae9 !important;
+}
+
+.app-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.6rem;
+  color: #ff6a88 !important;
+  text-decoration: none;
+}
+
+.btn-outline-primary {
+  background-color: white;
+  border-color: #3b82f6;
+  color: #ff6a88;
+  border: none;
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-family: 'Fredoka One', cursive;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.btn-outline-primary:hover {
+  transform: scale(1.05);
+  background-color: #faf2f4;
+}
+
+.btn-primary {
+  background-color: white;
+  border-color: #3b82f6;
+  color: #ff6a88;
+  border: none;
+  margin-left: 10px;
+  padding: 10px 20px;
+  font-family: 'Fredoka One', cursive;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.btn-primary:hover {
+  transform: scale(1.05);
+  background-color: #faf2f4;
+}
+
+.login-container {
+  font-family: 'Comic Neue', cursive;
+}
+
+.card {
+  background: linear-gradient(135deg, #fff0f5, #f0f8ff);
+  border-radius: 20px;
+}
+
+.btn-success {
+  background-color: #ff6a88;
+  font-family: 'Fredoka One', cursive;
+  border: none;
+}
+
+.btn-success:hover {
+  background-color: #ff6a88;
+}
 </style>
