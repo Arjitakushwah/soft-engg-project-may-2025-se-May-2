@@ -7,5 +7,5 @@ __pycache__/
 
 *.pyd
 *.pdb
-backend/__pycache__
+backend/__pycache__/
 backend/prod.env
