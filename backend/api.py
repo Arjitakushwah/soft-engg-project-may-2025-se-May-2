@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)
+llm = LLM(model='gemini/gemini-2.0-flash', api_key='AIzaSyCZMxeV3KnIiHbKGuh3zVjMhBJ3gydWEwI')
 
 
 # Use for return current date and time according to user local timezone
@@ -42,30 +42,49 @@ Response:
 - 400: If task or date is missing, the date is in the past, or the format is invalid.
 - 500: Internal server error if task creation fails.
 """
+#------------------------------------To DO List task creation----------------------------------------------------
 @app.route('/todo', methods=['POST'])
 @jwt_required(required_role='child') 
 def create_todo_task(current_user_id, current_user_role):
-    data = request.get_json()
-    task = data.get('task')
-    date_str = data.get('date') 
-    if not task or not date_str:
-        return jsonify({'error': 'Task and date are required'}), 400
     try:
-        #Convert the date from string to date format YYYY-MM-DD
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        task = data.get('task')
+        date_str = data.get('date') 
+        
+        if not task or not date_str:
+            return jsonify({'error': 'Task and date are required'}), 400
+            
+        if not task.strip():
+            return jsonify({'error': 'Task cannot be empty'}), 400
+            
+        # Convert the date from string to date format YYYY-MM-DD
         selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         today = ist_today()
+        
         # Checking if the selected date is past date.
         if selected_date < today:
             return jsonify({'error': 'Cannot create tasks for past dates'}), 400
+            
         new_task = ToDoItem(
             child_id=current_user_id, 
             date=selected_date,
-            task=task,
+            task=task.strip(),
             is_done=False
         )
         db.session.add(new_task)
         db.session.commit()
-        return jsonify({'message': 'Task created successfully'}), 201
+        
+        return jsonify({
+            'message': 'Task created successfully',
+            'id': new_task.id,
+            'task': new_task.task,
+            'date': new_task.date.isoformat(),
+            'is_done': new_task.is_done
+        }), 201
+        
     except ValueError:
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
     except Exception as e:
@@ -98,35 +117,58 @@ Response:
 - 404: If the task or user is not found.
 - 500: Internal server error if update fails.
 """
+#-----------------------------------------To Do List Task update----------------------------------------------------------
 @app.route('/todo/<int:task_id>', methods=['PUT'])
 @jwt_required(required_role='child')
 def update_todo_task(task_id, current_user_id, current_user_role):
-    data = request.get_json()
-    task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
-    if not task:
-        return jsonify({'error': 'Task not found'}), 404
-    child_user = User.query.get(current_user_id)
-    if not child_user:
-        return jsonify({'error': 'User not found'}), 404
-    if task.is_done:
-        return jsonify({'error': 'You can not update a completed tas'}), 403
-    if 'is_done' in data:
-        return jsonify({'error': 'You can not change staus of the task'}), 400
-    if 'date' in data:
-        try:
-            # Converting date from string to date format YYYY-MM-DD
-            new_date = datetime.strptime(data['date'], "%Y-%m-%d").date()
-        except ValueError:
-            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-        # Checking if the selected date is past date or before of child account creation
-        if new_date < child_user.created_at.date() or new_date < ist_today():
-            return jsonify({'error': 'Date must be today or future'}), 400
-        task.date = new_date
-    if 'task' in data:
-        task.task = data['task']
     try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
+        if not task:
+            return jsonify({'error': 'Task not found'}), 404
+            
+        child_user = User.query.get(current_user_id)
+        if not child_user:
+            return jsonify({'error': 'User not found'}), 404
+            
+        if task.is_done:
+            return jsonify({'error': 'You cannot update a completed task'}), 403
+            
+        if 'is_done' in data:
+            return jsonify({'error': 'You cannot change status of the task using this endpoint'}), 400
+            
+        # Update date if provided
+        if 'date' in data:
+            try:
+                new_date = datetime.strptime(data['date'], "%Y-%m-%d").date()
+            except ValueError:
+                return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+                
+            # Checking if the selected date is past date or before child account creation
+            if new_date < child_user.created_at.date() or new_date < ist_today():
+                return jsonify({'error': 'Date must be today or future'}), 400
+                
+            task.date = new_date
+            
+        # Update task description if provided
+        if 'task' in data:
+            if not data['task'].strip():
+                return jsonify({'error': 'Task cannot be empty'}), 400
+            task.task = data['task'].strip()
+            
         db.session.commit()
-        return jsonify({'message': 'Task updated successfully'}), 200
+        
+        return jsonify({
+            'message': 'Task updated successfully',
+            'id': task.id,
+            'task': task.task,
+            'date': task.date.isoformat(),
+            'is_done': task.is_done
+        }), 200
+        
     except Exception as e:
         db.session.rollback()
         print("Update error:", e)
@@ -276,6 +318,8 @@ Response:
 - 500: When story generation failed.
 """
 
+# ------------------ STORY GENERATION ENDPOINT ------------------
+
 @app.route('/generate_story', methods=['POST'])
 @jwt_required(required_role='child')
 def create_daily_story(current_user_id, current_user_role):
@@ -283,54 +327,41 @@ def create_daily_story(current_user_id, current_user_role):
     child_prompt = data.get('child_prompt')
     if not child_prompt:
         return jsonify({'error': 'child_prompt is required'}), 400
+
     try:
-        # Call the story agent function
+        # LLM generation logic
         story_data = generate_story(child_prompt, llm)
+
         if not isinstance(story_data, dict) or "quiz" not in story_data:
             return jsonify({'error': 'Story generation failed', 'details': story_data}), 500
-        
-        
-        options = story_data['quiz'].get('options')
-        title=story_data['title']
-        theme=story_data['theme']
-        content=story_data['content']
-        question = story_data['quiz'].get('question')
-        correct_option = story_data['quiz'].get('answer')
-        option_a=options[0]
-        option_b=options[1]
-        option_c=options[2]
-        option_d=options[3]
-        submitted_option="not submitted"
-        new_story = DailyStory(child_id=current_user_id, 
-                               date=date.today() ,
-                               child_prompt=child_prompt ,
-                               title=title,
-                               theme=theme,
-                               content=content,
-                               question=question , 
-                               option_a=option_a,
-                              option_b=option_b,
-                              option_c=option_c,
-                              option_d=option_d ,
-                              submitted_option=submitted_option ,
-                              correct_option=correct_option,
-                              is_correct="not submitted",
-                              is_done=True)
-        
-        try:
-            # add story, quiz, answer, and prompt in database
-            db.session.add(new_story)
-            db.session.commit()
-            # update the daily task progressor
-            update_daily_progress(current_user_id, date.today())
-            # update the streak if child perform this task in last
-            update_streak(current_user_id)
-            
-        except Exception as e:
-            db.session.rollback()
-            print("DB Error:", e)
-            
-            return jsonify({'error': str(e)}), 500
+
+        options = story_data['quiz'].get('options', [])
+        if len(options) < 4:
+            return jsonify({'error': 'Quiz options are missing or incomplete'}), 500
+
+        new_story = DailyStory(
+            child_id=current_user_id,
+            date=date.today(),
+            child_prompt=child_prompt,
+            title=story_data['title'],
+            theme=story_data['theme'],
+            content=story_data['content'],
+            question=story_data['quiz']['question'],
+            option_a=options[0],
+            option_b=options[1],
+            option_c=options[2],
+            option_d=options[3],
+            submitted_option="not submitted",
+            correct_option=story_data['quiz']['answer'],
+            is_correct="not submitted",
+            is_done=True
+        )
+
+        db.session.add(new_story)
+        db.session.commit()
+        update_daily_progress(current_user_id, date.today())
+        update_streak(current_user_id)
+
         return jsonify({
             'message': 'Story generated successfully',
             'story': {
@@ -346,8 +377,35 @@ def create_daily_story(current_user_id, current_user_role):
         }), 201
 
     except Exception as e:
-        db.session.rollback()  
+        db.session.rollback()
+        return jsonify({'error': 'Unexpected error occurred', 'details': str(e)}), 500
+
+
+# ------------------ SUBMIT QUIZ ENDPOINT ------------------
+@app.route('/submit_quiz', methods=['POST'])
+@jwt_required(required_role='child')
+def submit_quiz(current_user_id, current_user_role):
+    data = request.get_json()
+    story_title = data.get('story_title')
+    selected_option = data.get('selected_option')
+
+    if not story_title or not selected_option:
+        return jsonify({'error': 'Missing required data'}), 400
+
+    story = DailyStory.query.filter_by(child_id=current_user_id, title=story_title).first()
+    if not story:
+        return jsonify({'error': 'Story not found'}), 404
+
+    story.submitted_option = selected_option
+    story.is_correct = 'correct' if selected_option == story.correct_option else 'wrong'
+
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Answer submitted successfully'}), 200
+    except Exception as e:
+        db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
 
 
 #------------------------------------------Journal---------------------------------------------------------------
@@ -367,7 +425,11 @@ Response:
 - 500: When any error occurs during mood classification or database operations.
 """
 
-@app.route('/journal', methods=['POST'])
+# Only one entry per day is allowed.
+# Every new journal on the same day overwrites the previous one.
+# Mood and timestamp get overwritten too.
+
+'''@app.route('/journal', methods=['POST'])
 @jwt_required(required_role='child')
 def create_or_update_journal(current_user_id, current_user_role):
     data = request.get_json()
@@ -418,9 +480,76 @@ def create_or_update_journal(current_user_id, current_user_role):
     except Exception as e:
         db.session.rollback()
         print("Journal entry error:", e)
-        return jsonify({'error': 'Failed to process journal entry'}), 500
+        return jsonify({'error': 'Failed to process journal entry'}), 500 '''
 
-    
+
+# Allows multiple journals per day.
+# Keeps each mood + time unique.
+# Good for tracking a child's emotions throughout the day.
+
+@app.route('/journal', methods=['POST'])
+@jwt_required(required_role='child')
+def create_journal(current_user_id, current_user_role):
+    data = request.get_json()
+    text = data.get('text')
+    if not text:
+        return jsonify({'error': 'Journal text is required'}), 400
+
+    try:
+        mood_dict = classify_emotion(text, llm)
+        mood = mood_dict.get("emotion", "unknown")
+
+        entry = JournalEntry(
+            child_id=current_user_id,
+            date=date.today(),
+            text=text,
+            mood=mood,
+            created_at=datetime.utcnow(),
+            is_done=True
+        )
+
+        db.session.add(entry)
+        db.session.commit()
+
+        # Optionally update streak and progress
+        update_daily_progress(current_user_id, date.today())
+        update_streak(current_user_id)
+
+        return jsonify({
+            'message': 'Journal entry created successfully',
+            'mood': mood,
+            'journal_text': entry.text
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to process journal entry', 'details': str(e)}), 500
+
+#----------------------------------search Journal---------------------------------------------------------------
+@app.route('/journal/search', methods=['GET'])
+@jwt_required(required_role='child')
+def search_journals(current_user_id, current_user_role):
+    date_query = request.args.get('date')
+    mood_query = request.args.get('mood')
+
+    filters = [JournalEntry.child_id == current_user_id]
+    if date_query:
+        filters.append(JournalEntry.date == date.fromisoformat(date_query))
+    if mood_query:
+        filters.append(JournalEntry.mood == mood_query)
+
+    results = JournalEntry.query.filter(*filters).order_by(JournalEntry.created_at.desc()).all()
+
+    entries = [{
+        'id': entry.id,
+        'date': entry.date.isoformat(),
+        'created_at': entry.created_at.strftime("%H:%M:%S"),
+        'mood': entry.mood,
+        'text': entry.text
+    } for entry in results]
+
+    return jsonify({'entries': entries}), 200
+
 #----------------------------------Infotainment---------------------------------------------------------------
 """
 API: Generate Infotainment Content
