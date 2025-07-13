@@ -32,6 +32,7 @@
           <button type="submit" class="btn btn-success w-100">Login as {{ role }}</button>
         </form>
         <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
+        <p class="text-success mt-3 text-center" v-if="success">{{ success }}</p>
       </div>
     </div>
   </div>
@@ -40,34 +41,71 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import NavBar from '@/components/Nav.vue'
 
 const username = ref('')
 const password = ref('')
 const role = ref('parent')
 const error = ref('')
+const success = ref('')
 const router = useRouter()
 
-const login = () => {
-  if (username.value && password.value) {
+const login = async () => {
+  error.value = ''
+  success.value = ''
 
-    localStorage.setItem('userRole', role.value)
+  if (!username.value || !password.value) {
+    error.value = 'Please enter both username and password'
+    return
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        username: username.value,
+        password: password.value
+      })
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      error.value = result.error || 'Login failed'
+      return
+    }
+
+    localStorage.setItem('access_token', result.access_token)
+    localStorage.setItem('userRole', result.role)
     localStorage.setItem('username', username.value)
 
-    if (role.value === 'parent') {
+    success.value = 'Login successful! Redirecting...'
 
+    if (result.role === 'parent') {
       localStorage.setItem('parent', JSON.stringify({
         username: username.value,
         name: username.value
       }))
-      router.push('/parent_dashboard')
-    } else {
-      router.push('/child_dashboard')
+    } else if (result.role === 'child') {
+      localStorage.setItem('child', JSON.stringify({
+        username: username.value,
+        name: username.value
+      }))
     }
-  } else {
-    error.value = 'Please enter both username and password'
+
+    setTimeout(() => {
+      router.push(result.redirect_to || '/')
+    }, 2000)
+
+  } catch (err) {
+    console.error(err)
+    error.value = 'Network error. Please try again.'
   }
 }
+
+
 </script>
 
 <style scoped>

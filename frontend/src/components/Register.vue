@@ -30,6 +30,7 @@
         </form>
 
         <p v-if="error" class="text-danger mt-3 text-center">{{ error }}</p>
+        <p v-if="success" class="text-success mt-3 text-center">{{ success }}</p>
 
         <p class="text-center mt-4">
           Already have an account?
@@ -43,7 +44,6 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import NavBar from '@/components/Nav.vue'
 
 const form = ref({
   name: '',
@@ -53,20 +53,58 @@ const form = ref({
 })
 
 const error = ref('')
+const success = ref('')
 const router = useRouter()
 
-const registerParent = () => {
-  if (form.value.email && form.value.password && form.value.username) {
-    console.log('Dummy Register:', form.value)
-    localStorage.setItem('userRole', 'parent')
-    localStorage.setItem('username', form.value.username)
+const registerParent = async () => {
+  error.value = ''
+  success.value = ''
 
-    alert('Registration successful! Redirecting to login...')
-    router.push('/login')
-  } else {
+  if (!form.value.name || !form.value.username || !form.value.email || !form.value.password) {
     error.value = 'Please fill in all fields'
+    return
+  }
+
+  try {
+    const response = await fetch('http://localhost:5000/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: form.value.name,
+        username: form.value.username,
+        email: form.value.email,
+        password: form.value.password
+      })
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      error.value = result.error || 'Registration failed'
+    } else {
+      success.value = 'Registration successful! Redirecting to login...'
+      localStorage.setItem('userRole', 'parent')
+      localStorage.setItem('username', form.value.username)
+
+      form.value = {
+        name: '',
+        username: '',
+        email: '',
+        password: ''
+      }
+
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+    }
+  } catch (err) {
+    error.value = 'Network error. Please try again.'
+    console.error(err)
   }
 }
+
 </script>
 
 <style scoped>
