@@ -64,34 +64,56 @@
     return ''
   })
   
-  const addChild = () => {
-    if (form.value.username && form.value.password && form.value.name && form.value.age && form.value.gender) {
-      const newChild = {
-        id: Date.now(),
-        ...form.value,
-        parentUsername: parentUsername.value
-      }
-  
-      const existing = JSON.parse(localStorage.getItem('childList')) || []
-      existing.push(newChild)
-      localStorage.setItem('childList', JSON.stringify(existing))
-  
-      message.value = 'Child profile added successfully!'
-      form.value = {
-        username: '',
-        password: '',
-        name: '',
-        age: '',
-        gender: ''
-      }
-  
-      setTimeout(() => {
-        router.push('/parent_dashboard')
-      }, 2000)
-    } else {
-      message.value = 'Please fill all the fields.'
-    }
+  const addChild = async () => {
+  message.value = ''
+
+  const { username, password, name, age, gender } = form.value
+
+  if (!username || !password || !name || !age || !gender) {
+    message.value = 'Please fill all the fields.'
+    return
   }
+
+  try {
+    const token = localStorage.getItem('access_token')
+    const response = await fetch('http://localhost:5000/add-child', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ username, password, name, age, gender })
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      message.value = result.error || 'Something went wrong.'
+      return
+    }
+
+    message.value = 'Child profile added successfully!'
+
+    // Reset form
+    form.value = {
+      username: '',
+      password: '',
+      name: '',
+      age: '',
+      gender: ''
+    }
+
+    // Redirect after short delay
+    setTimeout(() => {
+      router.push('/parent_dashboard')
+    }, 2000)
+
+  } catch (err) {
+    console.error(err)
+    message.value = 'Network error. Please try again.'
+  }
+}
+
   </script>
   
   <style scoped>
