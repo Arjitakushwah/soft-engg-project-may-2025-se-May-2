@@ -39,36 +39,37 @@
       </div>
     </div>
     <!-- Badges Earned -->
-<div class="card badge-card">
-  <h3>🏅 Badges Earned</h3>
-  <div class="badge-list">
-    <div class="badge" v-for="badge in badges" :key="badge.id">
-      <span class="emoji">{{ badge.icon }}</span>
-      <span class="label">{{ badge.name }}</span>
+    <div class="card badge-card">
+      <h3>🏅 Badges Earned</h3>
+      <div class="badge-list">
+        <div class="badge" v-for="badge in badges" :key="badge.id">
+          <span class="emoji">{{ badge.icon }}</span>
+          <span class="label">{{ badge.name }}</span>
+        </div>
+        <div v-if="badges.length === 0" class="no-badges">
+          No badges yet. Start your first quest!
+        </div>
+      </div>
     </div>
-    <div v-if="badges.length === 0" class="no-badges">No badges yet. Start your first quest!</div>
-  </div>
-</div>
   </section>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted } from "vue";
 
-const childName = ref('Child')
-const quote = ref('')
-const totalJournals = ref(12)
+const childName = ref("Child");
+const quote = ref("");
+const totalJournals = ref(12);
 
 const badges = ref([
-  { id: 1, name: 'First Journal', icon: '📝' },
-  { id: 2, name: 'Story Explorer', icon: '📖' },
-  { id: 3, name: '3-Day Streak', icon: '🔥' }
-])
-
+  { id: 1, name: "First Journal", icon: "📝" },
+  { id: 2, name: "Story Explorer", icon: "📖" },
+  { id: 3, name: "3-Day Streak", icon: "🔥" },
+]);
 
 onMounted(() => {
-  const storedName = localStorage.getItem('username')
-  childName.value = storedName || 'Child'
+  const storedName = localStorage.getItem("username");
+  childName.value = storedName || "Child";
 
   const quotes = [
     "Believe in yourself and all that you are!",
@@ -77,21 +78,20 @@ onMounted(() => {
     "Mistakes help you grow. Keep going!",
     "Great things take time. Stay curious!",
     "A little progress each day adds up to big results.",
-    "Be the reason someone smiles today!"
-  ]
+    "Be the reason someone smiles today!",
+  ];
 
-  quote.value = quotes[Math.floor(Math.random() * quotes.length)]
-})
+  quote.value = quotes[Math.floor(Math.random() * quotes.length)];
+});
 </script>
 
 <style scoped>
-
 .daily-quote {
   width: 100%;
   padding: 2rem 1rem;
   background: #e0f2fe;
   text-align: center;
-  font-family: 'Comic Neue', cursive;
+  font-family: "Comic Neue", cursive;
   box-sizing: border-box;
   border-radius: 1rem;
 }
@@ -107,7 +107,7 @@ onMounted(() => {
   font-style: italic;
   color: #333;
   background: #f0f8ff;
-  
+
   padding: 1rem 1.5rem;
   border-radius: 8px;
   display: inline-block;
@@ -191,5 +191,4 @@ onMounted(() => {
   font-size: 0.9rem;
   margin-top: 0.5rem;
 }
-
 </style>

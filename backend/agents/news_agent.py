@@ -1,101 +1,94 @@
-# from crewai_tools import tool
-from crewai.tools import BaseTool
+from crewai import Agent, Task, Crew
 from crewai.tools import tool
-
-from exa_py import Exa
-import os
-from crewai import Task, Crew, Agent , LLM
-
 from dotenv import load_dotenv
-load_dotenv("exaa.env")
+import os
+from datetime import datetime
+from exa_py import Exa
 
+load_dotenv("exaa.env")
 exa_api_key = os.getenv("exa_api_key")
 
-
+# --------------------------- Tool Setup ---------------------------
 @tool('Exa search and get contents')
 def search_and_get_contents_tool(question: str) -> str:
-    
     """
     Tool using Exa's Python SDK to run semantic search and return result highlights.
-   
     """
-
     exa = Exa(exa_api_key)
 
     response = exa.search_and_contents(
         question,
-        
         type="neural",
         num_results=5,
         highlights=True
     )
 
-    parsedResult = ''.join([
-      f'<Title id={idx}>{eachResult.title}</Title>'
-      f'<URL id={idx}>{eachResult.url}</URL>'
-      f'<Highlight id={idx}>{"".join(eachResult.highlights)}</Highlight>'
-      for (idx, eachResult) in enumerate(response.results)
+    parsed_result = ''.join([
+        f'<Title id={idx}>{eachResult.title}</Title>\n'
+        f'<URL id={idx}>{eachResult.url}</URL>\n'
+        f'<Highlight id={idx}>{"".join(eachResult.highlights)}</Highlight>\n\n'
+        for (idx, eachResult) in enumerate(response.results)
     ])
+    return parsed_result
 
-    return parsedResult
 
-def generate_news(prompt , llm ):
+# --------------------------- AI News Generator ---------------------------
+def generate_news(prompt, llm):
+    # Create agent
     news_agent = Agent(
-    role="Child-Focused News Journalist and Researcher",
-    goal="Provide accurate, simplified, and age-appropriate news for children aged 8 to 14 in an engaging markdown format.",
-    backstory="""
-        You are an experienced journalist and researcher who specializes in crafting child-appropriate news. 
-        Your mission is to inform and educate children aged 8 to 14 about current events, science, culture,inovation and important topics in a way that is age-appropriate, safe, and easy to understand.
-        You follow journalistic ethics, avoid sensationalism, and aim to inspire curiosity, empathy, and awareness in young readers.
-    """,
-    llm=llm,
-    tools=[search_and_get_contents_tool ],
-    allow_delegation=False,
-)
+        role="Child-Friendly News Creator",
+        goal="Generate four clear and fun stories for kids aged 8–14 based on a given topic or prompt",
+        backstory="""
+        You are a kind and fun journalist who explains things in a way that kids aged 8–14 will love and understand.
+        You tell true, positive, and exciting stories — not scary or hard things. You explain clearly, like a good storyteller.
+        Each story must feel like a short, separate paragraph with a title, a few lines of text, and a helpful link.
+        """,
+        llm=llm,
+        tools=[search_and_get_contents_tool],
+        allow_delegation=False
+    )
 
+    # Create task
     news_task = Task(
-    description=f"""
-    Generate a child-friendly news article based on this topic or interest using the tool on this topic: {prompt}.
+        description=f"""
+Use the tool to gather information about: "{prompt}". Then write **4 simple and clear stories**, each as a **paragraph** with:
 
-    Return the outpiut in a well-structured markdown format.
-    
-    => Guidelines for Writing:
-    a. The content must be factual, age-appropriate for 8–14-year-old readers, and avoid disturbing or complex details.
-    b. Provide short explain the topic clearly, using simple but engaging language.
-    c. Use markdown formatting for structure (headings, bullet points, etc.).
-    d. Include 5 news highlights with titles, URLs, and brief summaries.
-    
-    The output must be a well-structured markdwon text.
-    
-    """,
-    expected_output="A well-structured markdown text",
-    agent=news_agent,
-)
+1. A fun and clear **title** (`##` heading).
+2. A **short summary** in 2–3 simple lines that a child aged 8–14 can easily understand.
+3. A `Read more` link below.
 
+✅ Each story should be in this format (repeat 4 times):
+
+---
+
+## Story Title ✨  
+This is the summary of the story. It should be short, fun, and simple to read.  
+Even complicated topics should be explained using easy words.  
+
+**[Read more here](https://example.com)**  
+
+---
+
+Use only `Markdown`. Make sure there are **four full stories**, clearly separated. Avoid complex or scary info.
+        """,
+        expected_output="Markdown with 4 clearly separated child-friendly stories",
+        agent=news_agent,
+    )
+
+    # Create and run Crew
     crew = Crew(
         agents=[news_agent],
         tasks=[news_task],
         verbose=True,
     )
 
-    crew_inputs={"prompt":prompt}
+    crew_inputs = {"prompt": prompt}
     result = crew.kickoff(inputs=crew_inputs)
-    first_output_obj = result.tasks_output[0]
-    first_output = first_output_obj.raw
-    if first_output.startswith("```markdown"):
-        first_output = first_output.removeprefix("```markdown")
-    if first_output.endswith("```"):
-        first_output = first_output.removesuffix("```")
 
-    first_output = first_output.strip()
-
-    print("cleaned output:")
-    print(first_output)
-
-    try:
-        # story_json = json.loads(first_output)
-        return first_output
-    except Exception as e:
-        print("some error came", e)
-        return "no news"
-
+    # Extract and clean output
+    output = result.tasks_output[0].raw
+    if output.startswith("```markdown"):
+        output = output.removeprefix("```markdown")
+    if output.endswith("```"):
+        output = output.removesuffix("```")
+    return output.strip()

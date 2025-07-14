@@ -93,9 +93,10 @@ class InfotainmentReadLog(db.Model):
     __tablename__ = 'infotainment_read_log'
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
-    child_prompt=db.Column(db.Text, nullable=False)
-    content=db.Column(db.Text)
+    child_prompt = db.Column(db.Text, nullable=False)
+    content = db.Column(db.Text)
     date = db.Column(db.Date, nullable=False)
+    time = db.Column(db.Time, nullable=False, default=datetime.utcnow().time()) 
     is_done = db.Column(db.Boolean, default=False)
     marked_at = db.Column(db.DateTime, default=datetime.utcnow)
     child = db.relationship("Child", back_populates="infotainment_logs")
