@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='AIzaSyA3uG3lPX1cp6_V8wH47QAYHtmfuHsVgak')  # Replace with your actual LLM API key
+llm = LLM(model='gemini/gemini-2.0-flash', api_key='')  # Replace with your actual LLM API key
 
 
 # Use for return current date and time according to user local timezone
@@ -91,7 +91,8 @@ def create_todo_task(current_user_id, current_user_role):
         db.session.rollback()
         print("Error:", e)
         return jsonify({'error': 'Failed to create task'}), 500
-#-----------------------------------------To Do List Task update----------------------------------------------------------
+    
+#-----------------------------------------To Do List Task update---------------------------------------------------------
 """
 API: Update To-Do Task
 Child can update the task details which is not completed and also can update
@@ -117,7 +118,6 @@ Response:
 - 404: If the task or user is not found.
 - 500: Internal server error if update fails.
 """
-#-----------------------------------------To Do List Task update----------------------------------------------------------
 @app.route('/todo/<int:task_id>', methods=['PUT'])
 @jwt_required(required_role='child')
 def update_todo_task(task_id, current_user_id, current_user_role):
@@ -212,7 +212,7 @@ def delete_todo_task(task_id, current_user_id, current_user_role):
         print("Delete Error:", e)
         return jsonify({'error': 'Failed to delete task'}), 500
 
-#-----------------------------------------View task at particular date----------------------------------------------------
+#-----------------------------------------View task at particular date-------------------------------------------------
 """
 API: Get To-Do Tasks by Date
 Fetch all task by taking input of specific date or if child not provided date then fetch the current date task.
@@ -859,7 +859,7 @@ def trigger_badges(current_user_id, current_user_role):
     return jsonify({'message': 'Badges evaluated successfully'}), 200
 
 
-#-----------------------------------------------Parent APIs--------------------------------------------------------------------
+#-----------------------------------------------Parent APIs--------------------------------------------------------------
 
 
 #---------------------------------------------Fetch all child information-----------------------------------------
