@@ -572,34 +572,25 @@ Response:
 def generate_infotainment(current_user_id, current_user_role):
     data = request.get_json()
     prompt = data.get('prompt')
+
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
-    today = date.today()
-
-    # Checking the Infotainment is already generated or not in current date
-    existing = InfotainmentReadLog.query.filter_by(
-        child_id=current_user_id,
-        date=today
-    ).first()
-    if existing:
-        return jsonify({
-            'message': 'Content already generated today.',
-            'content': existing.content,
-            'log_id': existing.id
-        }), 200
 
     try:
-        # Generate new new
+        #  Generate AI content using agent
         response = generate_news(prompt, llm)
 
-        # Stored the generated news
+        now = datetime.utcnow()
+
+        #  Store the generated content with time
         log = InfotainmentReadLog(
             child_id=current_user_id,
             child_prompt=prompt,
             content=response,
-            date=today,
+            date=now.date(),
+            time=now.time(),
             is_done=False,
-            marked_at=datetime.utcnow()
+            marked_at=now
         )
         db.session.add(log)
         db.session.commit()
@@ -607,13 +598,52 @@ def generate_infotainment(current_user_id, current_user_role):
         return jsonify({
             'message': 'New content generated and stored.',
             'content': response,
-            'log_id': log.id
+            'log_id': log.id,
+            'date': log.date.strftime('%Y-%m-%d'),
+            'time': log.time.strftime('%H:%M:%S')
         }), 201
 
     except Exception as e:
         db.session.rollback()
         print("Infotainment generation error:", e)
         return jsonify({'error': 'Failed to generate content'}), 500
+    
+#-----------------------------------Search Infotainment---------------------------------------------------------------
+@app.route('/infotainment/search', methods=['GET'])
+@jwt_required(required_role='child')
+def search_infotainment(current_user_id, current_user_role):
+    search_query = request.args.get('q', '').strip().lower()
+    search_date = request.args.get('date', '').strip()
+
+    logs = InfotainmentReadLog.query.filter_by(child_id=current_user_id)
+
+    # If user searched by date
+    if search_date:
+        try:
+            search_date_obj = datetime.strptime(search_date, '%Y-%m-%d').date()
+            logs = logs.filter(InfotainmentReadLog.date == search_date_obj)
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+    logs = logs.order_by(InfotainmentReadLog.date.desc(), InfotainmentReadLog.marked_at.desc()).all()
+
+    result = []
+    for log in logs:
+        if not search_query or (
+            search_query in log.child_prompt.lower() or
+            search_query in (log.content or '').lower()
+        ):
+            result.append({
+                'id': log.id,
+                'prompt': log.child_prompt,
+                'content': log.content,
+                'is_done': log.is_done,
+                'date': log.date.strftime('%Y-%m-%d'),
+                'marked_at': log.marked_at.isoformat() if log.marked_at else None
+            })
+
+    return jsonify({'logs': result}), 200
+
 
 #---------------------------------------Marked completed--------------------------------------------------------
 """
@@ -638,29 +668,20 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
     if not query:
         return jsonify({'error': 'Content not found'}), 404
 
-    # Confirming the generated and completed date are same
     if query.date != date.today():
-        return jsonify({'error': 'Sorry, You can marked completed only today\'s news'}), 403
+        return jsonify({'error': 'You can mark only today\'s content'}), 403
 
-    # Check the time difference
     elapsed = datetime.utcnow() - query.marked_at
-    #Checking the time difference less or greater than 3 minutes
-    if elapsed < timedelta(minutes=3):
-        time_left = int((timedelta(minutes=3) - elapsed).total_seconds())
-        return jsonify({
-            'error': 'You can mark completed after 3 minute of generating.',
-            'wait_seconds': time_left
-        }), 403
+    if elapsed.total_seconds() < 180:
+        return jsonify({'error': 'You can mark as read after 3 minutes'}), 403
+
     if query.is_done:
         return jsonify({'message': 'Already marked as read'}), 200
-    query.is_done = True
-    query.marked_at = datetime.utcnow()
+
     try:
+        query.is_done = True
+        query.marked_at = datetime.utcnow()
         db.session.commit()
-        # update the daily task progressor
-        update_daily_progress(current_user_id, date.today())
-        # update the streak if child perform this task in last
-        update_streak(current_user_id)
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
