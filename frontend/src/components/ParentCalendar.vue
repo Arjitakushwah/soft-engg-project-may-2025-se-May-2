@@ -21,11 +21,11 @@
           <div class="modal-content">
             <h3>Tasks for {{ selectedDate }}</h3>
             <ul>
-              <li v-for="(task, index) in selectedTasks" :key="index">
-                <span v-if="selectedDate < today">{{ task.status === 'completed' ? '✅' : '❌' }}</span>
-                <span v-else-if="selectedDate === today">🟡</span>
+              <li v-for="(task, index) in selectedTasks" :key="index"
+                :class="getStatusClass(task.status, selectedDate)">
                 {{ task.title }}
               </li>
+
             </ul>
             <button @click="closeModal" class="close-btn">Close</button>
           </div>
@@ -152,6 +152,17 @@ function closeModal() {
   selectedDate.value = ''
   selectedTasks.value = []
 }
+
+function getStatusClass(status, date) {
+  if (status === 'completed') {
+    return 'task-completed'
+  } else {
+    if (date === today) return 'task-pending-today'
+    if (date < today) return 'task-missed'
+  }
+  return ''
+}
+
 </script>
 
 
@@ -204,8 +215,10 @@ function closeModal() {
 .fc {
   font-size: 14px;
 }
+
 .fc-event {
-  pointer-events: auto; /* ensure it's clickable */
+  pointer-events: auto;
+  /* ensure it's clickable */
 }
 
 
@@ -306,5 +319,35 @@ function closeModal() {
   font-weight: bold;
   font-family: 'Comic Neue', cursive;
   cursor: pointer;
+}
+
+.task-completed {
+  background-color: #d4f4dd;
+  /* light green */
+  color: #2e7d32;
+  /* dark green */
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.task-pending-today {
+  background-color: #fff8dc;
+  /* light yellow */
+  color: #ff9800;
+  /* orange */
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.task-missed {
+  background-color: #ffe6e6;
+  /* light red */
+  color: #d32f2f;
+  /* dark red */
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
 }
 </style>
