@@ -37,9 +37,11 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 
+const router = useRouter()
 const children = ref([])
 const selectedChild = ref(null)
 const selectedDate = ref('')

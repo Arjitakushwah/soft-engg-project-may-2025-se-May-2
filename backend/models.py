@@ -40,6 +40,7 @@ class Child(db.Model):
     daily_stories = db.relationship("DailyStory", back_populates="child")
     journal_entries = db.relationship("JournalEntry", back_populates="child")
     infotainment_logs = db.relationship("InfotainmentReadLog", back_populates="child")
+    badge_awards = db.relationship("BadgeAward", backref="child", lazy=True)
 
 # ---------- To-Do Item Model ----------
 
@@ -114,13 +115,25 @@ class DailyProgress(db.Model):
     last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     child = db.relationship("Child", backref="daily_progress")
 
-class StreakMilestone(db.Model):
-    __tablename__ = 'streak_milestones'
+# class StreakMilestone(db.Model):
+#     __tablename__ = 'streak_milestones'
+#     id = db.Column(db.Integer, primary_key=True)
+#     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
+#     milestone = db.Column(db.Integer, nullable=False)
+#     awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+#     db.UniqueConstraint('child_id', 'milestone')  # Prevent duplicates
+
+
+class BadgeAward(db.Model):
+    __tablename__ = 'badge_awards'
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
-    milestone = db.Column(db.Integer, nullable=False)
+    badge_type = db.Column(db.String, nullable=False)
+    badge_name = db.Column(db.String, nullable=False) 
     awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    db.UniqueConstraint('child_id', 'milestone')  # Prevent duplicates
+    __table_args__ = (
+        db.UniqueConstraint('child_id', 'badge_name', name='unique_badge_per_child'),
+    )
 
 

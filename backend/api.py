@@ -1,7 +1,7 @@
 from datetime import datetime, date, timedelta
 from utils import jwt_required
 from flask import request, jsonify
-from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress
+from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress,BadgeAward
 from app import app
 from pytz import timezone
 from crewai import LLM
@@ -11,13 +11,13 @@ from agents.story_agent import generate_story
 from agents.news_agent import generate_news
 from agents.mood_classifier import classify_emotion
 from progressor import update_daily_progress
-from streak_badges_logic import update_streak
+from streak_badges_logic import evaluate_all_badges
 import os
 from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='your api key here')  # Replace with your actual LLM API key
+llm = LLM(model='gemini/gemini-2.0-flash', api_key='AIzaSyA3uG3lPX1cp6_V8wH47QAYHtmfuHsVgak')  # Replace with your actual LLM API key
 
 
 # Use for return current date and time according to user local timezone
@@ -293,7 +293,7 @@ def update_task_status(task_id, current_user_id, current_user_role):
     try:
         db.session.commit()
         update_daily_progress(current_user_id, date.today())
-        update_streak(current_user_id)
+        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Task Completed successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -360,7 +360,7 @@ def create_daily_story(current_user_id, current_user_role):
         db.session.add(new_story)
         db.session.commit()
         update_daily_progress(current_user_id, date.today())
-        update_streak(current_user_id)
+        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': 'Story generated successfully',
@@ -468,7 +468,7 @@ def create_or_update_journal(current_user_id, current_user_role):
         # update the daily task progressor 
         update_daily_progress(current_user_id, date.today())
         # update the streak if child perform this task in last
-        update_streak(current_user_id)
+        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': message,
@@ -513,7 +513,7 @@ def create_journal(current_user_id, current_user_role):
 
         # Optionally update streak and progress
         update_daily_progress(current_user_id, date.today())
-        update_streak(current_user_id)
+        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': 'Journal entry created successfully',
@@ -682,6 +682,7 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         query.is_done = True
         query.marked_at = datetime.utcnow()
         db.session.commit()
+        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -740,6 +741,14 @@ def calendar_report(current_user_id, current_user_role):
 
     if start_date > end_date:
         return jsonify({'error': 'Start date cannot be after end date'}), 400
+    
+    color_map = {
+        4: "#216e39",    # darkest green
+        3: "#7bc96f",    # medium green
+        2: "#c6e48b",    # light green
+        1: "#ebedf0",    # very light gray
+        0: "#f0f0f0"     # almost white
+    }
 
     # Fetch all records
     records = DailyProgress.query.filter(
@@ -766,15 +775,15 @@ def calendar_report(current_user_id, current_user_role):
         done_count = 4 - len(not_done)
         # Assign the color according to number of task done.
         if done_count == 0:
-            color = "red"
+            color = "#f0f0f0" # almost white
         elif done_count == 1:
-            color = "gray"
+            color = "#ebedf0" # very light gray
         elif done_count == 2:
-            color = "purple"
+            color = "#c6e48b" # light green
         elif done_count == 3:
-            color = "yellow"
+            color = "#7bc96f" # medium green
         else:
-            color = "green"
+            color = "#216e39" # darkest green
         result[current_day.isoformat()] = {
             "status": color,
             "not_done": not_done
@@ -787,16 +796,23 @@ def calendar_report(current_user_id, current_user_role):
         "progress": result
     }), 200
 
-#--------------------------------------------Streak and Badges--------------------------------------------------------------
+# --------------------------------------- Streak, Badges, and Content Stats ---------------------------------------------
 """
-API: Get Streak and Badges Info
-This API is fetch the Current Streak, longest_streak, badges of child.
+API: Get Streak, Badge, and Activity Summary
 
 Role Required: Child
 
+Description:
+This API provides the following details for a logged-in child:
+- Current streak and longest streak values.
+- List of all awarded badges with name, type, and date.
+- Total number of stories completed.
+- Total number of journals written.
+- Total number of infotainment articles read.
+
 Response:
-- 200: When return the longest streak, current streak, and badges
-- 404: If the child record is not found.
+- 200 OK: On success, returns JSON with streaks, badges, and totals.
+- 404 Not Found: If child record is missing.
 """
 
 @app.route('/streak-badges', methods=['GET'])
@@ -805,11 +821,42 @@ def get_streak_info(current_user_id, current_user_role):
     child = Child.query.get(current_user_id)
     if not child:
         return jsonify({'error': 'Child not found'}), 404
+
+    # Fetch all badges
+    badge_awards = BadgeAward.query.filter_by(child_id=current_user_id).all()
+    badge_list = [
+        {
+            'name': badge.badge_name,
+            'type': badge.badge_type,
+            'awarded_at': badge.awarded_at.strftime('%Y-%m-%d')
+        }
+        for badge in badge_awards
+    ]
+
+    # Count completed content
+    total_stories_read = DailyStory.query.filter_by(child_id=current_user_id, is_done=True).count()
+    total_journals_written = JournalEntry.query.filter_by(child_id=current_user_id, is_done=True).count()
+    total_infotainment_read = InfotainmentReadLog.query.filter_by(child_id=current_user_id, is_done=True).count()
+
     return jsonify({
         'current_streak': child.streak,
         'longest_streak': child.longest_streak,
-        'badges': child.badges
+        'badges_count': len(badge_list),
+        'badges': badge_list,
+        'total_stories_read': total_stories_read,
+        'total_journals_written': total_journals_written,
+        'total_infotainment_read': total_infotainment_read
     }), 200
+
+
+#---------------------------------------------Trigger evaluate badges and streak-----------------------------------------
+
+
+@app.route('/trigger-badges', methods=['POST'])
+@jwt_required(required_role='child')
+def trigger_badges(current_user_id, current_user_role):
+    evaluate_all_badges(current_user_id)
+    return jsonify({'message': 'Badges evaluated successfully'}), 200
 
 
 #-----------------------------------------------Parent APIs--------------------------------------------------------------------

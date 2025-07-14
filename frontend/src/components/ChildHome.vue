@@ -19,7 +19,7 @@
       </div>
       <div class="card number-card">
         <h3>Streak</h3>
-        <p class="number">5</p>
+        <p class="number">{{ currentStreak }}</p>
       </div>
       <!-- <div class="card badge-card">
         <h3>Badges Earned</h3>
@@ -59,13 +59,37 @@ import { ref, onMounted } from "vue";
 
 const childName = ref("Child");
 const quote = ref("");
-const totalJournals = ref(12);
 
-const badges = ref([
-  { id: 1, name: "First Journal", icon: "📝" },
-  { id: 2, name: "Story Explorer", icon: "📖" },
-  { id: 3, name: "3-Day Streak", icon: "🔥" },
-]);
+const currentStreak = ref(0);
+const longestStreak = ref(0);
+const badges = ref([]);
+const totalBadges = ref(0);
+const totalJournals = ref(0);
+const totalStories = ref(0);
+const totalInfotainment = ref(0);
+
+const fetchStreakAndBadges = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/streak-badges", {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to fetch streak and badges");
+
+    currentStreak.value = data.current_streak || 0;
+    longestStreak.value = data.longest_streak || 0;
+    badges.value = data.badges || [];
+    totalBadges.value = data.badges_count || 0;
+    totalJournals.value = data.total_journals_written || 0;
+    totalStories.value = data.total_stories_read || 0;
+    totalInfotainment.value = data.total_infotainment_read || 0;
+  } catch (err) {
+    console.error("Error fetching streak & badges:", err.message);
+  }
+};
 
 onMounted(() => {
   const storedName = localStorage.getItem("username");
@@ -82,8 +106,12 @@ onMounted(() => {
   ];
 
   quote.value = quotes[Math.floor(Math.random() * quotes.length)];
+
+  fetchStreakAndBadges();
 });
 </script>
+
+
 
 <style scoped>
 .daily-quote {
