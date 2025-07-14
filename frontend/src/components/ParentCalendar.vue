@@ -5,11 +5,18 @@
         <div class="child-select">
           <label for="child">Select Child:</label>
           <select id="child" v-model="selectedChild">
-            <option v-for="child in children" :key="child" :value="child">{{ child }}</option>
+            <option v-for="child in children" :key="child.id" :value="child.id">
+              {{ child.name }}
+            </option>
           </select>
         </div>
-        <h2>{{ selectedChild }}'s Calendar Report</h2>
-        <FullCalendar :options="calendarOptions" />
+
+        <h2 v-if="selectedChild">
+          {{ getChildName(selectedChild) }}'s Calendar Report
+        </h2>
+
+        <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
+
         <div v-if="showModal" class="modal-overlay">
           <div class="modal-content">
             <h3>Tasks for {{ selectedDate }}</h3>
@@ -29,60 +36,124 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 
-const children = ['Anya', 'Ravi', 'Meera']
-const selectedChild = ref(children[0])
+const children = ref([])
+const selectedChild = ref(null)
 const selectedDate = ref('')
 const selectedTasks = ref([])
 const showModal = ref(false)
 const today = new Date().toISOString().split('T')[0]
-const rawEvents = [
-  { title: 'English Essay', date: '2025-06-21', status: 'completed' },
-  { title: 'Math Homework', date: '2025-06-22', status: 'pending' },
-  { title: 'Science Project', date: '2025-06-23', status: 'not_completed' },
-  { title: 'Art Class', date: '2025-06-24', status: 'pending' }
-]
+const calendarOptions = ref(null)
 
-const groupedDates = [...new Set(rawEvents.map(e => e.date))]
-const simplifiedEvents = groupedDates.map(date => ({
-  title: 'Tasks',
-  date,
-  status: 'grouped'
-}))
+const accessToken = localStorage.getItem('access_token')
+
+// Get child name by ID
+function getChildName(id) {
+  const child = children.value.find(c => c.id === id)
+  return child ? child.name : ''
+}
+
+// Fetch child list
+const fetchChildren = async () => {
+  try {
+    const response = await fetch('http://localhost:5000/parent/children', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+
+    if (!response.ok) throw new Error('Unauthorized or failed to fetch children.')
+
+    const data = await response.json()
+    children.value = data.children
+    if (children.value.length > 0) {
+      selectedChild.value = children.value[0].id
+    }
+  } catch (err) {
+    alert(err.message)
+  }
+}
+
+// Fetch calendar report for a selected child
+const fetchCalendarReport = async (childId) => {
+  try {
+    const response = await fetch(`http://localhost:5000/parent/child/${childId}/calendar-report`, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`
+      }
+    })
+
+    if (!response.ok) throw new Error('Failed to fetch calendar report.')
+
+    const data = await response.json()
+    const report = data.report
+
+    const events = Object.entries(report).map(([date, details]) => ({
+      title: `✅ ${details.total_completed}/4`,
+      date,
+      extendedProps: {
+        completed: details.completed,
+        not_completed: details.not_completed
+      }
+    }))
+
+    calendarOptions.value = {
+      plugins: [dayGridPlugin],
+      initialView: 'dayGridMonth',
+      contentHeight: 350,
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: ''
+      },
+      events,
+      eventContent(arg) {
+        return {
+          html: `<div style="color: black; font-weight: bold;">${arg.event.title}</div>`
+        }
+      },
+      eventClick(info) {
+        selectedDate.value = info.event.startStr
+        const tasks = ['todo', 'journal', 'story', 'infotainment']
+        const completed = info.event.extendedProps.completed || []
+
+        selectedTasks.value = tasks.map(task => ({
+          title: task,
+          status: completed.includes(task) ? 'completed' : 'not_completed'
+        }))
+
+        showModal.value = true
+      }
+    }
+  } catch (err) {
+    alert(err.message)
+  }
+}
+
+// React to child selection
+watch(selectedChild, (newVal) => {
+  if (newVal) fetchCalendarReport(newVal)
+})
+
+// Load children on component mount
+onMounted(() => {
+  if (!accessToken) {
+    alert('You must be logged in as parent.')
+    return
+  }
+  fetchChildren()
+})
 
 function closeModal() {
   showModal.value = false
   selectedDate.value = ''
   selectedTasks.value = []
 }
-
-const calendarOptions = ref({
-  plugins: [dayGridPlugin],
-  initialView: 'dayGridMonth',
-  initialDate: '2025-06-01',
-  contentHeight: 350,
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: ''
-  },
-  events: simplifiedEvents,
-  eventContent(arg) {
-    return {
-      html: `<div style="color: black; font-weight: bold;">${arg.event.title}</div>`
-    }
-  },
-  eventClick(info) {
-    const date = info.event.startStr
-    selectedDate.value = date
-    selectedTasks.value = rawEvents.filter(e => e.date === date)
-    showModal.value = true
-  }
-})
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');
@@ -133,6 +204,10 @@ const calendarOptions = ref({
 .fc {
   font-size: 14px;
 }
+.fc-event {
+  pointer-events: auto; /* ensure it's clickable */
+}
+
 
 .fc .fc-toolbar-title {
   font-size: 1.4rem;
