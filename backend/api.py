@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='ENTER API KEY')
+llm = LLM(model='gemini/gemini-2.0-flash', api_key='your api key here')  # Replace with your actual LLM API key
 
 
 # Use for return current date and time according to user local timezone
