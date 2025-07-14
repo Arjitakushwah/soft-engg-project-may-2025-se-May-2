@@ -11,7 +11,7 @@ from flask_cors import CORS
 # Initialize Flask app
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
-CORS(app)
+CORS(app, origins=["http://localhost:5173"])
 
 # Initialize database
 db.init_app(app)

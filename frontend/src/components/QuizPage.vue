@@ -6,22 +6,24 @@
           <h2>Quiz on "{{ storyTitle }}"</h2>
           <p><strong>Q:</strong> {{ question.text }}</p>
           <div class="options">
-            <div v-for="(opt, index) in question.options" :key="index" class="option-row" :class="{
-          'correct-answer': submitted && opt === question.answer,
-          'wrong-answer': submitted && question.selected === opt && question.selected !== question.answer
-        }">
+            <div v-for="(opt, index) in question.options" :key="index"
+                 class="option-row"
+                 :class="{
+                   'wrong-answer': showFeedback && opt === question.selected && opt !== question.answer,
+                   'correct-answer': locked && opt === question.answer
+                 }">
               <label>
-                <input type="radio" :value="opt" v-model="question.selected" :disabled="submitted" />
+                <input type="radio" :value="opt" v-model="question.selected" :disabled="locked" />
                 {{ opt }}
               </label>
             </div>
           </div>
-          <div v-if="submitted && question.selected !== question.answer" class="explanation">
-            Correct Answer: <strong>{{ question.answer }}</strong>
-          </div>
+
           <div class="btn-group">
             <button @click="router.back()">Back</button>
-            <button @click="submitted = true" :disabled="!question.selected">Submit</button>
+            <button @click="submitAnswer" :disabled="!question.selected || locked">
+              {{ locked ? 'Submitted' : 'Submit' }}
+            </button>
           </div>
         </div>
       </div>
@@ -35,30 +37,52 @@ import { useRouter, useRoute } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
+
 const storyTitle = ref(route.query.story || '')
 const rawQuestion = ref(route.query.question ? JSON.parse(route.query.question) : null)
-const submitted = ref(false)
-const childName = ref('Child')
+const locked = ref(false)
+const showFeedback = ref(false)
 
 const question = ref({
-  text: rawQuestion.value?.text || '',
+  text: rawQuestion.value?.question || '',
   options: rawQuestion.value?.options || [],
   answer: rawQuestion.value?.answer || '',
   selected: ''
 })
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  const res = await fetch('', {
-    headers: {
-      'Authorization': `Bearer ${token}`
+async function submitAnswer() {
+  if (locked.value || !question.value.selected) return
+
+  showFeedback.value = true
+
+  if (question.value.selected === question.value.answer) {
+    const token = localStorage.getItem('access_token')
+    try {
+      const response = await fetch('http://localhost:5000/submit_quiz', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          story_title: storyTitle.value,
+          selected_option: question.value.selected
+        })
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Submission failed')
+
+      locked.value = true
+      alert('🎉 Correct! Well done!')
+    } catch (err) {
+      console.error('Submission error:', err)
+      alert('Failed to submit answer. Try again.')
     }
-  })
-  const data = await res.json()
-  if (res.ok) {
-    childName.value = data.username || data.name
+  } else {
+    alert('Wrong answer! Try again.')
   }
-})
+}
 </script>
 
 <style scoped>
@@ -83,14 +107,6 @@ onMounted(async () => {
   padding: 2rem;
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-}
-
-.profile-header {
-  font-size: 1.6rem;
-  font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
-  text-align: center;
-  margin-bottom: 1.5rem;
 }
 
 .quiz-page {
@@ -121,12 +137,12 @@ h2 {
 
 .correct-answer {
   background-color: #d4edda;
-  border: 1px solid #28a745;
+  border: 2px solid #28a745;
 }
 
 .wrong-answer {
   background-color: #f8d7da;
-  border: 1px solid #dc3545;
+  border: 2px solid #dc3545;
 }
 
 .btn-group {
@@ -153,8 +169,8 @@ h2 {
 }
 
 .explanation {
-  font-size: 0.95rem;
-  color: #333;
+  font-size: 1rem;
   margin-top: 1rem;
+  color: #333;
 }
 </style>

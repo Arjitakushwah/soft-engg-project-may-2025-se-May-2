@@ -3,11 +3,19 @@
     <div class="dashboard-wrapper">
       <main class="main-content">
         <div class="profile-header">{{ childName }}'s Story Corner</div>
+
         <div class="input-section">
-          <input v-model="storyPrompt" placeholder="Enter a story topic (e.g. honesty, marble)" class="story-input"
-            @keyup.enter="generateStory" />
-          <button class="generate-btn" @click="generateStory">Generate</button>
+          <input
+            v-model="storyPrompt"
+            placeholder="Enter a story topic (e.g. honesty, marble)"
+            class="story-input"
+            @keyup.enter="generateStory"
+          />
+          <button class="generate-btn" @click="generateStory" :disabled="loading">
+            {{ loading ? 'Generating...' : 'Generate' }}
+          </button>
         </div>
+
         <transition name="fade">
           <div v-if="displayTitle" class="story-card">
             <h3 class="story-title">{{ displayTitle }}</h3>
@@ -25,54 +33,56 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
 const childName = ref('Child')
-const storyTitle = ref('')
 const displayTitle = ref('')
 const storyContent = ref('')
 const selectedQuestion = ref('')
 const storyPrompt = ref('')
+const loading = ref(false)
 
-let currentIndex = 0
-
-const storyList = [
-  {
-    title: 'The Lost Marble',
-    content: name => `One day, ${name} found a shiny red marble on the school playground. They knew it wasn’t theirs, but they liked it so much that they slipped it into their pocket. Later, their friend Ravi was sad—he had lost his favorite marble. ${name} felt a twist in the tummy. At home, they told their mom, who gently said, “Being honest is always the right choice.” The next day, ${name} returned the marble to Ravi and said sorry. Ravi smiled and forgave them. ${name} felt light and happy.`,
-    question: {
-      text: 'What lesson did the child learn from the marble incident?',
-      options: ['Be sneaky', 'Be honest', 'Take things quietly', 'Keep secrets'],
-      answer: 'Be honest'
-    }
-  },
-  {
-    title: 'The Broken Toy',
-    content: name => `${name} borrowed a toy from their friend but accidentally broke it. They felt bad and didn’t know what to do. Finally, they told the truth to their friend and offered to fix it. Their friend appreciated the honesty.`,
-    question: {
-      text: 'How did the child handle breaking the toy?',
-      options: ['Ignored it', 'Blamed someone else', 'Told the truth', 'Hid the toy'],
-      answer: 'Told the truth'
-    }
+async function generateStory() {
+  const input = storyPrompt.value.trim()
+  if (!input) {
+    alert('Please enter a story prompt')
+    return
   }
-]
 
-function generateStory() {
-  const input = storyPrompt.value.toLowerCase().trim()
+  const token = localStorage.getItem('access_token')
+  if (!token) {
+    alert('You are not logged in')
+    return
+  }
 
-  const matchedStory = storyList.find(
-    story =>
-      (input.includes('marble') && story.title === 'The Lost Marble') ||
-      (input.includes('honest') && story.title === 'The Lost Marble') ||
-      (input.includes('toy') && story.title === 'The Broken Toy') ||
-      (input.includes('truth') && story.title === 'The Broken Toy')
-  )
+  loading.value = true
 
-  const story = matchedStory || storyList[currentIndex % storyList.length]
+  try {
+    const response = await fetch('http://localhost:5000/generate_story', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ child_prompt: input })
+    })
 
-  displayTitle.value = story.title
-  storyContent.value = story.content(childName.value)
-  selectedQuestion.value = JSON.stringify(story.question)
-  currentIndex++
+    const data = await response.json()
+
+    if (!response.ok) {
+      console.error('Server error:', data)
+      alert(data.error || 'Failed to generate story.')
+      loading.value = false
+      return
+    }
+
+    displayTitle.value = data.story.title
+    storyContent.value = data.story.content
+    selectedQuestion.value = JSON.stringify(data.story.quiz)
+  } catch (err) {
+    console.error('Network error:', err)
+    alert('Network error. Please try again.')
+  } finally {
+    loading.value = false
+  }
 }
 
 function goToQuiz() {
@@ -87,29 +97,24 @@ function goToQuiz() {
 
 onMounted(async () => {
   try {
-    const token = localStorage.getItem('token')
-    const res = await fetch('', {
+    const token = localStorage.getItem('access_token')
+    const res = await fetch('http://localhost:5000/child/me', {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
-
     const data = await res.json()
-
     if (res.ok) {
-      childName.value = data.username || data.name
-    } else {
-      console.warn('Invalid token or server error')
-      childName.value = 'Child'
+      childName.value = data.username || data.name || 'Child'
     }
   } catch (err) {
-    console.error('API error:', err)
-    childName.value = 'Child'
+    console.error('User info fetch failed:', err)
   }
 })
 </script>
 
 <style scoped>
+/* Styling same as before */
 .dashboard-container {
   font-family: 'Comic Neue', cursive;
   background: linear-gradient(135deg, #fff4f7, #f0f8ff);
@@ -118,7 +123,6 @@ onMounted(async () => {
   padding: 3rem 1rem;
   box-sizing: border-box;
 }
-
 
 .dashboard-wrapper {
   width: 100%;
@@ -165,7 +169,12 @@ onMounted(async () => {
   transition: 0.3s ease;
 }
 
-.generate-btn:hover {
+.generate-btn:disabled {
+  background-color: #ffb6c1;
+  cursor: not-allowed;
+}
+
+.generate-btn:hover:not(:disabled) {
   background-color: #e75470;
 }
 
