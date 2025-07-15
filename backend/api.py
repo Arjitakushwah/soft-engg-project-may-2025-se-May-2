@@ -682,12 +682,9 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         query.is_done = True
         query.marked_at = datetime.utcnow()
         db.session.commit()
-<<<<<<< HEAD
-=======
         update_daily_progress(current_user_id, date.today())
 
         evaluate_all_badges(current_user_id)
->>>>>>> 2068c459e9d5cd5a53e6b13e70685bdd8be69ba6
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
