@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='you api key')  # Replace with your actual LLM API key
+llm = LLM(model='gemini/gemini-2.0-flash', api_key='ENTER API')  # Replace with your actual LLM API key
 
 
 # Use for return current date and time according to user local timezone
@@ -672,7 +672,7 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         return jsonify({'error': 'You can mark only today\'s content'}), 403
 
     elapsed = datetime.utcnow() - query.marked_at
-    if elapsed.total_seconds() < 180:
+    if elapsed.total_seconds() < 10:
         return jsonify({'error': 'You can mark as read after 3 minutes'}), 403
 
     if query.is_done:
@@ -682,6 +682,12 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         query.is_done = True
         query.marked_at = datetime.utcnow()
         db.session.commit()
+<<<<<<< HEAD
+=======
+        update_daily_progress(current_user_id, date.today())
+
+        evaluate_all_badges(current_user_id)
+>>>>>>> 2068c459e9d5cd5a53e6b13e70685bdd8be69ba6
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
