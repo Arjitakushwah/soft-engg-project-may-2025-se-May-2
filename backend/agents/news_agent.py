@@ -5,8 +5,8 @@ import os
 from datetime import datetime
 from exa_py import Exa
 
-load_dotenv("exaa.env")
-exa_api_key = os.getenv("")
+load_dotenv("exaa.env") 
+exa_api_key = os.getenv("AIzaSyCZMxeV3KnIiHbKGuh3zVjMhBJ3gydWEwI")
 
 # --------------------------- Tool Setup ---------------------------
 @tool('Exa search and get contents')
