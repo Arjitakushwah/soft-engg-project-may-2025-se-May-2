@@ -5,6 +5,8 @@ from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentRea
 from app import app
 from pytz import timezone
 from crewai import LLM
+from datetime import datetime, time
+
 app.config['SQLALCHEMY_ECHO'] = True
 
 from agents.story_agent import generate_story
@@ -1093,7 +1095,7 @@ def child_journal_entries(child_id, current_user_id, current_user_role):
     child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
     if not child:
         return jsonify({'error': 'Child not found'}), 404
-    # Set the Limit Parameter
+
     try:
         limit = int(request.args.get('limit', 0))
     except ValueError:
@@ -1114,6 +1116,63 @@ def child_journal_entries(child_id, current_user_id, current_user_role):
         "child_id": child_id,
         "journal_entries": journal_list
     }), 200
+
+# ---------------------------------------------journal-by-date-----------------------------------------------------------
+"""
+    Description:
+    Retrieves all journal entries written by a specific child on a given date.
+    This includes the mood, timestamp, and full content of each journal entry.
+    The endpoint ensures the child belongs to the requesting parent.
+
+    Query Parameters:
+    - date (str, required): The target date in YYYY-MM-DD format.
+
+    Path Parameters:
+    - child_id (int): The ID of the child whose journal entries should be retrieved.
+
+    Authorization:
+    - Requires Bearer JWT token with role = parent.
+
+    Responses:
+    - 200 OK: Returns a list of journal entries with id, timestamp, mood, and content.
+    - 400 Bad Request: If date is missing or in the wrong format.
+    - 404 Not Found: If the child does not belong to the parent.
+
+    """
+@app.route('/parent/child/<int:child_id>/journal-by-date', methods=['GET'])
+@jwt_required(required_role='parent')
+def journal_by_date(child_id, current_user_id, current_user_role):
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify({'error': 'Date parameter is required'}), 400
+
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+    # Verify child belongs to parent
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+    entries = JournalEntry.query.filter(
+        JournalEntry.child_id == child_id,
+        JournalEntry.date == target_date
+    ).order_by(JournalEntry.date.asc()).all()
+
+    result = []
+    for entry in entries:
+        result.append({
+            "id": entry.id,
+            "timestamp": entry.created_at,  # Full timestamp
+            "mood": entry.mood,
+            "content": entry.text
+        })
+
+    return jsonify({"journal_entries": result}), 200
+
+
 
 #------------------------------------------Child weekly and monthly report------------------------------------
 """
