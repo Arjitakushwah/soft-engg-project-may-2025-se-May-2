@@ -1,0 +1,616 @@
+openapi: "3.0.3"
+info:
+  title: Life Skills App
+  version: "1.0"
+servers:
+  - url: http://127.0.0.1:5000
+components:
+  securitySchemes:
+    bearerAuthParent:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    bearerAuthChild:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: Authentication
+    description: Endpoints for parent and child login, registration
+  - name: Parent Actions
+    description: Actions that parents can perform like adding a child
+  - name: To-Do-Lists (Child)
+    description: All to-do task operations available to children
+
+
+paths:
+  /register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new parent user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - name
+                - username
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: parent@example.com
+                password:
+                  type: string
+                  example: mysecurepassword
+                name:
+                  type: string
+                  example: John Doe
+                username:
+                  type: string
+                  example: johndoe123
+      responses:
+        "201":
+          description: Parent registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Parent registered successfully
+        "400":
+          description: Bad request due to missing fields or duplicate email/username
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Email already exists
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Something went wrong
+  /login:
+    post:
+      tags:
+       - Authentication
+      summary: Child/Parent login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe123
+                password:
+                  type: string
+                  example: mysecurepassword
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+                  access_token:
+                    type: string
+                    example: eyJ0eXAiOiJKV1QiLCJh...
+                  role:
+                    type: string
+                    enum: [parent, child]
+                    example: parent
+                  redirect_to:
+                    type: string
+                    example: /parent_dashboard
+        "400":
+          description: Missing username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Username and password are required
+        "401":
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid username, password, or role
+        "415":
+          description: Unsupported Media Type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Request content type must be application/json
+
+  /add-child:
+    post:
+      tags:
+        - Parent Actions
+      summary: Add a new child user (parent only)
+      description: Adds a child account under the authenticated parent. Requires JWT token with `parent` role.
+      security:
+        - bearerAuthParent: [] # Assumes JWT-based bearer authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - name
+                - age
+              properties:
+                username:
+                  type: string
+                  example: child_user1
+                password:
+                  type: string
+                  example: securechildpassword
+                name:
+                  type: string
+                  example: Alice
+                age:
+                  type: integer
+                  example: 10
+                gender:
+                  type: string
+                  enum: [male, female, other]
+                  example: female
+      responses:
+        "201":
+          description: Child added successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Child added successfully
+        "400":
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: All fields (username, password, name, age) are required.
+        "401":
+          description: Unauthorized - missing or invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing Authorization Header
+        "404":
+          description: Parent not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Parent not found
+        "409":
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Username already taken
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: SOmething wrong
+  /todo:
+    post:
+      tags :
+        - To-Do-Lists (Child)
+      summary: Create a new to-do task (child only)
+      description: Allows an authenticated child to create a task for a future date.
+      security:
+        - bearerAuthChild: [] # Referencing a separate security scheme for children if needed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - task
+                - date
+              properties:
+                task:
+                  type: string
+                  example: Complete science project
+                date:
+                  type: string
+                  format: date
+                  example: 2025-07-18
+      responses:
+        "201":
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task created successfully
+                  id:
+                    type: integer
+                    example: 42
+                  task:
+                    type: string
+                    example: Complete science project
+                  date:
+                    type: string
+                    format: date
+                    example: 2025-07-18
+                  is_done:
+                    type: boolean
+                    example: false
+        "400":
+          description: Bad request due to missing fields, empty task, or past date
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Task and date are required
+        "401":
+          description: Unauthorized - missing or invalid JWT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing Authorization Header
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to create task
+    get:
+      tags:
+        -  To-Do-Lists (Child)
+      summary: Get To-Do Tasks by Date (child only)
+      description: >
+        Fetches all to-do tasks for the authenticated child user for a specific date. If no date is provided, tasks for the current date are returned.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Optional date in YYYY-MM-DD format. Defaults to today if not provided.
+          schema:
+            type: string
+            format: date
+            example: 2025-07-15
+      responses:
+        "200":
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: 2025-07-15
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 42
+                        task:
+                          type: string
+                          example: Complete science project
+                        is_done:
+                          type: boolean
+                          example: false
+                        date:
+                          type: string
+                          format: date
+                          example: 2025-07-15
+        "400":
+          description: Invalid date format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid date format. Use YYYY-MM-DD
+
+  /todo/{task_id}:
+    put:
+      tags :
+        - To-Do-Lists (Child)
+      summary: Update a to-do task (child only)
+      description: >
+        Allows a child user to update a to-do task's description or date, but only if the task is not marked as completed.
+        The date must be today or a future date and not before the child's account creation date.
+      security:
+        - bearerAuthChild: [] # Or bearerAuth if you're using a single JWT scheme
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: ID of the task to update
+          schema:
+            type: integer
+            example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                task:
+                  type: string
+                  example: Finish math homework
+                date:
+                  type: string
+                  format: date
+                  example: 2025-07-20
+      responses:
+        "200":
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task updated successfully
+                  id:
+                    type: integer
+                    example: 42
+                  task:
+                    type: string
+                    example: Finish math homework
+                  date:
+                    type: string
+                    format: date
+                    example: 2025-07-20
+                  is_done:
+                    type: boolean
+                    example: false
+        "400":
+          description: Invalid update data (empty task, past date, or attempted status change)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Date must be today or future
+        "403":
+          description: Task is already completed and cannot be updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: You cannot update a completed task
+        "404":
+          description: Task or user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Task not found
+        "500":
+          description: Internal server error during update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Update failed
+    delete:
+      tags :
+        - To-Do-Lists (Child)
+      summary: Delete a to-do task (child only)
+      description: >
+        Allows a child to delete a task by ID if it's not marked as completed.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: ID of the task to delete
+          schema:
+            type: integer
+            example: 42
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task deleted successfully
+        '403':
+          description: Forbidden - Cannot delete completed task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: You can not delete completed task
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Task not found
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to delete task
+  
+  /todo/status/{task_id}:
+    put:
+      tags:
+        -  To-Do-Lists (Child)
+      summary: Mark a To-Do Task as Completed (child only)
+      description: >
+        Allows a child to mark a to-do task as completed, but only if it's scheduled for the current date and not already completed.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          description: ID of the task to mark as completed
+          schema:
+            type: integer
+            example: 42
+      responses:
+        "200":
+          description: Task marked completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task Completed successfully
+        "400":
+          description: Task already completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: You already completed it
+        "403":
+          description: Task is not scheduled for today
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: You can change the status of only today's tasks
+        "404":
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Task not found
+        "500":
+          description: Internal server error while updating status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to update task status
