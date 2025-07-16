@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='ENTER API')  # Replace with your actual LLM API key
+llm = LLM(model='gemini/gemini-2.0-flash', api_key='api key')  # Replace with your actual LLM API key
 
 
 # Use for return current date and time according to user local timezone
@@ -709,7 +709,7 @@ Response:
 - 404: when the child/user is not found in the system.
 
 Color Legend:
-- "green": All 4 tasks completed
+- "green": All 4 tasks complete
 - "yellow": 3 tasks completed
 - "purple": 2 tasks completed
 - "gray": 1 task completed

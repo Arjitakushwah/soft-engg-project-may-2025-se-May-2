@@ -135,5 +135,3 @@ class BadgeAward(db.Model):
     __table_args__ = (
         db.UniqueConstraint('child_id', 'badge_name', name='unique_badge_per_child'),
     )
-
-
