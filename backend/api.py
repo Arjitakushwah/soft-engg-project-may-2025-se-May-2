@@ -14,10 +14,11 @@ from progressor import update_daily_progress
 from streak_badges_logic import evaluate_all_badges
 import os
 from dotenv import load_dotenv
-load_dotenv("prod.env")
+load_dotenv("agents/prod.env") 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='')  # Replace with your actual LLM API key
+llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  
+# Don't replace here, replace google api in prod.env file only
 
 
 # Use for return current date and time according to user local timezone
@@ -359,8 +360,6 @@ def create_daily_story(current_user_id, current_user_role):
 
         db.session.add(new_story)
         db.session.commit()
-        update_daily_progress(current_user_id, date.today())
-        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': 'Story generated successfully',
@@ -401,6 +400,8 @@ def submit_quiz(current_user_id, current_user_role):
 
     try:
         db.session.commit()
+        update_daily_progress(current_user_id, date.today())
+        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Answer submitted successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -672,7 +673,7 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         return jsonify({'error': 'You can mark only today\'s content'}), 403
 
     elapsed = datetime.utcnow() - query.marked_at
-    if elapsed.total_seconds() < 180:
+    if elapsed.total_seconds() < 18:
         return jsonify({'error': 'You can mark as read after 3 minutes'}), 403
 
     if query.is_done:

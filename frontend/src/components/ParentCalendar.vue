@@ -2,7 +2,6 @@
   <div class="parent-calendar-bg">
     <main class="main-content">
       <div class="calendar-container">
-        <div class="child-select">
           <div class="child-select" v-if="children.length > 0">
             <label for="child">Select Child:</label>
             <select id="child" v-model="selectedChild">
@@ -36,7 +35,7 @@
               <button @click="closeModal" class="close-btn">Close</button>
             </div>
           </div>
-        </div>
+        
       </div>
     </main>
   </div>
