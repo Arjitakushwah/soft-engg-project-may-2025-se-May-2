@@ -3,31 +3,38 @@
     <main class="main-content">
       <div class="calendar-container">
         <div class="child-select">
-          <label for="child">Select Child:</label>
-          <select id="child" v-model="selectedChild">
-            <option v-for="child in children" :key="child.id" :value="child.id">
-              {{ child.name }}
-            </option>
-          </select>
-        </div>
+          <div class="child-select" v-if="children.length > 0">
+            <label for="child">Select Child:</label>
+            <select id="child" v-model="selectedChild">
+              <option v-for="child in children" :key="child.id" :value="child.id">
+                {{ child.name }}
+              </option>
+            </select>
+          </div>
 
-        <h2 v-if="selectedChild">
-          {{ getChildName(selectedChild) }}'s Calendar Report
-        </h2>
+          <p v-else style="margin-top: 1rem; color: #e11d48; font-weight: bold;">
+            No children added to your account.
+          </p>
 
-        <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
 
-        <div v-if="showModal" class="modal-overlay">
-          <div class="modal-content">
-            <h3>Tasks for {{ selectedDate }}</h3>
-            <ul>
-              <li v-for="(task, index) in selectedTasks" :key="index"
-                :class="getStatusClass(task.status, selectedDate)">
-                {{ task.title }}
-              </li>
+          <h2 v-if="selectedChild">
+            {{ getChildName(selectedChild) }}'s Calendar Report
+          </h2>
 
-            </ul>
-            <button @click="closeModal" class="close-btn">Close</button>
+          <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
+
+          <div v-if="showModal" class="modal-overlay">
+            <div class="modal-content">
+              <h3>Tasks for {{ selectedDate }}</h3>
+              <ul>
+                <li v-for="(task, index) in selectedTasks" :key="index"
+                  :class="getStatusClass(task.status, selectedDate)">
+                  {{ task.title }}
+                </li>
+
+              </ul>
+              <button @click="closeModal" class="close-btn">Close</button>
+            </div>
           </div>
         </div>
       </div>
