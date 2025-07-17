@@ -3,7 +3,6 @@ info:
   title: Skill Explorers - Life Skills App
   version: 1.0.0
   description: |
-
     ## About the Application
     Skill Explorers is a Life Skills App designed for school-aged children, parents, and teachers. 
     It fosters emotional well-being, daily responsibility, creativity, and cognitive skill-building 
@@ -55,7 +54,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      
+
 tags:
   - name: Authentication
     description: Endpoints for parent and child login, registration
