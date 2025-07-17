@@ -3,28 +3,29 @@ info:
   title: Skill Explorers - Life Skills App
   version: 1.0.0
   description: |
+
     ## About the Application
     Skill Explorers is a Life Skills App designed for school-aged children, parents, and teachers. 
     It fosters emotional well-being, daily responsibility, creativity, and cognitive skill-building 
     through journaling, gamified tasks, infotainment, and story-based learning. 
 
 
-    ## API ↔ User Story Mapping
+    ## API and User Story Mapping
 
     | Endpoint                                      | Description                     | User Story                      |
     |-----------------------------------------------|---------------------------------|---------------------------------|
-    | `/child/todo`                                 | Child’s to-do management        | Primary User: To-do               |
-    | `/story/generate`                             | AI Story generation via Gemini  | Primary User: Story               |
-    | `/story/quiz`                                 | Auto-quiz generation from story | Tertiary User: Fun quiz          |
-    | `/journal/write`                              | Write daily journal             | Primary User: Journaling          |
-    | `/infotainment/generate`                      | AI infotainment (Gemini)        |Secondary User: Infotainment       |
-    | `/calendar-report`                            | Daily completion colors         | Primary User: Streak              |
-    | `/streak-badges`                              | Get streaks and badges          | Tertiary User: Badge motivation  |
-    | `/parent/child/{id}/performance?date=YYYY-MM-DD` | Daily progress report        |Secondary User: Daily insights     |
-    | `/parent/child/{id}/calendar-report`          | Calendar report                 |Secondary User: Monthly report     |
-    | `/parent/child/{id}/journal-entries?limit=N`  | Recent journal mood summary     |Secondary User: Emotion tracking   |
-    | `/parent/child/{id}/journal-by-date?date=...` | Full journal entries for a date |Secondary User: Journal insights   |
-    | `/parent/child/{id}/summary?range=weekly/monthly` | Weekly/monthly task stats   |Secondary User: Dashboard          |
+    | `/todo`                                       | Child’s to-do management        | Primary User: To-do             |
+    | `/generate_story`                             | AI Story generation via Gemini  | Primary User: Story             |
+    | `/submit_quiz`                                | Auto-quiz generation from story | Tertiary User: Fun quiz         |
+    | `/journal`                                    | Write daily journal             | Primary User: Journaling        |
+    | `/infotainment/generate`                      | AI infotainment (Gemini)        |Secondary User: Infotainment     |
+    | `/calendar-report`                            | Daily completion colors         | Primary User: Streak            |
+    | `/streak-badges`                              | Get streaks and badges          | Tertiary User: Badge motivation |
+    | `/parent/child/<int:child_id>/performance`    | Daily progress report           |Secondary User: Daily insights   |
+    | `/parent/child/{id}/calendar-report`          | Calendar report                 |Secondary User: Monthly report   |
+    | `/parent/child/<int:child_id>/journal-entries`| Recent journal mood summary     |Secondary User: Emotion tracking |
+    | `/pparent/child/<int:child_id>/journal-by-date`| Full journal entries for a date|Secondary User: Journal insights |
+    | `/parent/child/<int:child_id>/summary`        | Weekly/monthly task stats       |Secondary User: Dashboard        |
 
     ---
     **GenAI Highlights**:
@@ -41,6 +42,7 @@ info:
 
     This API supports the Skill Explorers vision: enhancing emotional intelligence, critical thinking, and life skills through fun, AI-powered features.
 
+
 servers:
   - url: http://127.0.0.1:5000
 components:
@@ -53,6 +55,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      
 tags:
   - name: Authentication
     description: Endpoints for parent and child login, registration
