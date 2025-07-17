@@ -1,7 +1,46 @@
 openapi: "3.0.3"
 info:
-  title: Life Skills App
-  version: "1.0"
+  title: Skill Explorers - Life Skills App
+  version: 1.0.0
+  description: |
+    ## About the Application
+    Skill Explorers is a Life Skills App designed for school-aged children, parents, and teachers. 
+    It fosters emotional well-being, daily responsibility, creativity, and cognitive skill-building 
+    through journaling, gamified tasks, infotainment, and story-based learning. 
+
+
+    ## API ↔ User Story Mapping
+
+    | Endpoint                                      | Description                     | User Story                      |
+    |-----------------------------------------------|---------------------------------|---------------------------------|
+    | `/child/todo`                                 | Child’s to-do management        | Primary User: To-do               |
+    | `/story/generate`                             | AI Story generation via Gemini  | Primary User: Story               |
+    | `/story/quiz`                                 | Auto-quiz generation from story | Tertiary User: Fun quiz          |
+    | `/journal/write`                              | Write daily journal             | Primary User: Journaling          |
+    | `/infotainment/generate`                      | AI infotainment (Gemini)        |Secondary User: Infotainment       |
+    | `/calendar-report`                            | Daily completion colors         | Primary User: Streak              |
+    | `/streak-badges`                              | Get streaks and badges          | Tertiary User: Badge motivation  |
+    | `/parent/child/{id}/performance?date=YYYY-MM-DD` | Daily progress report        |Secondary User: Daily insights     |
+    | `/parent/child/{id}/calendar-report`          | Calendar report                 |Secondary User: Monthly report     |
+    | `/parent/child/{id}/journal-entries?limit=N`  | Recent journal mood summary     |Secondary User: Emotion tracking   |
+    | `/parent/child/{id}/journal-by-date?date=...` | Full journal entries for a date |Secondary User: Journal insights   |
+    | `/parent/child/{id}/summary?range=weekly/monthly` | Weekly/monthly task stats   |Secondary User: Dashboard          |
+
+    ---
+    **GenAI Highlights**:
+    - gemini-2.0-flash used for story creation, quiz generation, infotainment, and journal mood analysis.
+    - All endpoints are built with academic safety and age-appropriateness in mind.
+    ---
+
+    **External Integrations**
+    - **Gemini API** (via gemini-2.0-flash) is used for story generation, quiz creation, and infotainment.
+
+    - **CrewAI** enables collaborative agents for complex task management and orchestration (e.g., personalized recommendations or report generation).
+
+    - **Exa API** provides intelligent retrieval capabilities, such as summarizing content or giving contextual responses for infotainment and journaling insights.
+
+    This API supports the Skill Explorers vision: enhancing emotional intelligence, critical thinking, and life skills through fun, AI-powered features.
+
 servers:
   - url: http://127.0.0.1:5000
 components:
@@ -17,11 +56,27 @@ components:
 tags:
   - name: Authentication
     description: Endpoints for parent and child login, registration
+
   - name: Parent Actions
     description: Actions that parents can perform like adding a child
+
   - name: To-Do-Lists (Child)
     description: All to-do task operations available to children
 
+  - name: Journal Module
+    description: Journal writing, mood analysis, and retrieval endpoints for children
+
+  - name: Story Module
+    description: AI-powered story generation and quiz module for children
+
+  - name: Infotainment Module
+    description: AI-generated news and educational content for children
+
+  - name: Calendar & Streaks
+    description: Track daily progress, calendar reports, and streak summaries
+    
+  - name: Parent Reports
+    description: Parent access to child profiles, performance, mood, and summaries
 
 paths:
   /register:
@@ -88,7 +143,7 @@ paths:
   /login:
     post:
       tags:
-       - Authentication
+        - Authentication
       summary: Child/Parent login
       requestBody:
         required: true
@@ -257,7 +312,7 @@ paths:
                     example: SOmething wrong
   /todo:
     post:
-      tags :
+      tags:
         - To-Do-Lists (Child)
       summary: Create a new to-do task (child only)
       description: Allows an authenticated child to create a task for a future date.
@@ -336,7 +391,7 @@ paths:
                     example: Failed to create task
     get:
       tags:
-        -  To-Do-Lists (Child)
+        - To-Do-Lists (Child)
       summary: Get To-Do Tasks by Date (child only)
       description: >
         Fetches all to-do tasks for the authenticated child user for a specific date. If no date is provided, tasks for the current date are returned.
@@ -394,7 +449,7 @@ paths:
 
   /todo/{task_id}:
     put:
-      tags :
+      tags:
         - To-Do-Lists (Child)
       summary: Update a to-do task (child only)
       description: >
@@ -489,7 +544,7 @@ paths:
                     type: string
                     example: Update failed
     delete:
-      tags :
+      tags:
         - To-Do-Lists (Child)
       summary: Delete a to-do task (child only)
       description: >
@@ -505,7 +560,7 @@ paths:
             type: integer
             example: 42
       responses:
-        '200':
+        "200":
           description: Task deleted successfully
           content:
             application/json:
@@ -515,7 +570,7 @@ paths:
                   message:
                     type: string
                     example: Task deleted successfully
-        '403':
+        "403":
           description: Forbidden - Cannot delete completed task
           content:
             application/json:
@@ -525,7 +580,7 @@ paths:
                   error:
                     type: string
                     example: You can not delete completed task
-        '404':
+        "404":
           description: Task not found
           content:
             application/json:
@@ -535,7 +590,7 @@ paths:
                   error:
                     type: string
                     example: Task not found
-        '500':
+        "500":
           description: Server error
           content:
             application/json:
@@ -545,11 +600,11 @@ paths:
                   error:
                     type: string
                     example: Failed to delete task
-  
+
   /todo/status/{task_id}:
     put:
       tags:
-        -  To-Do-Lists (Child)
+        - To-Do-Lists (Child)
       summary: Mark a To-Do Task as Completed (child only)
       description: >
         Allows a child to mark a to-do task as completed, but only if it's scheduled for the current date and not already completed.
@@ -614,3 +669,1152 @@ paths:
                   error:
                     type: string
                     example: Failed to update task status
+
+  /generate_story:
+    post:
+      tags:
+        - Story Module
+      description: >
+        Generates a story and quiz based on the child's prompt using a Language Model (Gemini API) on the backend.
+        The story is stored in the database and associated with the child's progress.
+        This endpoint is internal and does not expose Gemini directly.
+      security:
+        - bearerAuthChild: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - child_prompt
+              properties:
+                child_prompt:
+                  type: string
+                  example: A lion who wanted to learn how to sing
+      responses:
+        "201":
+          description: Story generated and saved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Story generated successfully
+                  story:
+                    type: object
+                    properties:
+                      title:
+                        type: string
+                        example: Leo the Singing Lion
+                      theme:
+                        type: string
+                        example: Perseverance
+                      content:
+                        type: string
+                        example: Once upon a time in the savannah, Leo the lion wanted to learn how to sing...
+                      quiz:
+                        type: object
+                        properties:
+                          question:
+                            type: string
+                            example: What did Leo want to learn?
+                          options:
+                            type: array
+                            items:
+                              type: string
+                            example: [To dance, To paint, To sing, To swim]
+                          answer:
+                            type: string
+                            example: To sing
+        "400":
+          description: Missing prompt
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: child_prompt is required
+        "500":
+          description: Story generation failed or internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Story generation failed
+                  details:
+                    type: string
+                    example: Quiz options are missing or incomplete
+
+  /submit_quiz:
+    post:
+      tags:
+        - Story Module
+      summary: Submit quiz answer for a generated story (child only)
+      description: >
+        Allows a child to submit their selected quiz answer for a specific story.
+        The API validates the response, updates the story record, marks it correct/wrong,
+        and updates progress and badge status.
+      security:
+        - bearerAuthChild: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - story_title
+                - selected_option
+              properties:
+                story_title:
+                  type: string
+                  example: Leo's Unexpected Harmony
+                selected_option:
+                  type: string
+                  example: To sing
+      responses:
+        "200":
+          description: Answer submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Answer submitted successfully
+        "400":
+          description: Missing required fields in the request body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing required data
+        "404":
+          description: Story not found for the given child and title
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Story not found
+        "500":
+          description: Internal server error while submitting the answer
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Database error or unexpected failure
+
+  /journal:
+    post:
+      tags:
+        - Journal Module
+      summary: Create a journal entry (child only)
+      description: >
+        Allows a child to write a journal entry for the current date and time. Automatically classifies the mood
+        using an LLM (Gemini) and saves the journal entry with mood and timestamp.
+      security:
+        - bearerAuthChild: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - text
+              properties:
+                text:
+                  type: string
+                  example: Today I felt really happy because I helped my friend solve a problem.
+      responses:
+        "200":
+          description: Journal entry created and mood classified
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Journal entry created successfully
+                  mood:
+                    type: string
+                    example: happy
+                  journal_text:
+                    type: string
+                    example: Today I felt really happy because I helped my friend solve a problem.
+        "400":
+          description: Missing journal text
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Journal text is required
+        "500":
+          description: Failed to process journal entry
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to process journal entry
+                  details:
+                    type: string
+                    example: Some internal server error details
+
+  /journal/search:
+    get:
+      tags:
+        - Journal Module
+      summary: Search journal entries by date or mood (child only)
+      description: >
+        Retrieves journal entries for the authenticated child filtered by optional date and/or mood.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: date
+          in: query
+          required: false
+          description: Filter journal entries by date (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: 2025-07-15
+        - name: mood
+          in: query
+          required: false
+          description: Filter journal entries by mood
+          schema:
+            type: string
+            example: happy
+      responses:
+        "200":
+          description: Journal entries retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        date:
+                          type: string
+                          format: date
+                          example: 2025-07-15
+                        created_at:
+                          type: string
+                          example: 14:35:21
+                        mood:
+                          type: string
+                          example: happy
+                        text:
+                          type: string
+                          example: Today I felt really happy because I helped my friend.
+
+  /infotainment/generate:
+    post:
+      tags:
+        - Infotainment Module
+      summary: Generate infotainment content (child only)
+      description: >
+        Generates content (e.g., news or fun facts) based on the child’s prompt using an AI agent (e.g., Gemini).
+        Prevents regeneration if content was already created on the same day.
+      security:
+        - bearerAuthChild: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+              properties:
+                prompt:
+                  type: string
+                  example: Tell me about volcanoes!
+      responses:
+        "201":
+          description: New content generated and stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: New content generated and stored.
+                  content:
+                    type: string
+                    example: Volcanoes are mountains that can erupt with lava...
+                  log_id:
+                    type: integer
+                    example: 101
+                  date:
+                    type: string
+                    format: date
+                    example: 2025-07-16
+                  time:
+                    type: string
+                    example: 15:24:00
+        "200":
+          description: Content already generated today, returning existing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Content already generated today
+                  content:
+                    type: string
+                    example: Volcanoes are mountains that can erupt with lava...
+                  log_id:
+                    type: integer
+                    example: 101
+        "400":
+          description: Missing prompt in request body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Prompt is required
+        "500":
+          description: Internal server error while generating content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to generate content
+
+  /infotainment/search:
+    get:
+      tags:
+        - Infotainment Module
+      summary: Search generated infotainment logs (child only)
+      description: >
+        Allows children to search their infotainment content by keyword (prompt/content) or date.
+        Date must be in YYYY-MM-DD format if provided.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Keyword to search in prompt or content
+          schema:
+            type: string
+            example: volcano
+        - name: date
+          in: query
+          required: false
+          description: "Filter logs by date (format: YYYY-MM-DD)"
+          schema:
+            type: string
+            format: date
+            example: 2025-07-16
+      responses:
+        "200":
+          description: Infotainment logs fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 101
+                        prompt:
+                          type: string
+                          example: Tell me about volcanoes
+                        content:
+                          type: string
+                          example: Volcanoes are mountains that erupt...
+                        is_done:
+                          type: boolean
+                          example: false
+                        date:
+                          type: string
+                          format: date
+                          example: 2025-07-16
+                        marked_at:
+                          type: string
+                          format: date-time
+                          example: 2025-07-16T15:24:00Z
+        "400":
+          description: Bad Request due to invalid date format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid date format. Use YYYY-MM-DD
+
+  /infotainment/mark-read/{log_id}:
+    put:
+      tags:
+        - Infotainment Module
+      summary: Mark infotainment content as read (child only)
+      description: >
+        Allows children to mark infotainment content as completed, but only after 3 minutes from generation and only for today's content.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: log_id
+          in: path
+          required: true
+          description: ID of the infotainment content log to mark as read
+          schema:
+            type: integer
+            example: 101
+      responses:
+        "200":
+          description: Successfully marked as read (or already marked)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Marked as read successfully
+        "403":
+          description: Forbidden - either early attempt or marking older content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: You can mark as read after 3 minutes
+        "404":
+          description: Content log not found for the current child
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Content not found
+        "500":
+          description: Internal server error while marking as read
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to mark as read
+
+  /calendar-report:
+    get:
+      tags:
+        - Calendar & Streaks
+      summary: Get calendar progress report (child only)
+      description: >
+        Returns a color-coded summary of a child's daily task completion from a start date to end date.
+        Colors are based on how many of the 4 tasks (journal, story, infotainment, todo) are completed per day.
+      security:
+        - bearerAuthChild: []
+      parameters:
+        - name: start_date
+          in: query
+          required: false
+          description: Start date in YYYY-MM-DD format (defaults to account creation date)
+          schema:
+            type: string
+            format: date
+            example: 2025-07-01
+        - name: end_date
+          in: query
+          required: false
+          description: End date in YYYY-MM-DD format (defaults to today)
+          schema:
+            type: string
+            format: date
+            example: 2025-07-16
+      responses:
+        "200":
+          description: Calendar progress report fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  start_date:
+                    type: string
+                    format: date
+                    example: 2025-07-01
+                  end_date:
+                    type: string
+                    format: date
+                    example: 2025-07-16
+                  progress:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                          description: Hex color code representing progress status
+                          example: "#7bc96f"
+                        not_done:
+                          type: array
+                          items:
+                            type: string
+                          example: ["story", "journal"]
+        "400":
+          description: Invalid query parameters (e.g. wrong date format or date range)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid date format. Use YYYY-MM-DD
+        "404":
+          description: Child not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: User not found
+
+  /streak-badges:
+    get:
+      tags:
+        - Calendar & Streaks
+      summary: Get streak, badges, and content statistics (child only)
+      description: >
+        Returns the current and longest streak, awarded badges, and total completed stories, journals, and infotainment entries for the authenticated child.
+      security:
+        - bearerAuthChild: []
+      responses:
+        "200":
+          description: Streak and content stats fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_streak:
+                    type: integer
+                    example: 5
+                  longest_streak:
+                    type: integer
+                    example: 12
+                  badges_count:
+                    type: integer
+                    example: 3
+                  badges:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: Journal Master
+                        type:
+                          type: string
+                          example: milestone
+                        awarded_at:
+                          type: string
+                          format: date
+                          example: 2025-07-10
+                  total_stories_read:
+                    type: integer
+                    example: 15
+                  total_journals_written:
+                    type: integer
+                    example: 20
+                  total_infotainment_read:
+                    type: integer
+                    example: 10
+        "404":
+          description: Child not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found
+
+  /parent/children:
+    get:
+      tags:
+        - Parent Actions
+      summary: Get all children added by the parent
+      description: >
+        Returns a list of child profiles (name, age, gender, and streaks) added by the authenticated parent.
+      security:
+        - bearerAuthParent: []
+      responses:
+        "200":
+          description: Children fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  children:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: Alice
+                        age:
+                          type: integer
+                          example: 10
+                        gender:
+                          type: string
+                          example: female
+                        streak:
+                          type: integer
+                          example: 3
+                        longest_streak:
+                          type: integer
+                          example: 5
+        "404":
+          description: No children found for this parent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: No children found
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch children
+
+  /parent/child/{child_id}/profile:
+    get:
+      tags:
+        - Parent Actions
+      summary: Get Child Profile Summary
+      description: Returns detailed profile of a child including streak and earned badges.
+      security:
+        - bearerAuthParent: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 101
+      responses:
+        "200":
+          description: Child profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 101
+                      name:
+                        type: string
+                        example: Alice
+                      age:
+                        type: integer
+                        example: 10
+                      gender:
+                        type: string
+                        example: female
+                      streak:
+                        type: integer
+                        example: 5
+                      longest_streak:
+                        type: integer
+                        example: 8
+                      badges:
+                        type: array
+                        items:
+                          type: string
+        "404":
+          description: Child not found or unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found or unauthorized
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch child profile
+
+  /parent/child/{child_id}/performance:
+    get:
+      tags:
+        - Parent Actions
+      summary: Get Child Daily Performance
+      description: >
+        This API helps fetch the task completion status of a child on a given date.
+        Includes status for To-Do, Journal, Story, and Infotainment.
+      security:
+        - bearerAuthParent: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          description: The ID of the child
+          schema:
+            type: integer
+            example: 4
+        - name: date
+          in: query
+          required: true
+          description: "The date for which the performance is to be fetched (format: YYYY-MM-DD)"
+          schema:
+            type: string
+            format: date
+            example: 2025-07-15
+      responses:
+        "200":
+          description: Daily performance report
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: 2025-07-15
+                  todo_completed:
+                    type: boolean
+                    example: true
+                  journal_done:
+                    type: boolean
+                    example: true
+                  story_done:
+                    type: boolean
+                    example: false
+                  infotainment_done:
+                    type: boolean
+                    example: true
+                  total_completed:
+                    type: integer
+                    example: 3
+                  message:
+                    type: string
+                    example: Report fetched successfully
+        "400":
+          description: Date missing or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Date required in format YYYY-MM-DD
+        "404":
+          description: Child not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found
+  
+  /parent/child/{child_id}/calendar-report:
+    get:
+      tags:
+        - Parent Reports
+      summary: Get Child Calendar Report
+      description: >
+        Provides a calendar-style report of the selected child’s completed and not completed tasks 
+        across To-Do, Journal, Story, and Infotainment.
+      security:
+        - bearerAuthParent: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          description: The ID of the child
+          schema:
+            type: integer
+            example: 4
+      responses:
+        "200":
+          description: Calendar report for the child
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  child_id:
+                    type: integer
+                    example: 4
+                  calendar_range:
+                    type: object
+                    properties:
+                      start:
+                        type: string
+                        format: date
+                        example: 2025-06-01
+                      end:
+                        type: string
+                        format: date
+                        example: 2025-07-16
+                  report:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        completed:
+                          type: array
+                          items:
+                            type: string
+                            example: journal
+                        not_completed:
+                          type: array
+                          items:
+                            type: string
+                            example: story
+                        total_completed:
+                          type: integer
+                          example: 3
+        "404":
+          description: Child or user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found
+
+  /parent/child/{child_id}/journal-entries:
+    get:
+      tags:
+        - Parent Actions
+      summary: Get Child Journal Mood Entries
+      description: >
+        Allows parents to fetch a list of recent journal entries written by the child 
+        with basic mood and date info. The number of entries can be limited.
+      security:
+        - bearerAuthParent: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          description: The ID of the child
+          schema:
+            type: integer
+            example: 4
+        - name: limit
+          in: query
+          required: false
+          description: The maximum number of recent journal entries to return
+          schema:
+            type: integer
+            example: 5
+      responses:
+        "200":
+          description: Journal entries fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  child_id:
+                    type: integer
+                    example: 4
+                  journal_entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 101
+                        date:
+                          type: string
+                          format: date
+                          example: 2025-07-15
+                        mood:
+                          type: string
+                          example: happy
+        "400":
+          description: Invalid limit parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Limit must be an integer
+        "404":
+          description: Child not found or unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found
+
+  /parent/child/{child_id}/journal-by-date:
+    get:
+      tags:
+        - Parent Actions
+      summary: Get Child Journal Entries by Date
+      description: >
+        Retrieves all journal entries written by a specific child on a given date.
+        Includes the mood, timestamp, and full content of each journal entry.
+      security:
+        - bearerAuthParent: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          description: The ID of the child
+          schema:
+            type: integer
+            example: 4
+        - name: date
+          in: query
+          required: true
+          description: >
+            The date of journal entries to fetch (format: YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+            example: 2025-07-15
+      responses:
+        "200":
+          description: Journal entries for the date retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  journal_entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 205
+                        timestamp:
+                          type: string
+                          format: date-time
+                          example: 2025-07-15T10:22:00Z
+                        mood:
+                          type: string
+                          example: happy
+                        content:
+                          type: string
+                          example: Today I went to school and made a new friend!
+        "400":
+          description: Invalid or missing date parameter
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Date parameter is required
+        "404":
+          description: Child not found or unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found or unauthorized
+
+  /parent/child/{child_id}/summary:
+    get:
+      tags:
+        - Parent Reports
+      summary: Get Child Weekly or Monthly Summary
+      description: >
+        Provides a performance summary of a child over a weekly or monthly time window.
+        Tracks task completion stats across To-Do, Journal, Story, and Infotainment.
+      security:
+        - bearerAuthParent: []
+      parameters:
+        - name: child_id
+          in: path
+          required: true
+          description: ID of the child
+          schema:
+            type: integer
+            example: 3
+        - name: range
+          in: query
+          required: true
+          description: Specify the range for summary ("weekly" or "monthly")
+          schema:
+            type: string
+            enum: [weekly, monthly]
+            example: weekly
+      responses:
+        "200":
+          description: Summary retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  child_id:
+                    type: integer
+                    example: 3
+                  summary_range:
+                    type: string
+                    example: weekly
+                  summary:
+                    type: object
+                    properties:
+                      total_days:
+                        type: integer
+                        example: 7
+                      tasks_assigned:
+                        type: integer
+                        example: 28
+                      tasks_completed:
+                        type: integer
+                        example: 25
+                      todo_completed_days:
+                        type: integer
+                        example: 6
+                      journal_done_days:
+                        type: integer
+                        example: 7
+                      story_done_days:
+                        type: integer
+                        example: 6
+                      infotainment_done_days:
+                        type: integer
+                        example: 6
+                      dates:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            date:
+                              type: string
+                              format: date
+                              example: 2025-07-16
+                            todo_done:
+                              type: boolean
+                              example: true
+                            journal_done:
+                              type: boolean
+                              example: true
+                            story_done:
+                              type: boolean
+                              example: false
+                            infotainment_done:
+                              type: boolean
+                              example: true
+        "400":
+          description: Invalid or missing range query
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid range. Use range=weekly or range=monthly
+        "404":
+          description: Child not found or unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Child not found or unauthorized
