@@ -3,7 +3,7 @@
     <main class="main-content">
       <div class="analysis-container">
         <!-- Filter Row + View All Entries -->
-        <div class="filters-container" v-if="selectedChild && moodData.labels.length">
+        <div class="filters-container">
           <div class="filters-row">
             <label for="child">Select Child:</label>
             <select id="child" v-model="selectedChild">
@@ -20,7 +20,8 @@
             <button class="view-btn" @click="showEntries = true">View All Entries</button>
           </div>
         </div>
-
+        <p v-if="!moodData.labels.length" class="no-data-msg">No journal data available for this date.</p>
+        <p v-if="!weeklyData.labels.length" class="no-data-msg">No journal data available for the last 7 days.</p>
 
         <!-- Heading -->
         <!-- <h2 v-if="selectedChild">
@@ -53,7 +54,6 @@
 
 
         <!-- No data -->
-        <p v-if="!moodData.labels.length" class="no-data-msg">No journal data available for this date.</p>
 
         <!-- Modal -->
         <div class="modal-overlay" v-if="showEntries" @click.self="showEntries = false">
