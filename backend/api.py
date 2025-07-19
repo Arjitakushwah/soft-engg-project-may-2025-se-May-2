@@ -1,24 +1,26 @@
 from datetime import datetime, date, timedelta
 from utils import jwt_required
-from flask import request, jsonify
+from flask import request, jsonify, send_file
 from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress
 from app import app
 from pytz import timezone
 from crewai import LLM
+
 app.config['SQLALCHEMY_ECHO'] = True
 
 from agents.story_agent import generate_story
 from agents.news_agent import generate_news
 from agents.mood_classifier import classify_emotion
+from agents.report_agent import analyze_child_data
 from progressor import update_daily_progress
 from streak_badges_logic import update_streak
+from report_pdf import generate_pdf
 import os
 from dotenv import load_dotenv
 load_dotenv("prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='your api key here')  # Replace with your actual LLM API key
-
+llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)
 
 # Use for return current date and time according to user local timezone
 def ist_today():
@@ -318,7 +320,7 @@ Response:
 - 500: When story generation failed.
 """
 
-# ------------------ STORY GENERATION ENDPOINT ------------------
+# ------------------ STORY GENERATION ENDPOINT ----------------------------------------------------------------
 
 @app.route('/generate_story', methods=['POST'])
 @jwt_required(required_role='child')
@@ -423,13 +425,12 @@ Response:
 - 200: When the journal is successfully created or updated. Return the mood after determine, Journal, time and marked it done.
 - 400: When the journal text is missing in the request body.
 - 500: When any error occurs during mood classification or database operations.
+
+Only one entry per day is allowed.
+Every new journal on the same day overwrites the previous one.
+Mood and timestamp get overwritten too.
 """
-
-# Only one entry per day is allowed.
-# Every new journal on the same day overwrites the previous one.
-# Mood and timestamp get overwritten too.
-
-'''@app.route('/journal', methods=['POST'])
+@app.route('/journal', methods=['POST'])
 @jwt_required(required_role='child')
 def create_or_update_journal(current_user_id, current_user_role):
     data = request.get_json()
@@ -480,7 +481,7 @@ def create_or_update_journal(current_user_id, current_user_role):
     except Exception as e:
         db.session.rollback()
         print("Journal entry error:", e)
-        return jsonify({'error': 'Failed to process journal entry'}), 500 '''
+        return jsonify({'error': 'Failed to process journal entry'}), 500
 
 
 # Allows multiple journals per day.
@@ -673,7 +674,7 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
 
     elapsed = datetime.utcnow() - query.marked_at
     if elapsed.total_seconds() < 180:
-        return jsonify({'error': 'You can mark as read after 3 minutes'}), 403
+        return jsonify({'error': f'You can mark as read after {elapsed} seconds'}), 403
 
     if query.is_done:
         return jsonify({'message': 'Already marked as read'}), 200
@@ -682,6 +683,8 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         query.is_done = True
         query.marked_at = datetime.utcnow()
         db.session.commit()
+        update_daily_progress(current_user_id, date.today())
+        update_streak(current_user_id)
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -1159,8 +1162,45 @@ def child_summary(child_id, current_user_id, current_user_role):
         summary["dates"].append(day_data)
     return jsonify({
         "child_id": child_id,
+        "child_name": child.name,
         "summary_range": range_type,
         "summary": summary
     }), 200
 
-
+#----------------------------------------- Report Agent API -----------------------------------------------------------
+@app.route('/parent/child-analysis', methods=['POST'])
+@jwt_required(required_role='parent')
+def generate_child_analysis_report(current_user_id, current_user_role):
+    try:
+        data = request.get_json()
+        if not data or 'child_id' not in data or 'summary' not in data or 'entries' not in data['summary']:
+            return jsonify({'error': 'Invalid input. JSON must contain child_id and summary with entries'}), 400
+        child_id = data['child_id']
+        summary_data = data['summary']
+        entries = summary_data.get('entries', [])
+        if not entries:
+            return jsonify({'error': 'No daily summary entries found to analyze'}), 400
+        agent_input = {
+            "child_id": child_id,
+            "summary_range": data.get("summary_range", "weekly"),
+            "entries": entries,
+            "tasks_assigned": summary_data.get("tasks_assigned", 0),
+            "tasks_completed": summary_data.get("tasks_completed", 0),
+            "todo_completed_days": summary_data.get("todo_completed_days", 0),
+            "journal_done_days": summary_data.get("journal_done_days", 0),
+            "story_done_days": summary_data.get("story_done_days", 0),
+            "infotainment_done_days": summary_data.get("infotainment_done_days", 0)
+        }
+        markdown_output = analyze_child_data(agent_input, llm)
+        pdf_path = generate_pdf(markdown_output)
+        if not os.path.exists(pdf_path):
+            return jsonify({'error': 'PDF generation failed'}), 500
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='child_analysis_report.pdf'
+        )
+    except Exception as e:
+        print("Report Generation Error:", e)
+        return jsonify({'error': 'Failed to generate analysis report'}), 500

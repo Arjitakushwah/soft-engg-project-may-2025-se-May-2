@@ -13,9 +13,12 @@ def analyze_child_data(json_input, llm):
         role="Child Behavioral Analyst",
         goal="Understand child well-being through data and return engaging markdown analysis",
         backstory="""
-            You are a compassionate behavioral data analyst. 
-            You receive weekly activity logs from children aged 8–14. Your job is to extract key patterns from their journaling, mood ratings, and time/activity logs to generate useful insights about their mental well-being.
-            Present your analysis in a markdown format that’s suitable for parents, guardians, or educators.
+            You are a compassionate behavioral data analyst.
+            You receive weekly activity summaries for children aged 8–14.
+            The summaries include number of completed and pending tasks (todo, journal, story, infotainment)
+            for each day, along with mood values.
+            Your job is to analyze the child's behavior patterns, productivity, and emotional health.
+            Present your insights in a parent-friendly markdown format.
         """,
         llm=llm,
         allow_delegation=False
@@ -23,49 +26,55 @@ def analyze_child_data(json_input, llm):
 
     data_analysis_task = Task(
         description=f"""
-        Given the following JSON data of a child's weekly activity:
+        Analyze the following JSON data showing a child's weekly learning and emotional activity:
 
         ```json
         {json.dumps(json_input, indent=2)}
         ```
 
-        Perform a structured analysis that includes:
+        Please provide a clear **markdown report** with the following structure:
 
-        - Mood summary (count of each mood, most common mood)
-        - Sentiment analysis from journal entries (positive, negative, neutral)
-        - Time management trends (days completed vs skipped)
-        - Stories read (total, average, trend)
+        1. **Mood Overview**
+           - Count of each mood.
+           - Most common mood.
+        
+        2. **Task Completion Insight**
+           - Count of completed tasks by category (todo, journal, story, infotainment).
+           - Days with full completion vs incomplete days.
+        
+        3. **Behavior Pattern Summary**
+           - Are there signs of consistency, burnout, or disinterest?
+           - Any links between mood and task completion?
 
-         Format your analysis in **markdown** and include:
+        4. **Well-being Rating**
+           - Your rating of the child’s overall weekly well-being: (Excellent / Good / Moderate / Needs Attention).
+        
+        5. **Recommendations**
+           - 2–3 simple, encouraging tips to help improve emotional or task performance next week.
 
-        1. **Mood Overview** – breakdown with bullet points
-        2. **Journal Sentiment Insight** – what kind of mood/thoughts are expressed
-        3. **Time Management & Activity Summary** – engagement level
-        4. **Well-being Rating** – overall mental health impression (happy/stressed/sad)
-        5.  Recommendations – 2-3 tips to improve emotional or activity balance
-
-        The markdown should be clean, structured, and simple to read.
+        Output should be clean **markdown** (no code blocks).
         """,
-        expected_output="Structured markdown with sections and bullet points",
+        expected_output="Markdown-formatted report with all sections clearly structured",
         agent=analysis_agent
     )
 
     crew = Crew(
         agents=[analysis_agent],
         tasks=[data_analysis_task],
-        verbose=True,
+        verbose=True
     )
 
     result = crew.kickoff(inputs={})
-    first_output_obj = result.tasks_output[0]
-    first_output = first_output_obj.raw
+    output = result.tasks_output[0].raw.strip()
 
-    if first_output.startswith("```markdown"):
-        first_output = first_output.removeprefix("```markdown")
-    if first_output.endswith("```"):
-        first_output = first_output.removesuffix("```")
+    # Clean up markdown formatting if wrapped in ```markdown blocks
+    if output.startswith("```markdown"):
+        output = output.removeprefix("```markdown").strip()
+    if output.endswith("```"):
+        output = output.removesuffix("```").strip()
 
-    return first_output.strip()
+    return output
+
 
 
 

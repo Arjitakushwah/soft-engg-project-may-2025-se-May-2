@@ -1,40 +1,63 @@
-## Weekly Well-being Analysis for Aryan (Age 11)
+## Weekly Engagement & Well-being Summary
 
-This report summarizes Aryan's activities and emotional state based on the provided weekly data.
+This report summarizes the child’s weekly progress based on completed tasks across To-Do, Journal, Story, and Infotainment activities.
 
-### 1. Mood Overview
+---
 
-*   **Happy:** 3 days
-*   **Sad:** 1 day
-*   **Stressed:** 1 day
-*   **Most Common Mood:** Happy
+### 1. Summary Overview
 
-Aryan experienced predominantly positive moods this week. However, there were instances of sadness and stress that require attention.
+- **Total Days Reviewed:** 7  
+- **Total Tasks Assigned:** 28  
+- **Total Tasks Completed:** 21  
 
-### 2. Journal Sentiment Insight
+#### ✅ Activity Completion Counts:
+- **To-Do Completed on:** 5 days  
+- **Journal Completed on:** 6 days  
+- **Story Completed on:** 4 days  
+- **Infotainment Completed on:** 6 days
 
-The journal entries reveal the following sentiment trends:
+---
 
-*   **Positive:** Entries expressing joy, helpfulness, and learning new things ("I felt good after yoga and helped mom", "I learned new words and played chess", "I watched a cartoon and laughed")
-*   **Negative:** Entries indicating sadness or negative experiences ("I got scolded and felt bad", "Too much homework made me tired")
-*   **Observation:** Scolding incidents and excessive homework appear to negatively affect Aryan's mood.
+### 2. Daily Progress Breakdown
 
-### 3. Time Management & Activity Summary
+| Date       | To-Do | Journal | Story | Infotainment |
+|------------|:-----:|:-------:|:-----:|:------------:|
+| 2025-07-01 | ✅    | ✅      | ❌    | ✅           |
+| 2025-07-02 | ✅    | ❌      | ✅    | ✅           |
+| 2025-07-03 | ✅    | ✅      | ✅    | ✅           |
+| 2025-07-04 | ❌    | ✅      | ❌    | ❌           |
+| 2025-07-05 | ✅    | ✅      | ✅    | ✅           |
+| 2025-07-06 | ✅    | ❌      | ❌    | ✅           |
+| 2025-07-07 | ❌    | ✅      | ❌    | ✅           |
 
-*   **Time Management Tasks Completed:** 4 out of 5 days.
-*   **Time Management Tasks Skipped:** 1 out of 5 days.
-*   **Reading Engagement:** Aryan read stories on all days, indicating strong engagement with reading activities.
+> ✅ = Completed ❌ = Not Done
 
-Aryan generally adheres to time management tasks but missed it on the day he felt sad. This suggests a correlation between mood and task completion. His consistent reading habits are a positive sign.
+---
 
-### 4. Well-being Rating
+### 3. Engagement Insights
 
-Based on the data, Aryan's overall well-being can be rated as **Good with areas for improvement.** While the dominant mood is happy, the instances of sadness and stress suggest potential stressors that need to be addressed.
+- The child has shown **strong consistency** in completing **journal and infotainment** tasks.
+- **Story tasks** were completed only on 4 out of 7 days, suggesting slightly lower narrative engagement.
+- On some days, **to-do tasks were skipped**, which could be linked to lower motivation or distractions.
+
+---
+
+### 4. Well-being Evaluation
+
+From the completion data:
+- The child demonstrates a generally positive and balanced engagement.
+- Missed tasks may be occasional and not indicative of a larger issue.
+- There's an opportunity to boost **story** engagement through more interactive formats or incentives.
+
+---
 
 ### 5. Recommendations
 
-To further improve Aryan's emotional well-being and activity balance, consider the following:
+- **Encourage Reflection**: Since journals are being completed, consider asking reflective questions that help children express thoughts more deeply.
+- **Gamify To-Do Tasks**: Add point systems or badges for to-do completion streaks.
+- **Story Time Routines**: Designate a fixed, calm time daily for story reading to build routine and enjoyment.
+- **Parental Encouragement**: Acknowledge completed tasks daily to build a sense of achievement.
 
-*   **Open Communication:** Create a safe space for Aryan to discuss feelings openly, especially after negative experiences like being scolded. Understanding the context of the scolding is important.
-*   **Homework Management:** Work with Aryan's teachers to ensure homework assignments are manageable and don't cause undue stress. Consider breaking down large assignments into smaller, more manageable chunks. Incorporate regular breaks during study sessions.
-*   **Positive Reinforcement:** Acknowledge and praise Aryan's efforts in time management and reading. Positive reinforcement can encourage continued engagement in these activities.
+---
+
+_This report is intended to provide a helpful lens on your child’s weekly learning habits and emotional activity._
