@@ -6,6 +6,7 @@ from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
 from flask_cors import CORS
+from otp import verify_otp, store_otp, verified_emails
 
 
 # Initialize Flask app
@@ -99,8 +100,71 @@ def login():
     else:
         return jsonify({"error": "Invalid username, password, or role"}), 401
 
+#------------------------------------Forgot Username-----------------------------------------
+@app.route('/forgot-username', methods=['POST'])
+def forgot_username():
+    data = request.get_json()
+    email = data.get('email')
+    if not email:
+        return jsonify({"status": "error", "message": "Email is required"}), 400
+    user = User.query.filter_by(email=email).first()
+    if user:
+        return jsonify({
+            "status": "success",
+            "username": user.username
+        }), 200
+    else:
+        return jsonify({
+            "status": "error",
+            "message": "User with this email not found"
+        }), 404
+    
+#-------------------------------------Forgot Password----------------------------------------------------------------
+@app.route('/forgot-password', methods=['POST'])
+def send_otp():
+    data = request.get_json()
+    email = data.get("email")
 
-#------------------------------ Add Child-----------------------------------------------------
+    if store_otp(email):
+        return jsonify({"message": "OTP sent to email"}), 200
+    return jsonify({"error": "Failed to send OTP"}), 500
+
+
+@app.route('/verify-otp', methods=['POST'])
+def verify_otp_route():
+    data = request.get_json()
+    email = data.get("email")
+    otp = data.get("otp")
+
+    success, message = verify_otp(email, otp)
+    return jsonify({"success": success, "message": message}), (200 if success else 400)
+
+@app.route('/set-password', methods=['POST'])
+def set_new_password():
+    data = request.get_json()
+    email = data.get('email')
+    new_password = data.get('new_password')
+
+    if not email or not new_password:
+        return jsonify({'error': 'Email and password required'}), 400
+
+    if email not in verified_emails:
+        return jsonify({'error': 'OTP verification required'}), 401
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    hashed_password = generate_password_hash(new_password)
+    user.password = hashed_password
+    db.session.commit()
+
+    verified_emails.remove(email)
+
+    return jsonify({'message': 'Password reset successfully'}), 200
+
+
+#------------------------------ Add Child-----------------------------------------------------------------------------
 
 @app.route('/add-child', methods=['POST'])
 @jwt_required(required_role='parent')
