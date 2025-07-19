@@ -15,7 +15,6 @@ from agents.mood_classifier import classify_emotion
 from agents.report_agent import analyze_child_data
 from progressor import update_daily_progress
 from streak_badges_logic import evaluate_all_badges
-from streak_badges_logic import update_streak
 from report_pdf import generate_pdf
 import os
 from dotenv import load_dotenv
@@ -98,7 +97,7 @@ def create_todo_task(current_user_id, current_user_role):
         print("Error:", e)
         return jsonify({'error': 'Failed to create task'}), 500
     
-#-----------------------------------------To Do List Task update---------------------------------------------------------
+#-------------------------------------To Do List Task update---------------------------------------------------------
 """
 API: Update To-Do Task
 Child can update the task details which is not completed and also can update
@@ -218,7 +217,7 @@ def delete_todo_task(task_id, current_user_id, current_user_role):
         print("Delete Error:", e)
         return jsonify({'error': 'Failed to delete task'}), 500
 
-#-----------------------------------------View task at particular date-------------------------------------------------
+#---------------------------------------View task at particular date-------------------------------------------------
 """
 API: Get To-Do Tasks by Date
 Fetch all task by taking input of specific date or if child not provided date then fetch the current date task.
@@ -261,7 +260,7 @@ def tasks_by_date(current_user_id, current_user_role):
         'date': selected_date.isoformat(),
         'tasks': task_list
     }), 200
-#------------------------------------To Do List status update-----------------------------------------------------------
+#-------------------------------To Do List status update-----------------------------------------------------------
 """
 API: Update Task Status
 This API allow the child to mark task completed only current date tasks.
@@ -433,7 +432,7 @@ Response:
 Only one entry per day is allowed.
 Every new journal on the same day overwrites the previous one.
 Mood and timestamp get overwritten too.
-"""
+
 @app.route('/journal', methods=['POST'])
 @jwt_required(required_role='child')
 def create_or_update_journal(current_user_id, current_user_role):
@@ -485,7 +484,7 @@ def create_or_update_journal(current_user_id, current_user_role):
     except Exception as e:
         db.session.rollback()
         print("Journal entry error:", e)
-        return jsonify({'error': 'Failed to process journal entry'}), 500
+        return jsonify({'error': 'Failed to process journal entry'}), 500"""
 
 
 # Allows multiple journals per day.
@@ -714,11 +713,11 @@ Response:
 - 404: when the child/user is not found in the system.
 
 Color Legend:
-- "green": All 4 tasks completed
-- "yellow": 3 tasks completed
-- "purple": 2 tasks completed
+- "darkest green": All 4 tasks completed
+- "medium green": 3 tasks completed
+- "light green": 2 tasks completed
 - "gray": 1 task completed
-- "red": 0 tasks completed
+- "white": 0 tasks completed
 """
 @app.route('/calendar-report', methods=['GET'])
 @jwt_required(required_role='child')
@@ -803,7 +802,7 @@ def calendar_report(current_user_id, current_user_role):
         "progress": result
     }), 200
 
-# --------------------------------------- Streak, Badges, and Content Stats ---------------------------------------------
+# ---------------------------------- Streak, Badges, and Content Stats ---------------------------------------------
 """
 API: Get Streak, Badge, and Activity Summary
 
@@ -856,7 +855,7 @@ def get_streak_info(current_user_id, current_user_role):
     }), 200
 
 
-#---------------------------------------------Trigger evaluate badges and streak-----------------------------------------
+#-------------------------------------Trigger evaluate badges and streak-----------------------------------------
 
 
 @app.route('/trigger-badges', methods=['POST'])
