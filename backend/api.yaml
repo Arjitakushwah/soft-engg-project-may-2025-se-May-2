@@ -1820,3 +1820,69 @@ paths:
                   error:
                     type: string
                     example: Child not found or unauthorized
+
+  /parent/child-analysis:
+    post:
+      summary: Generate Child Analysis Report
+      description: >
+        Generates a PDF analysis report for a specific child by fetching their summary
+        from the database based on the provided `child_id` and `summary_range`.
+        The report is generated using a GenAI (Gemini) agent.
+      tags:
+        - Parent Reports
+      parameters:
+        - name: child_id
+          in: query
+          required: true
+          description: ID of the child whose report is to be generated
+          schema:
+            type: integer
+            example: 5
+        - name: summary_range
+          in: query
+          required: false
+          description: Range of summary data (weekly or monthly)
+          schema:
+            type: string
+            enum: [weekly, monthly]
+            default: weekly
+      responses:
+        '200':
+          description: PDF file containing the child's analysis report
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid input or missing child ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "child_id is required as query parameter"
+        '404':
+          description: Child not found or unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Child not found or unauthorized"
+        '500':
+          description: Internal server error or PDF generation failure
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to generate analysis report"
+      security:
+        - bearerAuthParent: []

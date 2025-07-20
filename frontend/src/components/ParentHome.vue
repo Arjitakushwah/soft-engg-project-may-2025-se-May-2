@@ -32,7 +32,7 @@
       <p><strong>Badges:</strong> {{ profile.badges }}</p>
 
       <button class="btn btn-success mt-3" @click="downloadChildReport(profile.id)">
-        Download Monthly Report
+        Download Weekly Report
       </button>
     </div>
   </div>
@@ -89,27 +89,41 @@ const fetchChildProfile = async (childId) => {
 
 const downloadChildReport = async (childId) => {
   const token = localStorage.getItem('access_token');
+  const summaryRange = 'weekly'; // Change to 'monthly' if needed
+
   try {
-    const res = await fetch(`http://localhost:5000/parent/child/${childId}/download-report`, {
+    const url = `http://localhost:5000/parent/child-analysis?child_id=${childId}&summary_range=${summaryRange}`;
+
+    const response = await fetch(url, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!res.ok) throw new Error('Failed to download report');
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Error: ${response.status} - ${errText}`);
+    }
 
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `report_child_${childId}.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  } catch (err) {
-    alert(err.message || 'Error downloading report');
+    const blob = await response.blob();
+    const fileUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = fileUrl;
+    a.download = `child_analysis_report_${childId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(fileUrl);
+  } catch (error) {
+    console.error('Download error:', error);
+    alert(error.message || 'Error downloading report');
   }
 };
+
+
+
+
 
 </script>
 

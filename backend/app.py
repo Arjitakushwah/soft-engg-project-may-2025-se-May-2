@@ -8,7 +8,6 @@ from utils import jwt_required
 from flask_cors import CORS
 from otp import verify_otp, store_otp, verified_emails
 
-
 # Initialize Flask app
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
