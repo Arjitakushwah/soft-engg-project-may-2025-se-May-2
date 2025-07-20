@@ -9,3 +9,4 @@ __pycache__/
 *.pdb
 backend/__pycache__/
 backend/prod.env
+backend/instance/

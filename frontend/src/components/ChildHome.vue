@@ -49,6 +49,7 @@
         <div v-if="badges.length === 0" class="no-badges">
           No badges yet. Start your first quest!
         </div>
+        
       </div>
     </div>
   </section>
