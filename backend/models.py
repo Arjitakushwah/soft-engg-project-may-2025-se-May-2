@@ -9,8 +9,8 @@ class User(db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, nullable=False)
-    username = db.Column(db.String, unique=True, nullable=False)
-    password = db.Column(db.String, nullable=False)
+    username = db.Column(db.String, unique=True, nullable=True)
+    password = db.Column(db.String, nullable=True)
     role = db.Column(db.String, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -19,7 +19,7 @@ class User(db.Model):
 class Parent(db.Model):
     __tablename__ = 'parents'
     id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=True)
     children = db.relationship("Child", back_populates="parent")
 
 # ---------- Child Model ----------
@@ -47,7 +47,7 @@ class ToDoItem(db.Model):
     __tablename__ = 'todo_items'
     id = db.Column(db.Integer, primary_key=True)
     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
-    date = db.Column(db.Date, nullable=False)
+    datetime = db.Column(db.DateTime, nullable=False)
     task = db.Column(db.Text, nullable=False)
     is_done = db.Column(db.Boolean, default=False)
     child = db.relationship("Child", back_populates="to_do_items")

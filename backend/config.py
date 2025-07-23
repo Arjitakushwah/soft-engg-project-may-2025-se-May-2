@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="prod.env")
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')

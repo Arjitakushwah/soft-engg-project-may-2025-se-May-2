@@ -61,4 +61,33 @@ def verify_otp(email, input_otp):
         return True, "OTP verified successfully."
     return False, "Incorrect OTP."
 
+def send_welcome_email(email, user_id):
+    subject = "Welcome to Our App - Complete Your Profile"
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_EMAIL
+    msg['To'] = email
+    msg['Subject'] = subject
+
+    body = f"""
+    <h3>Welcome to Our Platform!</h3>
+    <p>Hi there ,</p>
+    <p>Your Google account was successfully registered.</p>
+
+    <p>To complete your profile, log in and visit your profile page</a>.</p>
+    <p>If you forgot username or password, you can use our forgot username and forgot password option in Login page.</p>
+
+    <br>
+    <p>Thanks & Regards,<br>Team Slice</p>
+    """
+
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SMTP_EMAIL, SMTP_PASSWORD)
+            smtp.send_message(msg)
+        print(f"Email sent to {email}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
 
