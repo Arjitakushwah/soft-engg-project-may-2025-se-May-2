@@ -3,7 +3,17 @@
     <main class="main-content">
       <div class="calendar-container">
         <h2>{{ childName }}'s Calendar</h2>
-        <FullCalendar :options="calendarOptions" />
+        <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
+        <div class="legend">
+          <span class="label">Minimal Done</span>
+          <span class="color-box" style="background-color: #f0f0f0"></span>
+          <span class="color-box" style="background-color: #ebedf0"></span>
+          <span class="color-box" style="background-color: #c6e48b"></span>
+          <span class="color-box" style="background-color: #7bc96f"></span>
+          <span class="color-box" style="background-color: #216e39"></span>
+          <span class="label">All Done</span>
+        </div>
+
         <transition name="fade">
           <div v-if="selectedTasks.length" class="task-box">
             <div class="task-header">
@@ -12,11 +22,21 @@
             </div>
             <ul>
               <li v-for="(task, index) in selectedTasks" :key="index">
-                <span v-if="selectedDate < today">{{ task.status === 'completed' ? '✅' : '❌' }}</span>
-                <span v-else-if="selectedDate === today">🟡</span>
-                {{ task.title }}
+                <span>
+                  <template v-if="selectedDate < today">
+                    {{ task.status === 'completed' ? '✅ Done' : '❌ Not Completed' }}
+                  </template>
+                  <template v-else-if="selectedDate === today">
+                    {{ task.status === 'completed' ? '✅ Done' : '🟡 Pending' }}
+                  </template>
+                  <template v-else>
+                    ⚪ Upcoming
+                  </template>
+                </span>
+                {{ ' - ' + task.title }}
               </li>
             </ul>
+
           </div>
         </transition>
       </div>
@@ -34,61 +54,79 @@ const childName = ref('Child')
 const selectedDate = ref('')
 const selectedTasks = ref([])
 const today = new Date().toISOString().split('T')[0]
-const rawEvents = [
-  { title: 'Math Quiz', date: '2025-06-20', status: 'completed' },
-  { title: 'Science Homework', date: '2025-06-20', status: 'pending' },
-  { title: 'Reading Task', date: '2025-06-20', status: 'not_completed' },
-  { title: 'Drawing', date: '2025-06-26', status: 'pending' }
-]
-
-const groupedDates = [...new Set(rawEvents.map(e => e.date))]
-const simplifiedEvents = groupedDates.map(date => ({
-  title: 'Tasks',
-  date,
-  status: 'grouped'
-}))
-
-const calendarOptions = ref({
-  plugins: [dayGridPlugin],
-  initialView: 'dayGridMonth',
-  initialDate: '2025-06-01',
-  contentHeight: 300,
-  headerToolbar: {
-    left: 'prev,next today',
-    center: 'title',
-    right: ''
-  },
-  events: simplifiedEvents,
-  eventContent(arg) {
-    return {
-      html: `<div style="color: black; font-weight: bold;">${arg.event.title}</div>`
-    }
-  },
-  eventClick(info) {
-    const date = info.event.startStr
-    selectedDate.value = date
-    selectedTasks.value = rawEvents.filter(e => e.date === date)
-  }
-})
+const calendarOptions = ref(null)
+const accessToken = localStorage.getItem('access_token')
 
 function closeTasks() {
   selectedTasks.value = []
   selectedDate.value = ''
 }
 
-onMounted(async () => {
-  const token = localStorage.getItem('token')
-  const res = await fetch('', {
-    headers: {
-      Authorization: `Bearer ${token}`
+// Fetch calendar report and set up calendar
+const fetchCalendarReport = async () => {
+  try {
+    const res = await fetch('http://localhost:5000/calendar-report', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch calendar report')
+
+    const progress = data.progress
+    const events = Object.entries(progress).map(([date, detail]) => ({
+      title: '', // empty title to reduce clutter
+      date,
+      backgroundColor: detail.status,
+      borderColor: detail.status,
+      extendedProps: {
+        not_done: detail.not_done
+      }
+    }))
+
+    calendarOptions.value = {
+      plugins: [dayGridPlugin],
+      initialView: 'dayGridMonth',
+      contentHeight: 320,
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: ''
+      },
+      events,
+      eventClick(info) {
+        selectedDate.value = info.event.startStr
+        const notDone = info.event.extendedProps.not_done || []
+        const allTasks = ['todo', 'journal', 'story', 'infotainment']
+        selectedTasks.value = allTasks
+          .map(task => ({
+            title: task,
+            status: notDone.includes(task) ? 'not_completed' : 'completed'
+          }))
+          .sort((a, b) => {
+            // not_completed comes before completed
+            if (a.status === 'not_completed' && b.status === 'completed') return -1
+            if (a.status === 'completed' && b.status === 'not_completed') return 1
+            return 0
+          })
+
+      },
+      eventBackgroundColor: 'transparent'
     }
-  })
-  const data = await res.json()
-  if (res.ok) {
-    childName.value = data.username || data.name
+  } catch (error) {
+    alert(error.message)
   }
+}
+
+onMounted(() => {
+  if (!accessToken) {
+    alert('Please login to access calendar.')
+    router.push('/login')
+  }
+  fetchCalendarReport()
 })
 </script>
+
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');
@@ -212,5 +250,26 @@ onMounted(async () => {
     opacity: 1;
     transform: translate(-50%, -50%);
   }
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  gap: 6px;
+}
+
+.label {
+  color: #888;
+  font-weight: 500;
+}
+
+.color-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
 }
 </style>
