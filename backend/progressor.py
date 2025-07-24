@@ -1,4 +1,5 @@
 from models import db, ToDoItem, JournalEntry, DailyStory, InfotainmentReadLog, DailyProgress
+from sqlalchemy import func
 
 """
 Function: update_daily_progress(child_id, target_date)
@@ -26,7 +27,7 @@ def update_daily_progress(child_id, target_date):
         progress = DailyProgress(child_id=child_id, date=target_date)
         db.session.add(progress)
     
-    todos = ToDoItem.query.filter_by(child_id=child_id, date=target_date).all()
+    todos = ToDoItem.query.filter(ToDoItem.child_id==child_id, func.date(ToDoItem.datetime)==target_date).all()
     # Checking the all Todo tasks completed or not.
     progress.is_todo_complete = all(t.is_done for t in todos) if todos else False
     # Check Journal is done or not

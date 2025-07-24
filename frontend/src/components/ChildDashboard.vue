@@ -1,8 +1,15 @@
 <template>
   <div class="dashboard-wrapper">
-    <NavBar />
+    <!-- Top NavBar -->
+    <NavBar @toggle-sidebar="toggleSidebar" />
+
+    <!-- Sidebar + Main Content -->
     <div class="layout-body">
-      <Sidebar :role="role" @navigate="navigateToPage" />
+      <Sidebar
+        :role="role"
+        :is-visible="isSidebarVisible"
+        @navigate="navigateToPage"
+      />
       <main class="main-content">
         <router-view />
       </main>
@@ -16,10 +23,16 @@ import { useRouter } from 'vue-router'
 import NavBar from '@/components/Nav.vue'
 import Sidebar from '@/components/Sidebar.vue'
 
-const role = 'child'
 const router = useRouter()
+const role = 'child'
+const isSidebarVisible = ref(false)
+
+const toggleSidebar = () => {
+  isSidebarVisible.value = !isSidebarVisible.value
+}
 
 const navigateToPage = (page) => {
+  isSidebarVisible.value = false // auto-close on mobile after navigation
   router.push({ name: page })
 }
 
@@ -39,6 +52,7 @@ onMounted(() => {
 .layout-body {
   display: flex;
   flex: 1;
+  overflow: hidden;
   background-color: #f3f4f6;
 }
 
@@ -48,5 +62,6 @@ onMounted(() => {
   overflow-y: auto;
   background-color: #ffffff;
   color: #1e293b;
+  height: 100vh;
 }
 </style>

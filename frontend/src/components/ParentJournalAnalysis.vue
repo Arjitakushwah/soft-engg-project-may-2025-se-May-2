@@ -325,19 +325,19 @@ export default {
 .parent-journal-analysis-bg {
   font-family: 'Comic Neue', cursive;
   background-color: #fff;
-  /* min-height: 100vh; */
-  /* padding: 2rem 0; */
+  min-height: 100vh;
+  padding: 2rem 0; 
 }
 
 .main-content {
   display: flex;
   justify-content: center;
-  /* padding: 1rem; */
+  padding: 1rem;
 }
 
 .analysis-container {
   background: white;
-  /* padding: 30px; */
+  padding: 30px;
   border-radius: 20px;
   max-width: 1000px;
   width: 100%;

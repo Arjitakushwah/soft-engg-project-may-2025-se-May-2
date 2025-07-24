@@ -1,54 +1,137 @@
 <template>
-  <div class="sidebar">
-    <template v-if="role === 'parent'">
-      <button class="nav-btn" @click="navigateTo('AddChild')">Add Child</button>
-      <button class="nav-btn" @click="navigateTo('ParentCalendar')">Calendar Report</button>
-      <button class="nav-btn" @click="navigateTo('ParentJournalAnalysis')">Journal Insight</button>
-    </template>
-    <template v-else-if="role === 'child'">
-      <button class="nav-btn" @click="navigateTo('ChildCalender')">Calendar Report</button>
-      <button class="nav-btn" @click="navigateTo('ChildToDoList')">To Do List</button>
-      <button class="nav-btn" @click="navigateTo('ChildStory')">Story</button>
-      <button class="nav-btn" @click="navigateTo('ChildJournal')">Journaling</button>
-      <button class="nav-btn" @click="navigateTo('ChildInfotainment')">Infotainment</button>
-    </template>
+  <div class="sidebar" :class="{ collapsed: isCollapsed }">
+    <!-- Collapse Toggle Button -->
+    <button class="collapse-toggle" @click="toggleCollapse">
+      <i :class="isCollapsed ? 'bi bi-arrow-bar-right' : 'bi bi-arrow-bar-left'"></i>
+    </button>
+
+    <!-- Navigation Buttons -->
+    <div class="nav-section">
+      <button
+        v-for="item in navItems"
+        :key="item.name"
+        class="btn nav-btn mb-2"
+        :class="{ active: currentRoute === item.route }"
+        @click="navigate(item.route)"
+      >
+        <i v-if="isCollapsed" :class="item.icon"></i>
+        <span v-else>{{ item.name }}</span>
+      </button>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { useRouter } from 'vue-router'
-const props = defineProps(['role'])
-const router = useRouter()
+<script>
+import { useRoute, useRouter } from 'vue-router';
+import { ref, computed } from 'vue';
+  
+  export default {
+    props: ['role'],
+    emits: ['navigate'],
+    setup(props, { emit }) {
+      const router = useRouter();
+      const route = useRoute();
+      const isCollapsed = ref(false);
+  
+      const parentNavItems = [
+        { name: 'Home', route: 'ParentDashboard', icon: 'bi bi-house-door' },
+        {name: 'Add Child', route: 'AddChild', icon: 'bi bi-person-plus'},
+        { name: 'Calendar', route: 'ParentCalendar', icon: 'bi bi-calendar3' },
+        { name: 'Activity Insights', route: 'ParentActivityInsight', icon: 'bi bi-graph-up' },
 
-const navigateTo = (routeName) => {
-  router.push({ name: routeName })
-}
-</script>
+      ];
+  
+      const childNavItems = [
+      { name: 'Home', route: 'ChildDashboard', icon: 'bi bi-house-door' },
+        { name: 'Calendar', route: 'ChildCalender', icon: 'bi bi-calendar3' },
+        { name: 'To Do List', route: 'ChildToDoList', icon: 'bi bi-list-check' },
+        { name: 'Story', route: 'ChildStory', icon: 'bi bi-book' },
+        { name: 'Journaling', route: 'ChildJournal', icon: 'bi bi-journal-text' },
+        { name: 'Infotainment', route: 'ChildInfotainment', icon: 'bi bi-tv' },
+      ];
+  
+      const navItems = computed(() => {
+        return props.role === 'parent' ? parentNavItems : childNavItems;
+      });
+  
+      const toggleCollapse = () => {
+        isCollapsed.value = !isCollapsed.value;
+      };
+  
+      const navigate = (routeName) => {
+        router.push({ name: routeName });
+        emit('navigate', routeName);
+      };
+  
+      const currentRoute = computed(() => route.name);
+  
+      return {
+        isCollapsed,
+        navItems,
+        toggleCollapse,
+        navigate,
+        currentRoute
+      };
+    }
+  };
+  </script>
 
 <style scoped>
 .sidebar {
-  width: 280px;
-  background: linear-gradient(135deg, #ff9a8b 0%, #ff6a88 100%);
-  color: #333;
-  padding: 30px;
+  width: 200px;
+  transition: width 0.3s ease;
+  background:  #ff9a8b;
   font-family: 'Comic Neue', cursive;
+  height: 100vh;
+  padding: 10px;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+.collapse-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  cursor: pointer;
+  color: #1e293b;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
 }
 
 .nav-btn {
-  width: 90%;
-  padding: 15px;
-  margin-bottom: 20px;
-  font-weight: bold;
-  font-size: large;
-  background-color: #ebbeb3;
-  color: rgb(40, 36, 36);
+  width: 100%;
+  text-align: left;
+  font-size: 1.1rem;
+  padding: 10px;
   border: none;
-  cursor: pointer;
-  border-radius: 10px;
-  transition: background-color 0.3s ease;
+  background-color: transparent;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
 }
 
 .nav-btn:hover {
   background-color: #ff4870;
+  color: #fff;
 }
+
+.nav-btn.active {
+  background-color: #ff4870;
+    color: #fff;
+  font-weight: bold;
+}
+
+.nav-btn i {
+  font-size: 1.2rem;
+}
+.sidebar.collapsed .nav-btn {
+    justify-content: center;
+  }
 </style>

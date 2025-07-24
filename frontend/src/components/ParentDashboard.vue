@@ -1,8 +1,15 @@
 <template>
-  <div class="parent-dashboard-bg">
-    <NavBar @logout="handleLogout" />
-    <div class="dashboard-body">
-      <Sidebar :role="role" @navigate="navigateToPage" />
+  <div class="dashboard-wrapper">
+    <!-- Top NavBar -->
+    <NavBar @toggle-sidebar="toggleSidebar" />
+
+    <!-- Sidebar + Main Content -->
+    <div class="layout-body">
+      <Sidebar
+        :role="role"
+        :is-visible="isSidebarVisible"
+        @navigate="navigateToPage"
+      />
       <main class="main-content">
         <router-view />
       </main>
@@ -11,45 +18,50 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import NavBar from '@/components/Nav.vue'
 import Sidebar from '@/components/Sidebar.vue'
 
 const router = useRouter()
 const role = 'parent'
-onMounted(() => {
-  const storedName = localStorage.getItem('username') || "Parent"
+const isSidebarVisible = ref(false)
 
-})
-const handleLogout = () => {
-  localStorage.clear()
-  router.push('/login')
+const toggleSidebar = () => {
+  isSidebarVisible.value = !isSidebarVisible.value
 }
+
 const navigateToPage = (page) => {
+  isSidebarVisible.value = false // auto-close on mobile after navigation
   router.push({ name: page })
 }
+
+onMounted(() => {
+  const storedName = localStorage.getItem('username') || 'Parent'
+})
 </script>
 
 <style scoped>
-.parent-dashboard-bg {
-  font-family: 'Comic Neue', cursive;
-  background: linear-gradient(to bottom right, #f0f8ff, #ffe6f0);
-  min-height: 100vh;
+.dashboard-wrapper {
   display: flex;
   flex-direction: column;
+  height: 100vh;
+  font-family: 'Comic Neue', sans-serif;
 }
 
-.dashboard-body {
+.layout-body {
   display: flex;
   flex: 1;
+  overflow: hidden;
+  background-color: #f3f4f6;
 }
 
 .main-content {
-  flex: 1;
-  padding: 2rem;
-  background-color: #fff;
-  border-radius: 0 20px 20px 0;
-  box-shadow: 0 4px 10px rgba(255, 106, 136, 0.08);
+  flex-grow: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  color: #1e293b;
+  height: 100vh;
 }
 </style>
