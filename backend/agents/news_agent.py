@@ -5,8 +5,8 @@ import os
 from datetime import datetime
 from exa_py import Exa
 
-load_dotenv("exaa.env") 
-exa_api_key = os.getenv("api key")
+load_dotenv("exaa.env")
+exa_api_key = os.getenv("exa_api_key")
 
 # --------------------------- Tool Setup ---------------------------
 @tool('Exa search and get contents')
@@ -57,7 +57,7 @@ Use the tool to gather information about: "{prompt}". Then write **4 simple and 
 2. A **short summary** in 2–3 simple lines that a child aged 8–14 can easily understand.
 3. A `Read more` link below.
 
-✅ Each story should be in this format (repeat 4 times):
+Each story should be in this format (repeat 4 times):
 
 ---
 

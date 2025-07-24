@@ -14,10 +14,11 @@ from progressor import update_daily_progress
 from streak_badges_logic import update_streak
 import os
 from dotenv import load_dotenv
-load_dotenv("prod.env")
+load_dotenv("agents/prod.env")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key='ENTER API')  # Replace with your actual LLM API key
+llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  
+# Don't replace here, replace google api in prod.env file only
 
 
 # Use for return current date and time according to user local timezone
