@@ -7,6 +7,15 @@ from pytz import timezone
 from crewai import LLM
 from datetime import datetime, time
 
+
+IST = timezone("Asia/Kolkata")
+
+def ist_now():
+    return datetime.now(IST).replace(second=0, microsecond=0)
+
+def ist_today():
+    return datetime.now(IST)
+
 app.config['SQLALCHEMY_ECHO'] = True
 
 from agents.story_agent import generate_story
@@ -25,10 +34,6 @@ llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)
 # Don't replace here, replace google api in prod.env file only
 
 
-# Use for return current date and time according to user local timezone
-def ist_today():
-    return datetime.now(timezone("Asia/Kolkata")).date()
-
 
 #------------------------------------To DO List task creation----------------------------------------------------
 """
@@ -40,7 +45,7 @@ Role Required:
 
 Request Body (JSON):
 - task (str): Accept the task description from child.
-- date (str): The date for which the task is created in YYYY-MM-DD format. (Required)
+- date (str): The date and time for which the task is created in YYYY-MM-DD, HH:MM format. (Required)
 
 Response:
 - 201: Task created successfully.
@@ -55,49 +60,42 @@ def create_todo_task(current_user_id, current_user_role):
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-            
         task = data.get('task')
-        date_str = data.get('date') 
-        
-        if not task or not date_str:
-            return jsonify({'error': 'Task and date are required'}), 400
-            
+        datetime_str = data.get('datetime')
+        if not task or not datetime_str:
+            return jsonify({'error': 'Task and datetime are required'}), 400
         if not task.strip():
             return jsonify({'error': 'Task cannot be empty'}), 400
-            
-        # Convert the date from string to date format YYYY-MM-DD
-        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        today = ist_today()
-        
-        # Checking if the selected date is past date.
-        if selected_date < today:
-            return jsonify({'error': 'Cannot create tasks for past dates'}), 400
-            
+        try:
+            # Parse using DD-MM-YYYY HH:MM
+            naive_dt = datetime.strptime(datetime_str, '%d-%m-%Y %H:%M')
+            selected_datetime = IST.localize(naive_dt)
+        except ValueError:
+            return jsonify({'error': 'Invalid datetime format. Use DD-MM-YYYY HH:MM'}), 400
+        now = ist_now()
+        if selected_datetime < now:
+            return jsonify({'error': 'Cannot create tasks for past datetime'}), 400
         new_task = ToDoItem(
-            child_id=current_user_id, 
-            date=selected_date,
+            child_id=current_user_id,
+            datetime=selected_datetime,
             task=task.strip(),
             is_done=False
         )
         db.session.add(new_task)
         db.session.commit()
-        
         return jsonify({
             'message': 'Task created successfully',
             'id': new_task.id,
             'task': new_task.task,
-            'date': new_task.date.isoformat(),
+            'datetime': new_task.datetime.strftime('%d-%m-%Y %H:%M'),
             'is_done': new_task.is_done
         }), 201
-        
-    except ValueError:
-        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
     except Exception as e:
         db.session.rollback()
         print("Error:", e)
         return jsonify({'error': 'Failed to create task'}), 500
-    
-#-------------------------------------To Do List Task update---------------------------------------------------------
+
+#-----------------------------------------To Do List Task update----------------------------------------------------------
 """
 API: Update To-Do Task
 Child can update the task details which is not completed and also can update
@@ -130,50 +128,49 @@ def update_todo_task(task_id, current_user_id, current_user_role):
         data = request.get_json()
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-            
         task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
         if not task:
             return jsonify({'error': 'Task not found'}), 404
-            
         child_user = User.query.get(current_user_id)
         if not child_user:
             return jsonify({'error': 'User not found'}), 404
-            
         if task.is_done:
             return jsonify({'error': 'You cannot update a completed task'}), 403
-            
         if 'is_done' in data:
-            return jsonify({'error': 'You cannot change status of the task using this endpoint'}), 400
-            
-        # Update date if provided
-        if 'date' in data:
-            try:
-                new_date = datetime.strptime(data['date'], "%Y-%m-%d").date()
-            except ValueError:
-                return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-                
-            # Checking if the selected date is past date or before child account creation
-            if new_date < child_user.created_at.date() or new_date < ist_today():
-                return jsonify({'error': 'Date must be today or future'}), 400
-                
-            task.date = new_date
-            
-        # Update task description if provided
+            return jsonify({'error': 'You cannot change task status from here'}), 400
+        now = ist_now()
+        new_task = task.task
+        new_datetime = task.datetime
+        # Update task text
         if 'task' in data:
             if not data['task'].strip():
                 return jsonify({'error': 'Task cannot be empty'}), 400
-            task.task = data['task'].strip()
-            
+            new_task = data['task'].strip()
+        # Update datetime
+        if 'datetime' in data:
+            try:
+                new_datetime = datetime.strptime(data['datetime'], "%d-%m-%Y %H:%M")
+                new_datetime = IST.localize(new_datetime)
+            except ValueError:
+                return jsonify({'error': 'Invalid datetime format. Use DD-MM-YYYY HH:MM'}), 400
+            if new_datetime.date() < child_user.created_at.date():
+                return jsonify({'error': 'Date cannot be before child registration'}), 400
+            if new_datetime.date() == now.date() and new_datetime <= now:
+                return jsonify({'error': 'For today, new time must be in the future'}), 400
+            elif new_datetime < now:
+                return jsonify({'error': 'Cannot schedule task in the past'}), 400
+        # Apply updates
+        task.task = new_task
+        task.datetime = new_datetime
         db.session.commit()
-        
         return jsonify({
             'message': 'Task updated successfully',
             'id': task.id,
             'task': task.task,
-            'date': task.date.isoformat(),
+            'datetime': task.datetime.astimezone(IST).strftime('%d-%m-%Y %H:%M'),
             'is_done': task.is_done
         }), 200
-        
+
     except Exception as e:
         db.session.rollback()
         print("Update error:", e)
@@ -272,7 +269,7 @@ Path Parameters:
 - task_id (int): ID of the task.
 
 Restrictions:
-- Child can change status or marked completed only today's task.
+- Child can change status or marked completed only 15 minutes before or 1 hour after scheduled time's task.
 - Child can not change the status of completed task.
 
 Response:
@@ -286,25 +283,35 @@ Response:
 @app.route('/todo/status/<int:task_id>', methods=['PUT'])
 @jwt_required(required_role='child')
 def update_task_status(task_id, current_user_id, current_user_role):
-    today = date.today()
+    now_ist = ist_now()
     task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
     if not task:
         return jsonify({'error': 'Task not found'}), 404
-    if task.date != today:
-        return jsonify({'error': 'You can change the status of only today\'s tasks'}), 403
+    scheduled_time = task.datetime
+    if not scheduled_time:
+        return jsonify({'error': 'Invalid or missing scheduled time'}), 400
+    if scheduled_time.tzinfo is None:
+        scheduled_time = scheduled_time.astimezone(IST)
+    lower_bound = scheduled_time - timedelta(minutes=15)
+    upper_bound = scheduled_time + timedelta(hours=1)
+    if not (lower_bound <= now_ist <= upper_bound):
+        return jsonify({
+            'error': f"You can mark the task completed only between "
+                     f"{lower_bound.strftime('%H:%M')} and {upper_bound.strftime('%H:%M')} IST"
+        }), 403
+
     if task.is_done:
-        return jsonify({'error': 'You already completed it'}), 400
+        return jsonify({'error': 'You already completed this task'}), 400
     task.is_done = True
     try:
         db.session.commit()
-        update_daily_progress(current_user_id, date.today())
+        update_daily_progress(current_user_id, ist_now().date())
         evaluate_all_badges(current_user_id)
-        return jsonify({'message': 'Task Completed successfully'}), 200
+        return jsonify({'message': 'Task marked as completed successfully'}), 200
     except Exception as e:
         db.session.rollback()
         print("Status update error:", e)
         return jsonify({'error': 'Failed to update task status'}), 500
-
 
 #----------------------------------Story Generator--------------------------------------------------------------------
 
@@ -432,61 +439,7 @@ Response:
 Only one entry per day is allowed.
 Every new journal on the same day overwrites the previous one.
 Mood and timestamp get overwritten too.
-
-@app.route('/journal', methods=['POST'])
-@jwt_required(required_role='child')
-def create_or_update_journal(current_user_id, current_user_role):
-    data = request.get_json()
-    text = data.get('text')
-    if not text:
-        return jsonify({'error': 'Journal text is required'}), 400
-    today = date.today()
-    try:
-        # Check if today's journal exists
-        entry = JournalEntry.query.filter_by(child_id=current_user_id, date=today).first()
-        mood_dict = classify_emotion(text, llm)
-        mood = mood_dict.get("emotion", "unknown")
-
-        if entry:
-            # Update existing journal
-            entry.text = text
-            entry.mood = mood
-            entry.created_at = datetime.utcnow()
-            message = 'Journal entry updated successfully'
-            is_existing = True
-        else:
-            # Create new journal
-            entry = JournalEntry(
-                child_id=current_user_id,
-                date=today,
-                text=text,
-                mood=mood,
-                created_at=datetime.utcnow(),
-                is_done=True
-            )
-            db.session.add(entry)
-            message = 'Journal entry created successfully'
-            is_existing = False
-
-        db.session.commit()
-        # update the daily task progressor 
-        update_daily_progress(current_user_id, date.today())
-        # update the streak if child perform this task in last
-        evaluate_all_badges(current_user_id)
-
-        return jsonify({
-            'message': message,
-            'mood': mood,
-            'is_existing': is_existing,
-            'journal_text': entry.text
-        }), 200
-
-    except Exception as e:
-        db.session.rollback()
-        print("Journal entry error:", e)
-        return jsonify({'error': 'Failed to process journal entry'}), 500"""
-
-
+"""
 # Allows multiple journals per day.
 # Keeps each mood + time unique.
 # Good for tracking a child's emotions throughout the day.
@@ -498,33 +451,27 @@ def create_journal(current_user_id, current_user_role):
     text = data.get('text')
     if not text:
         return jsonify({'error': 'Journal text is required'}), 400
-
     try:
         mood_dict = classify_emotion(text, llm)
         mood = mood_dict.get("emotion", "unknown")
-
+        now_ist = ist_now()
         entry = JournalEntry(
             child_id=current_user_id,
-            date=date.today(),
+            date=now_ist.date(),         
             text=text,
             mood=mood,
-            created_at=datetime.utcnow(),
+            created_at=now_ist,          
             is_done=True
         )
-
         db.session.add(entry)
         db.session.commit()
-
-        # Optionally update streak and progress
-        update_daily_progress(current_user_id, date.today())
+        update_daily_progress(current_user_id, now_ist.date())
         evaluate_all_badges(current_user_id)
-
         return jsonify({
             'message': 'Journal entry created successfully',
             'mood': mood,
             'journal_text': entry.text
         }), 200
-
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to process journal entry', 'details': str(e)}), 500
@@ -535,15 +482,12 @@ def create_journal(current_user_id, current_user_role):
 def search_journals(current_user_id, current_user_role):
     date_query = request.args.get('date')
     mood_query = request.args.get('mood')
-
     filters = [JournalEntry.child_id == current_user_id]
     if date_query:
         filters.append(JournalEntry.date == date.fromisoformat(date_query))
     if mood_query:
         filters.append(JournalEntry.mood == mood_query)
-
     results = JournalEntry.query.filter(*filters).order_by(JournalEntry.created_at.desc()).all()
-
     entries = [{
         'id': entry.id,
         'date': entry.date.isoformat(),
@@ -576,17 +520,13 @@ Response:
 def generate_infotainment(current_user_id, current_user_role):
     data = request.get_json()
     prompt = data.get('prompt')
-
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
-
     try:
-        #  Generate AI content using agent
+        # Generate AI content using agent
         response = generate_news(prompt, llm)
-
-        now = datetime.utcnow()
-
-        #  Store the generated content with time
+        now = ist_now()  # Use IST time
+        # Store the generated content with time
         log = InfotainmentReadLog(
             child_id=current_user_id,
             child_prompt=prompt,
@@ -598,7 +538,6 @@ def generate_infotainment(current_user_id, current_user_role):
         )
         db.session.add(log)
         db.session.commit()
-
         return jsonify({
             'message': 'New content generated and stored.',
             'content': response,
@@ -606,11 +545,11 @@ def generate_infotainment(current_user_id, current_user_role):
             'date': log.date.strftime('%Y-%m-%d'),
             'time': log.time.strftime('%H:%M:%S')
         }), 201
-
     except Exception as e:
         db.session.rollback()
         print("Infotainment generation error:", e)
         return jsonify({'error': 'Failed to generate content'}), 500
+
     
 #-----------------------------------Search Infotainment---------------------------------------------------------------
 @app.route('/infotainment/search', methods=['GET'])
@@ -618,9 +557,7 @@ def generate_infotainment(current_user_id, current_user_role):
 def search_infotainment(current_user_id, current_user_role):
     search_query = request.args.get('q', '').strip().lower()
     search_date = request.args.get('date', '').strip()
-
     logs = InfotainmentReadLog.query.filter_by(child_id=current_user_id)
-
     # If user searched by date
     if search_date:
         try:
@@ -628,9 +565,7 @@ def search_infotainment(current_user_id, current_user_role):
             logs = logs.filter(InfotainmentReadLog.date == search_date_obj)
         except ValueError:
             return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-
     logs = logs.order_by(InfotainmentReadLog.date.desc(), InfotainmentReadLog.marked_at.desc()).all()
-
     result = []
     for log in logs:
         if not search_query or (
@@ -671,23 +606,22 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
     query = InfotainmentReadLog.query.filter_by(id=log_id, child_id=current_user_id).first()
     if not query:
         return jsonify({'error': 'Content not found'}), 404
-
-    if query.date != date.today():
+    now = ist_now()
+    if query.date != now.date():
         return jsonify({'error': 'You can mark only today\'s content'}), 403
-
-    elapsed = datetime.utcnow() - query.marked_at
+    marked_at = query.marked_at
+    if marked_at.tzinfo is None:
+        marked_at = IST.localize(marked_at)
+    elapsed = now - marked_at
     if elapsed.total_seconds() < 180:
-        return jsonify({'error': f'You can mark as read after {elapsed} seconds'}), 403
-
+        return jsonify({'error': f'You can mark as read after {int(180 - elapsed.total_seconds())} seconds'}), 403
     if query.is_done:
         return jsonify({'message': 'Already marked as read'}), 200
-
     try:
         query.is_done = True
-        query.marked_at = datetime.utcnow()
+        query.marked_at = now
         db.session.commit()
-        update_daily_progress(current_user_id, date.today())
-
+        update_daily_progress(current_user_id, now.date())
         evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:

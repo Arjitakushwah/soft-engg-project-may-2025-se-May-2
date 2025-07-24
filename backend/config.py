@@ -1,4 +1,6 @@
 import os
+from dotenv import load_dotenv
+load_dotenv(dotenv_path="prod.env")
 from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
