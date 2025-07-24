@@ -10,3 +10,4 @@ __pycache__/
 backend/__pycache__/
 backend/agents/prod.env
 backend/instance/project.db
+backend/.pytest_cache/
