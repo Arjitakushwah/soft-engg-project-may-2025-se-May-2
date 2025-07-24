@@ -141,8 +141,8 @@ def login():
             additional_claims={"role": user.role}
         )
         dashboard_route = (
-            '/parent_dashboard' if user.role == 'parent' else
-            '/child_dashboard' if user.role == 'child' else
+            '/parent/home' if user.role == 'parent' else
+            '/child/home' if user.role == 'child' else
             '/'
         )
         return jsonify({
