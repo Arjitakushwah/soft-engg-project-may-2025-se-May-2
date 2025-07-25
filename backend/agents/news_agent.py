@@ -36,12 +36,10 @@ def search_and_get_contents_tool(question: str) -> str:
 def generate_news(prompt, llm):
     # Create agent
     news_agent = Agent(
-        role="Child-Friendly News Creator",
-        goal="Generate four clear and fun stories for kids aged 8–14 based on a given topic or prompt",
+        role="Child Infotainment Writer",
+        goal="Create engaging, factual, and age-appropriate infotainment stories for children using real-time web search results",
         backstory="""
-        You are a kind and fun journalist who explains things in a way that kids aged 8–14 will love and understand.
-        You tell true, positive, and exciting stories — not scary or hard things. You explain clearly, like a good storyteller.
-        Each story must feel like a short, separate paragraph with a title, a few lines of text, and a helpful link.
+       Create engaging, factual, and age-appropriate infotainment stories for children using real-time web search results.
         """,
         llm=llm,
         tools=[search_and_get_contents_tool],
@@ -51,25 +49,35 @@ def generate_news(prompt, llm):
     # Create task
     news_task = Task(
         description=f"""
-Use the tool to gather information about: "{prompt}". Then write **4 simple and clear stories**, each as a **paragraph** with:
+You are an expert children's content writer with a flair for turning real-world information into fascinating infotainment. 
+Your job is to take a child’s query or interest (like 'space', 'dinosaurs', 'robots', 'oceans') and find interesting, real, safe facts about it through web search.
 
-1. A fun and clear **title** (`##` heading).
-2. A **short summary** in 2–3 simple lines that a child aged 8–14 can easily understand.
-3. A `Read more` link below.
-
-Each story should be in this format (repeat 4 times):
+SO FOR THIS TOPIC: {prompt}. WRITE NEWS STORIES FOR CHILDREN OF AGE 8-14 YEARS.
+Then write **4 simple, fascinating news stories**, each in the following format and style:
 
 ---
 
-## Story Title ✨  
-This is the summary of the story. It should be short, fun, and simple to read.  
-Even complicated topics should be explained using easy words.  
+Title (1 line):
+Make it exciting, clear, and informative for a young audience.
 
-**[Read more here](https://example.com)**  
+**Summary (2–3 lines):**
+Write in simple, engaging language. Explain the topic so that a curious child can understand and feel amazed. Avoid any scary, violent, or age-inappropriate content.
+
+**Read more:**
+Include a relevant URL where the child can read more, starting with `[Read more](...)`.
 
 ---
 
-Use only `Markdown`. Make sure there are **four full stories**, clearly separated. Avoid complex or scary info.
+### Rules:
+- Use only **Markdown**
+- Include exactly **4** clearly separated stories.
+- Each story must follow the same format (Title, Summary, Link).
+- Use **facts from the web search tool**
+- Content should be age-appropriate, light, inspiring, and curious in tone.
+- Avoid any complex political, medical, or mature topics.
+
+Expected Output:
+Markdown text with 4 infotainment stories in the structure above.
         """,
         expected_output="Markdown with 4 clearly separated child-friendly stories",
         agent=news_agent,
