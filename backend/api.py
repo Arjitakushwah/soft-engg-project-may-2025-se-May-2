@@ -6,6 +6,7 @@ from app import app
 from pytz import timezone
 from crewai import LLM
 from datetime import datetime, time
+from sqlalchemy import func
 
 
 IST = timezone("Asia/Kolkata")
@@ -1101,7 +1102,7 @@ def journal_by_date(child_id, current_user_id, current_user_role):
     for entry in entries:
         result.append({
             "id": entry.id,
-            "timestamp": entry.created_at,  # Full timestamp
+            "timestamp": entry.created_at.strftime("%H:%M:%S"),  # Full timestamp
             "mood": entry.mood,
             "content": entry.text
         })
@@ -1300,3 +1301,177 @@ def generate_child_analysis_report(current_user_id, current_user_role):
     except Exception as e:
         print("Report Generation Error:", e)
         return jsonify({'error': 'Failed to generate analysis report'}), 500
+    
+
+
+# ---------------------------infotainment logs for insights------------------------------------------------
+@app.route('/parent/child/<int:child_id>/infotainment-logs', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_infotainment_logs(child_id, current_user_id, current_user_role):
+    # Optional query parameters
+    date_str = request.args.get('date')  # for daily logs
+    week = request.args.get('week')      # for weekly summary
+
+    # Step 1: Validate Child Ownership
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+    # Step 2A: If specific date is provided, show daily logs
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        logs = InfotainmentReadLog.query.filter_by(child_id=child_id, date=selected_date).all()
+        result = [{
+            'id': log.id,
+            'child_prompt': log.child_prompt,
+            'content': log.content,
+            'is_done': log.is_done,
+            'marked_at': log.marked_at.isoformat(),
+            'time': log.time.isoformat(),
+            'date': log.date.isoformat()
+            
+        } for log in logs]
+
+        return jsonify({
+            'date': selected_date.isoformat(),
+            'total_read': len(result),
+            'logs': result
+        }), 200
+
+    # Step 2B: If `week=true`, return weekly grouped stats
+    if week == 'true':
+        today = datetime.utcnow().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)             # Sunday
+
+        weekly_logs = db.session.query(
+            InfotainmentReadLog.date,
+            func.count(InfotainmentReadLog.id).label('topics_read')
+        ).filter(
+            InfotainmentReadLog.child_id == child_id,
+            InfotainmentReadLog.date >= week_start,
+            InfotainmentReadLog.date <= week_end,
+            InfotainmentReadLog.is_done == True
+        ).group_by(InfotainmentReadLog.date).all()
+
+        # Format response
+        result = [{
+            'date': log.date.isoformat(),
+            'topics_read': log.topics_read
+        } for log in weekly_logs]
+
+        return jsonify({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'weekly_summary': result
+        }), 200
+
+    # Step 2C: If no date or week is given, return last 7 entries
+    recent_logs = InfotainmentReadLog.query.filter_by(child_id=child_id)\
+                    .order_by(InfotainmentReadLog.date.desc())\
+                    .limit(7).all()
+
+    result = [{
+        'date': log.date.isoformat(),
+        'child_prompt': log.child_prompt,
+        'is_done': log.is_done,
+        'marked_at': log.marked_at.isoformat()
+    } for log in recent_logs]
+
+    return jsonify({
+        'recent_logs': result
+    }), 200
+
+
+
+# ---------------------------Story logs for insights------------------------------------------------
+@app.route('/parent/child/<int:child_id>/story-logs', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_story_logs(child_id, current_user_id, current_user_role):
+    # Optional query parameters
+    date_str = request.args.get('date')  # for daily logs
+    week = request.args.get('week')      # for weekly summary
+
+    # Step 1: Validate Child Ownership
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+    # Step 2A: If specific date is provided, show daily logs
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        logs = DailyStory.query.filter_by(child_id=child_id, date=selected_date).all()
+        result = [{
+            'id': log.id,
+            'child_prompt': log.child_prompt,
+            'title': log.title,
+            'theme': log.theme,
+            'content': log.content,
+            'question': log.question,
+            'option_a': log.option_a,
+            'option_b': log.option_b,
+            'option_c': log.option_c,
+            'option_d': log.option_d,
+            'correct_option': log.correct_option,
+            'submitted_option': log.submitted_option,
+            'is_done': log.is_done,
+            'date': log.date.isoformat()
+        } for log in logs]
+
+        return jsonify({
+            'date': selected_date.isoformat(),
+            'total_read': len(result),
+            'logs': result
+        }), 200
+
+    # Step 2B: If `week=true`, return weekly grouped stats
+    if week == 'true':
+        today = datetime.utcnow().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)             # Sunday
+
+        weekly_logs = db.session.query(
+            DailyStory.date,
+            func.count(DailyStory.id).label('stories_read')
+        ).filter(
+            DailyStory.child_id == child_id,
+            DailyStory.date >= week_start,
+            DailyStory.date <= week_end,
+            DailyStory.is_done == True
+        ).group_by(DailyStory.date).all()
+
+        result = [{
+            'date': log.date.isoformat(),
+            'stories_read': log.stories_read
+        } for log in weekly_logs]
+
+        return jsonify({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'weekly_summary': result
+        }), 200
+
+    # Step 2C: If no date or week is given, return last 7 entries
+    recent_logs = DailyStory.query.filter_by(child_id=child_id)\
+                    .order_by(DailyStory.date.desc())\
+                    .limit(7).all()
+
+    result = [{
+        'date': log.date.isoformat(),
+        'child_prompt': log.child_prompt,
+        'title': log.title,
+        'theme': log.theme,
+        'is_done': log.is_done
+    } for log in recent_logs]
+
+    return jsonify({
+        'recent_logs': result
+    }), 200
