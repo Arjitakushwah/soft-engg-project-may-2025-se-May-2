@@ -1,5 +1,4 @@
 # Backend/tests/test_authentication.py
-
 from unittest.mock import patch
 from werkzeug.security import generate_password_hash
 from models import db, User, Parent
@@ -88,11 +87,7 @@ def test_forgot_username_not_found(client):
 def test_forgot_password_sends_otp(mock_store_otp, client):
     """Test that the forgot password endpoint calls the OTP service via a client request."""
     mock_store_otp.return_value = True
-
-    # Use the client to make a request to the endpoint
     res = client.post('/forgot-password', json={"email": "test@example.com"})
-
-    # Assert that the mock was called and the response is correct
     mock_store_otp.assert_called_once_with("test@example.com")
     assert res.status_code == 200
     assert res.get_json()['message'] == 'OTP sent to email'
@@ -101,11 +96,7 @@ def test_forgot_password_sends_otp(mock_store_otp, client):
 def test_verify_otp_success(mock_verify_otp, client):
     """Test successful OTP verification via a client request."""
     mock_verify_otp.return_value = (True, "OTP verified successfully.")
-
-    # Use the client to make a request
     res = client.post('/verify-otp', json={"email": "test@example.com", "otp": "123456"})
-    
-    # Assertions
     mock_verify_otp.assert_called_once_with("test@example.com", "123456")
     assert res.status_code == 200
     assert res.get_json()['success'] is True

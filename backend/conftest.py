@@ -1,8 +1,7 @@
 # Backend/conftest.py
-
 import pytest
 from app import app, db
-from models import User, Parent
+from tests.helpers import create_parent_and_get_token, create_child_and_get_token
 
 @pytest.fixture(scope='session')
 def test_app():
@@ -10,10 +9,8 @@ def test_app():
     app.config.update({
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "JWT_SECRET_KEY": "test-secret-key",
-        "SQLALCHEMY_TRACK_MODIFICATIONS": False
+        "JWT_SECRET_KEY": "test-secret-key"
     })
-
     with app.app_context():
         db.create_all()
         yield app
@@ -26,13 +23,20 @@ def client(test_app):
 
 @pytest.fixture(autouse=True)
 def db_session(test_app):
-    """
-    Ensures each test has a clean database session. This fixture is
-    automatically used by every test.
-    """
+    """Ensures each test has a clean database session."""
     with test_app.app_context():
         yield db.session
         db.session.remove()
         db.reflect()
         db.drop_all()
         db.create_all()
+
+@pytest.fixture
+def parent_token(client):
+    """Fixture to get a valid token for a parent user."""
+    return create_parent_and_get_token(client)
+
+@pytest.fixture
+def child_token_and_id(client):
+    """Fixture to get a valid token and ID for a child user."""
+    return create_child_and_get_token(client)
