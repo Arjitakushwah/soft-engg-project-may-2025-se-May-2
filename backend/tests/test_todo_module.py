@@ -1,5 +1,3 @@
-# Backend/tests/test_todo_module.py
-
 from models import db, ToDoItem
 from app import app
 from tests.helpers import setup_parent_and_child
@@ -36,4 +34,4 @@ def test_update_todo_status(client):
 
     res = client.put(f'/todo/status/{task_id}', headers=headers)
     assert res.status_code == 200
-    assert res.get_json()['message'] == 'Task Completed successfully'
+    assert res.get_json()['message'] == 'Task marked as completed successfully'

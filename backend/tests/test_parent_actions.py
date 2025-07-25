@@ -1,6 +1,3 @@
-# Backend/tests/test_parent_actions.py
-
-# Import the new helper function
 from tests.helpers import create_parent_with_child, create_parent_and_get_token
 
 def test_add_child_success(client):

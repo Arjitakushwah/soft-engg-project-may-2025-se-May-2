@@ -1,4 +1,3 @@
-# Backend/tests/test_authentication.py
 from unittest.mock import patch
 from werkzeug.security import generate_password_hash
 from models import db, User, Parent

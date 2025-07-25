@@ -1,5 +1,3 @@
-# Backend/tests/test_google_auth.py
-
 from unittest.mock import patch, MagicMock
 from models import db, User
 from app import app
