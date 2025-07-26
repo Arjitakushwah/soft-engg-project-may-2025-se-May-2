@@ -262,7 +262,7 @@ def delete_todo_task(task_id, current_user_id, current_user_role):
         print("Delete Error:", e) 
         return jsonify({'error': 'Failed to delete task'}), 500 
 
-#-----------------------------------------View task at particular date---------------------------------------------------- 
+#------------------------------------View task at particular date---------------------------------------------------- 
 """ 
 API: Get To-Do Tasks by Date 
 Fetch all task by taking input of specific date or if child not provided date then fetch the current date task. 
@@ -315,7 +315,7 @@ def tasks_by_date(current_user_id, current_user_role):
         'tasks': task_list 
     }), 200 
 
-#------------------------------------To Do List status update----------------------------------------------------------- 
+#-----------------------------To Do List status update----------------------------------------------------------- 
 """ 
 API: Update Task Status 
 This API allow the child to mark task completed only current date tasks. 
