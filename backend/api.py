@@ -332,7 +332,7 @@ def update_task_status(task_id, current_user_id, current_user_role):
     if not task: 
         return jsonify({'error': 'Task not found'}), 404 
         
-    # ✅ FIX: This now compares the full datetime against the current UTC time.
+    # FIX: This now compares the full datetime against the current UTC time.
     # This correctly handles timezone differences and prevents completing a task
     # before its scheduled time (e.g., completing a 2 PM task at 10 AM).
     if task.datetime > datetime.utcnow():
