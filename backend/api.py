@@ -1,12 +1,16 @@
 from datetime import datetime, date, timedelta
 from utils import jwt_required
 from flask import request, jsonify, send_file
-from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress,BadgeAward
+from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress
 from app import app
 from pytz import timezone
 from crewai import LLM
-from datetime import datetime, time
+from datetime import datetime, time, timedelta, date
 from sqlalchemy import func
+from pytz import timezone
+from report_pdf import generate_pdf
+from agents.report_agent import analyze_child_data
+
 
 
 IST = timezone("Asia/Kolkata")
@@ -22,300 +26,350 @@ app.config['SQLALCHEMY_ECHO'] = True
 from agents.story_agent import generate_story
 from agents.news_agent import generate_news
 from agents.mood_classifier import classify_emotion
-from agents.report_agent import analyze_child_data
 from progressor import update_daily_progress
-from streak_badges_logic import evaluate_all_badges
-from report_pdf import generate_pdf
+from streak_badges_logic import update_streak
 import os
 from dotenv import load_dotenv
 load_dotenv("agents/prod.env") 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  
-# Don't replace here, replace google api in prod.env file only
+llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace with your actual LLM API key
+
+
+# Use for return current date and time according to user local timezone
+# Use for returning the current date in UTC for consistent timezone handling
 
 
 
-#------------------------------------To DO List task creation----------------------------------------------------
-"""
-API: Create To-Do Task
-This API allows child to create task for specific date
+def utc_today(): 
+    return datetime.utcnow().date() 
 
-Role Required:
-- Child
 
-Request Body (JSON):
-- task (str): Accept the task description from child.
-- date (str): The date and time for which the task is created in YYYY-MM-DD, HH:MM format. (Required)
+#------------------------------------To DO List task creation---------------------------------------------------- 
+""" 
+API: Create To-Do Task 
+This API allows child to create task for specific date 
 
-Response:
-- 201: Task created successfully.
-- 400: If task or date is missing, the date is in the past, or the format is invalid.
-- 500: Internal server error if task creation fails.
-"""
-#------------------------------------To DO List task creation----------------------------------------------------
-@app.route('/todo', methods=['POST'])
-@jwt_required(required_role='child') 
-def create_todo_task(current_user_id, current_user_role):
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        task = data.get('task')
-        datetime_str = data.get('datetime')
-        if not task or not datetime_str:
-            return jsonify({'error': 'Task and datetime are required'}), 400
-        if not task.strip():
-            return jsonify({'error': 'Task cannot be empty'}), 400
-        try:
-            # Parse using DD-MM-YYYY HH:MM
-            naive_dt = datetime.strptime(datetime_str, '%d-%m-%Y %H:%M')
-            selected_datetime = IST.localize(naive_dt)
-        except ValueError:
-            return jsonify({'error': 'Invalid datetime format. Use DD-MM-YYYY HH:MM'}), 400
-        now = ist_now()
-        if selected_datetime < now:
-            return jsonify({'error': 'Cannot create tasks for past datetime'}), 400
-        new_task = ToDoItem(
-            child_id=current_user_id,
-            datetime=selected_datetime,
-            task=task.strip(),
-            is_done=False
-        )
-        db.session.add(new_task)
-        db.session.commit()
-        return jsonify({
-            'message': 'Task created successfully',
-            'id': new_task.id,
-            'task': new_task.task,
-            'datetime': new_task.datetime.strftime('%d-%m-%Y %H:%M'),
-            'is_done': new_task.is_done
-        }), 201
-    except Exception as e:
-        db.session.rollback()
-        print("Error:", e)
-        return jsonify({'error': 'Failed to create task'}), 500
+Role Required: 
+- Child 
 
-#-----------------------------------------To Do List Task update----------------------------------------------------------
-"""
-API: Update To-Do Task
-Child can update the task details which is not completed and also can update
-the date but it must be current or future date.
-Role Required:
+Request Body (JSON): 
+- task (str): Accept the task description from child. 
+- date (str): The date for which the task is created in YYYY-MM-DD format. (Required) 
+- time (str, optional): The time for the task in HH:MM format. 
 
-- Child
-Path Parameters:
-- task_id (int): The ID of the task to update.
-
-Request Body (JSON):
-- task (str, optional): The updated description of task.
-- date (str, optional): The new task date in YYYY-MM-DD format.
-
-Restrictions:
-- Already completed task and past date task can not update.
-- The new date must not be past date or before child's account creation date.
-
-Response:
-- 200: Task updated successfully.
-- 400: If user try to update status or provide invalid date (past date).
-- 403: If user trying to update a completed task.
-- 404: If the task or user is not found.
-- 500: Internal server error if update fails.
-"""
-@app.route('/todo/<int:task_id>', methods=['PUT'])
-@jwt_required(required_role='child')
-def update_todo_task(task_id, current_user_id, current_user_role):
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({'error': 'No data provided'}), 400
-        task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
-        if not task:
-            return jsonify({'error': 'Task not found'}), 404
-        child_user = User.query.get(current_user_id)
-        if not child_user:
-            return jsonify({'error': 'User not found'}), 404
-        if task.is_done:
-            return jsonify({'error': 'You cannot update a completed task'}), 403
-        if 'is_done' in data:
-            return jsonify({'error': 'You cannot change task status from here'}), 400
-        now = ist_now()
-        new_task = task.task
-        new_datetime = task.datetime
-        # Update task text
-        if 'task' in data:
-            if not data['task'].strip():
-                return jsonify({'error': 'Task cannot be empty'}), 400
-            new_task = data['task'].strip()
-        # Update datetime
-        if 'datetime' in data:
-            try:
-                new_datetime = datetime.strptime(data['datetime'], "%d-%m-%Y %H:%M")
-                new_datetime = IST.localize(new_datetime)
-            except ValueError:
-                return jsonify({'error': 'Invalid datetime format. Use DD-MM-YYYY HH:MM'}), 400
-            if new_datetime.date() < child_user.created_at.date():
-                return jsonify({'error': 'Date cannot be before child registration'}), 400
-            if new_datetime.date() == now.date() and new_datetime <= now:
-                return jsonify({'error': 'For today, new time must be in the future'}), 400
-            elif new_datetime < now:
-                return jsonify({'error': 'Cannot schedule task in the past'}), 400
-        # Apply updates
-        task.task = new_task
-        task.datetime = new_datetime
-        db.session.commit()
-        return jsonify({
-            'message': 'Task updated successfully',
-            'id': task.id,
-            'task': task.task,
-            'datetime': task.datetime.astimezone(IST).strftime('%d-%m-%Y %H:%M'),
-            'is_done': task.is_done
-        }), 200
-
-    except Exception as e:
-        db.session.rollback()
-        print("Update error:", e)
-        return jsonify({'error': 'Update failed'}), 500
-#---------------------------------------------Delete task------------------------------------------------------------
-"""
-API: Delete To-Do Task
-This API allow to child delete task which is not completed
-
-Role Required:
-- Child
-
-Path Parameters:
-- task_id (int): The ID of the task to delete.
-
-Restrictions:
-- Child can not delete task which is completed.
-
-Response:
-- 200: Task deleted successfully.
-- 403: When child trying to delete a completed task.
-- 404: If the task is not found.
-- 500: Internal server error if deletion fails.
-"""
-
-@app.route('/todo/<int:task_id>', methods=['DELETE'])
-@jwt_required(required_role='child')
-def delete_todo_task(task_id, current_user_id, current_user_role):
-    # find the task details by task_id and child_id
-    task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
-    if not task:
-        return jsonify({'error': 'Task not found'}), 404
-    if task.is_done:
-        return jsonify({'error': 'You can not delete completed task'}), 403
-    try:
-        db.session.delete(task)
-        db.session.commit()
-        return jsonify({'message': 'Task deleted successfully'}), 200
-    except Exception as e:
-        db.session.rollback()
-        print("Delete Error:", e)
-        return jsonify({'error': 'Failed to delete task'}), 500
-
-#---------------------------------------View task at particular date-------------------------------------------------
-"""
-API: Get To-Do Tasks by Date
-Fetch all task by taking input of specific date or if child not provided date then fetch the current date task.
-
-Role Required:
-- Child
-
-Query Parameters:
-- date (str, optional): Date is parameter in YYYY-MM-DD format and, by default current date.
-
-Response:
-- 200: When function return list of task in jason format.
-- 400: If the provided date format is invalid.
-"""
-
-@app.route('/todo', methods=['GET'])
-@jwt_required(required_role='child')
-def tasks_by_date(current_user_id, current_user_role):
-    date_select = request.args.get('date')
+Response: 
+- 201: Task created successfully. 
+- 400: If task or date is missing, the date is in the past, or the format is invalid. 
+- 500: Internal server error if task creation fails. 
+""" 
+#------------------------------------To DO List task creation---------------------------------------------------- 
+@app.route('/todo', methods=['POST']) 
+@jwt_required(required_role='child')  
+def create_todo_task(current_user_id, current_user_role): 
     try: 
-        # If child provide date then convert str to YYYY-MM-DD format otherwise select the current date
-        selected_date = (
-            datetime.strptime(date_select, "%Y-%m-%d").date()
-            if date_select else
-            datetime.today().date()
-        )
-    except ValueError:
-        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
-    # Find tasks by child_id and selected_date
-    tasks = ToDoItem.query.filter_by(child_id=current_user_id, date=selected_date).all()
-    task_list = [
-        {
-            'id': task.id,
-            'task': task.task,
-            'is_done': task.is_done,
-            'date': task.date.isoformat()
-        } for task in tasks
-    ]
-    return jsonify({
-        'date': selected_date.isoformat(),
-        'tasks': task_list
-    }), 200
-#-------------------------------To Do List status update-----------------------------------------------------------
-"""
-API: Update Task Status
-This API allow the child to mark task completed only current date tasks.
+        data = request.get_json() 
+        if not data: 
+            return jsonify({'error': 'No data provided'}), 400 
+            
+        task_text = data.get('task') 
+        date_str = data.get('date')  
+        time_str = data.get('time', '00:00')  # Default time if not provided 
 
-Role Required:
-- Child
+        if not task_text or not date_str: 
+            return jsonify({'error': 'Task and date are required'}), 400 
+            
+        # Validate date format 
+        try: 
+            task_date = datetime.strptime(date_str, '%Y-%m-%d').date() 
+        except ValueError: 
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400 
 
-Path Parameters:
-- task_id (int): ID of the task.
+        # Validate time format (accepts both HH:MM and HH:MM:SS) 
+        time_parts = time_str.split(':') 
+        if len(time_parts) < 2 or len(time_parts) > 3: 
+            return jsonify({'error': 'Invalid time format. Use HH:MM or HH:MM:SS'}), 400 
+            
+        try: 
+            hours = int(time_parts[0]) 
+            minutes = int(time_parts[1]) 
+            if hours < 0 or hours > 23 or minutes < 0 or minutes > 59: 
+                raise ValueError 
+        except ValueError: 
+            return jsonify({'error': 'Invalid time values. Hours (0-23) and minutes (0-59)'}), 400 
 
-Restrictions:
-- Child can change status or marked completed only 15 minutes before or 1 hour after scheduled time's task.
-- Child can not change the status of completed task.
+        # Combine date and time 
+        try: 
+            task_datetime = datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %H:%M:%S') 
+        except ValueError: 
+            try: 
+                task_datetime = datetime.strptime(f"{date_str} {time_str}", '%Y-%m-%d %H:%M') 
+            except ValueError: 
+                return jsonify({'error': 'Invalid datetime format'}), 400 
 
-Response:
-- 200: When task marked completed successfully.
-- 400: When the task is already marked as completed.
-- 403: When attempting to change the status of a non-today task.
-- 404: If the task is not found.
-- 500: Internal server error if status update fails.
-"""
+        # Check if datetime is in the past (with 1 minute buffer) 
+        if task_datetime < datetime.utcnow() - timedelta(minutes=1): 
+            return jsonify({'error': 'Cannot create tasks for past dates/times'}), 400 
+            
+        new_task = ToDoItem( 
+            child_id=current_user_id,  
+            task=task_text.strip(), 
+            datetime=task_datetime, 
+            is_done=False 
+        ) 
+        
+        db.session.add(new_task) 
+        db.session.commit() 
+        
+        return jsonify({ 
+            'id': new_task.id, 
+            'task': new_task.task, 
+            'date': new_task.datetime.strftime('%Y-%m-%d'), 
+            'time': new_task.datetime.strftime('%H:%M'), 
+            'is_done': new_task.is_done 
+        }), 201 
+        
+    except Exception as e: 
+        db.session.rollback() 
+        print(f"Error creating task: {str(e)}") 
+        return jsonify({'error': 'Failed to create task'}), 500 
 
-@app.route('/todo/status/<int:task_id>', methods=['PUT'])
-@jwt_required(required_role='child')
-def update_task_status(task_id, current_user_id, current_user_role):
-    now_ist = ist_now()
-    task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first()
-    if not task:
-        return jsonify({'error': 'Task not found'}), 404
-    scheduled_time = task.datetime
-    if not scheduled_time:
-        return jsonify({'error': 'Invalid or missing scheduled time'}), 400
-    if scheduled_time.tzinfo is None:
-        scheduled_time = scheduled_time.astimezone(IST)
-    lower_bound = scheduled_time - timedelta(minutes=15)
-    upper_bound = scheduled_time + timedelta(hours=1)
-    if not (lower_bound <= now_ist <= upper_bound):
-        return jsonify({
-            'error': f"You can mark the task completed only between "
-                     f"{lower_bound.strftime('%H:%M')} and {upper_bound.strftime('%H:%M')} IST"
-        }), 403
 
-    if task.is_done:
-        return jsonify({'error': 'You already completed this task'}), 400
-    task.is_done = True
-    try:
-        db.session.commit()
-        update_daily_progress(current_user_id, ist_now().date())
-        evaluate_all_badges(current_user_id)
-        return jsonify({'message': 'Task marked as completed successfully'}), 200
-    except Exception as e:
-        db.session.rollback()
-        print("Status update error:", e)
+#-----------------------------------------To Do List Task update---------------------------------------------------------- 
+""" 
+API: Update To-Do Task 
+Child can update the task details which is not completed and also can update 
+the date but it must be current or future date. 
+Role Required: 
+
+- Child 
+Path Parameters: 
+- task_id (int): The ID of the task to update. 
+
+Request Body (JSON): 
+- task (str, optional): The updated description of task. 
+- date (str, optional): The new task date in YYYY-MM-DD format. 
+- time (str, optional): The new task time in HH:MM format. 
+
+Restrictions: 
+- Already completed task and past date task can not update. 
+- The new date must not be past date or before child's account creation date. 
+
+Response: 
+- 200: Task updated successfully. 
+- 400: If user try to update status or provide invalid date (past date). 
+- 403: If user trying to update a completed task. 
+- 404: If the task or user is not found. 
+- 500: Internal server error if update fails. 
+""" 
+#-----------------------------------------To Do List Task update---------------------------------------------------------- 
+@app.route('/todo/<int:task_id>', methods=['PUT']) 
+@jwt_required(required_role='child') 
+def update_todo_task(task_id, current_user_id, current_user_role): 
+    try: 
+        data = request.get_json() 
+        task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first() 
+
+        if not task: 
+            return jsonify({'error': 'Task not found'}), 404 
+        if task.is_done: 
+            return jsonify({'error': 'Cannot update completed task'}), 403 
+
+        # Get current date and time from task, or use new data if provided 
+        new_date_str = data.get('date', task.datetime.strftime('%Y-%m-%d')) 
+        new_time_str = data.get('time', task.datetime.strftime('%H:%M')) 
+        
+        # Validate date format 
+        try: 
+            new_date = datetime.strptime(new_date_str, '%Y-%m-%d').date() 
+        except ValueError: 
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400 
+
+        # Validate time format 
+        time_parts = new_time_str.split(':') 
+        if len(time_parts) < 2: 
+            return jsonify({'error': 'Invalid time format. Use HH:MM'}), 400 
+            
+        try: 
+            hours = int(time_parts[0]) 
+            minutes = int(time_parts[1]) 
+            if hours < 0 or hours > 23 or minutes < 0 or minutes > 59: 
+                raise ValueError 
+        except ValueError: 
+            return jsonify({'error': 'Invalid time values. Hours (0-23) and minutes (0-59)'}), 400 
+
+        # Combine to datetime object 
+        try: 
+            new_datetime = datetime.strptime(f"{new_date_str} {new_time_str}", '%Y-%m-%d %H:%M') 
+        except ValueError: 
+            return jsonify({'error': 'Invalid datetime format'}), 400 
+
+        # Check if new datetime is in the past (with 1 minute buffer) 
+        if new_datetime < datetime.utcnow() - timedelta(minutes=1): 
+            return jsonify({'error': 'Cannot set task to past date/time'}), 400 
+
+        # Update task properties 
+        task.datetime = new_datetime 
+        if 'task' in data: 
+            task.task = data['task'].strip() 
+
+        db.session.commit() 
+        
+        return jsonify({ 
+            'id': task.id, 
+            'task': task.task, 
+            'date': task.datetime.strftime('%Y-%m-%d'), 
+            'time': task.datetime.strftime('%H:%M'), 
+            'is_done': task.is_done 
+        }), 200 
+        
+    except Exception as e: 
+        db.session.rollback() 
+        print(f"Error updating task: {str(e)}") 
+        return jsonify({'error': 'Failed to update task'}), 500 
+
+#---------------------------------------------Delete task------------------------------------------------------------ 
+""" 
+API: Delete To-Do Task 
+This API allow to child delete task which is not completed 
+
+Role Required: 
+- Child 
+
+Path Parameters: 
+- task_id (int): The ID of the task to delete. 
+
+Restrictions: 
+- Child can not delete task which is completed. 
+
+Response: 
+- 200: Task deleted successfully. 
+- 403: When child trying to delete a completed task. 
+- 404: If the task is not found. 
+- 500: Internal server error if deletion fails. 
+""" 
+@app.route('/todo/<int:task_id>', methods=['DELETE']) 
+@jwt_required(required_role='child') 
+def delete_todo_task(task_id, current_user_id, current_user_role): 
+    # find the task details by task_id and child_id 
+    task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first() 
+    if not task: 
+        return jsonify({'error': 'Task not found'}), 404 
+    if task.is_done: 
+        return jsonify({'error': 'You can not delete completed task'}), 403 
+    try: 
+        db.session.delete(task) 
+        db.session.commit() 
+        return jsonify({'message': 'Task deleted successfully'}), 200 
+    except Exception as e: 
+        db.session.rollback() 
+        print("Delete Error:", e) 
+        return jsonify({'error': 'Failed to delete task'}), 500 
+
+#-----------------------------------------View task at particular date---------------------------------------------------- 
+""" 
+API: Get To-Do Tasks by Date 
+Fetch all task by taking input of specific date or if child not provided date then fetch the current date task. 
+
+Role Required: 
+- Child 
+
+Query Parameters: 
+- date (str, optional): Date is parameter in YYYY-MM-DD format and, by default current date. 
+
+Response: 
+- 200: When function return list of task in jason format. 
+- 400: If the provided date format is invalid. 
+""" 
+@app.route('/todo', methods=['GET']) 
+@jwt_required(required_role='child') 
+def tasks_by_date(current_user_id, current_user_role): 
+    date_select_str = request.args.get('date') 
+    try:  
+        selected_date = ( 
+            datetime.strptime(date_select_str, "%Y-%m-%d").date() 
+            if date_select_str else 
+            utc_today() 
+        ) 
+    except ValueError: 
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400 
+        
+    # Switched to a more robust date-range filter to avoid DB-specific function issues.
+    # This creates a full day range from start to end to query against the datetime column.
+    start_of_day_utc = datetime.combine(selected_date, datetime.min.time())
+    end_of_day_utc = datetime.combine(selected_date, datetime.max.time())
+
+    tasks = ToDoItem.query.filter(
+        ToDoItem.child_id == current_user_id,
+        ToDoItem.datetime >= start_of_day_utc,
+        ToDoItem.datetime <= end_of_day_utc
+    ).all()
+    
+    task_list = [ 
+        { 
+            'id': task.id, 
+            'task': task.task, 
+            'is_done': task.is_done, 
+            'date': task.datetime.strftime('%Y-%m-%d'),  
+            'time': task.datetime.strftime('%H:%M')
+        } for task in tasks 
+    ] 
+    return jsonify({ 
+        'date': selected_date.isoformat(), 
+        'tasks': task_list 
+    }), 200 
+
+#------------------------------------To Do List status update----------------------------------------------------------- 
+""" 
+API: Update Task Status 
+This API allow the child to mark task completed only current date tasks. 
+
+Role Required: 
+- Child 
+
+Path Parameters: 
+- task_id (int): ID of the task. 
+
+Restrictions: 
+- Child can change status or marked completed only today's task. 
+- Child can not change the status of completed task. 
+
+Response: 
+- 200: When task marked completed successfully. 
+- 400: When the task is already marked as completed. 
+- 403: When attempting to change the status of a non-today task. 
+- 404: If the task is not found. 
+- 500: Internal server error if status update fails. 
+""" 
+@app.route('/todo/status/<int:task_id>', methods=['PUT']) 
+@jwt_required(required_role='child') 
+def update_task_status(task_id, current_user_id, current_user_role): 
+    task = ToDoItem.query.filter_by(id=task_id, child_id=current_user_id).first() 
+    if not task: 
+        return jsonify({'error': 'Task not found'}), 404 
+        
+    # FIX: This now compares the full datetime against the current UTC time.
+    # This correctly handles timezone differences and prevents completing a task
+    # before its scheduled time (e.g., completing a 2 PM task at 10 AM).
+    if task.datetime > datetime.utcnow():
+        return jsonify({'error': "You cannot complete a task before its scheduled time."}), 403
+        
+    if task.is_done: 
+        return jsonify({'error': 'This task has already been completed'}), 400 
+        
+    task.is_done = True 
+    try: 
+        db.session.commit() 
+        # update_daily_progress(current_user_id, utc_today()) 
+        # update_streak(current_user_id) 
+        return jsonify({'message': 'Task Completed successfully'}), 200 
+    except Exception as e: 
+        db.session.rollback() 
+        print("Status update error:", e) 
         return jsonify({'error': 'Failed to update task status'}), 500
 
+    
 #----------------------------------Story Generator--------------------------------------------------------------------
-
 """
 API: Generate Daily Story
 This api is generate the story and quiz based on given child prompt using story_agent function.
@@ -331,8 +385,8 @@ Response:
 - 500: When story generation failed.
 """
 
-# ------------------ STORY GENERATION ENDPOINT ----------------------------------------------------------------
 
+# ------------------ STORY GENERATION ENDPOINT ------------------
 @app.route('/generate_story', methods=['POST'])
 @jwt_required(required_role='child')
 def create_daily_story(current_user_id, current_user_role):
@@ -364,14 +418,14 @@ def create_daily_story(current_user_id, current_user_role):
             option_b=options[1],
             option_c=options[2],
             option_d=options[3],
-            submitted_option="not submitted",
             correct_option=story_data['quiz']['answer'],
-            is_correct="not submitted",
             is_done=True
         )
 
         db.session.add(new_story)
         db.session.commit()
+        update_daily_progress(current_user_id, date.today())
+        update_streak(current_user_id)
 
         return jsonify({
             'message': 'Story generated successfully',
@@ -392,7 +446,69 @@ def create_daily_story(current_user_id, current_user_role):
         return jsonify({'error': 'Unexpected error occurred', 'details': str(e)}), 500
 
 
+#----------------------------------Search Stories (NEW)----------------------------------------------------------------
+"""
+API: Search Stories
+This api is to retrieve a list of stories for the logged-in child based on a search query.
+Search can be performed by title, theme, or date.
+Role Required: Child
+
+Request Query Parameters:
+- by (str, required): The field to search by ('title', 'theme', 'date').
+- query (str, required): The search term. For date, format should be YYYY-MM-DD.
+
+Response:
+- 200: Returns a list of stories matching the criteria.
+- 400: When required query parameters are missing or date format is invalid.
+- 500: For any other unexpected errors.
+"""
+# ------------------ SEARCH STORIES ENDPOINT ------------------
+@app.route('/stories', methods=['GET'])
+@jwt_required(required_role='child')
+def search_stories(current_user_id, current_user_role):
+    search_by = request.args.get('by')
+    query_term = request.args.get('query')
+
+    if not search_by or not query_term:
+        return jsonify({'error': 'Missing required query parameters: "by" and "query"'}), 400
+
+    base_query = DailyStory.query.filter_by(child_id=current_user_id)
+    
+    try:
+        if search_by == 'title':
+            stories = base_query.filter(DailyStory.title.ilike(f"%{query_term}%")).order_by(DailyStory.date.desc()).all()
+        elif search_by == 'theme':
+            stories = base_query.filter(DailyStory.theme.ilike(f"%{query_term}%")).order_by(DailyStory.date.desc()).all()
+        elif search_by == 'date':
+            try:
+                search_date = datetime.strptime(query_term, '%Y-%m-%d').date()
+                stories = base_query.filter_by(date=search_date).all()
+            except ValueError:
+                return jsonify({'error': 'Invalid date format. Please use YYYY-MM-DD.'}), 400
+        else:
+            return jsonify({'error': 'Invalid search field. Use "title", "theme", or "date".'}), 400
+    except Exception as e:
+        return jsonify({'error': 'An error occurred during search', 'details': str(e)}), 500
+
+    results = []
+    for story in stories:
+        results.append({
+            'id': story.id,
+            'title': story.title,
+            'theme': story.theme,
+            'content': story.content,
+            'quiz': {
+                'question': story.question,
+                'options': [story.option_a, story.option_b, story.option_c, story.option_d],
+                'answer': story.correct_option
+            }
+        })
+
+    return jsonify({'stories': results}), 200
+
+
 # ------------------ SUBMIT QUIZ ENDPOINT ------------------
+
 @app.route('/submit_quiz', methods=['POST'])
 @jwt_required(required_role='child')
 def submit_quiz(current_user_id, current_user_role):
@@ -403,24 +519,33 @@ def submit_quiz(current_user_id, current_user_role):
     if not story_title or not selected_option:
         return jsonify({'error': 'Missing required data'}), 400
 
-    story = DailyStory.query.filter_by(child_id=current_user_id, title=story_title).first()
+    story = DailyStory.query.filter_by(
+        child_id=current_user_id, 
+        title=story_title
+    ).order_by(DailyStory.date.desc()).first()
+
     if not story:
         return jsonify({'error': 'Story not found'}), 404
 
-    story.submitted_option = selected_option
-    story.is_correct = 'correct' if selected_option == story.correct_option else 'wrong'
+    is_answer_correct = (selected_option == story.correct_option)
 
-    try:
-        db.session.commit()
-        update_daily_progress(current_user_id, date.today())
-        evaluate_all_badges(current_user_id)
-        return jsonify({'message': 'Answer submitted successfully'}), 200
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'error': str(e)}), 500
-
-
-
+    #  This is the main logic block
+    if is_answer_correct:
+        # If the answer is correct, set is_done = 1 and save.
+        story.is_done = 1
+        story.is_correct = 'correct'
+        story.submitted_option = selected_option
+        
+        try:
+            db.session.commit()
+            return jsonify({'is_correct': True, 'message': 'Answer submitted successfully'}), 200
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Database error: ' + str(e)}), 500
+    else:
+        #  If the answer is wrong, we DO NOT change the database.
+        # is_done will remain 0.
+        return jsonify({'is_correct': False, 'message': 'Incorrect answer.'}), 200
 #------------------------------------------Journal---------------------------------------------------------------
 """
 API: Create or Update Daily Journal
@@ -436,11 +561,9 @@ Response:
 - 200: When the journal is successfully created or updated. Return the mood after determine, Journal, time and marked it done.
 - 400: When the journal text is missing in the request body.
 - 500: When any error occurs during mood classification or database operations.
-
-Only one entry per day is allowed.
-Every new journal on the same day overwrites the previous one.
-Mood and timestamp get overwritten too.
 """
+
+
 # Allows multiple journals per day.
 # Keeps each mood + time unique.
 # Good for tracking a child's emotions throughout the day.
@@ -452,27 +575,33 @@ def create_journal(current_user_id, current_user_role):
     text = data.get('text')
     if not text:
         return jsonify({'error': 'Journal text is required'}), 400
+
     try:
         mood_dict = classify_emotion(text, llm)
         mood = mood_dict.get("emotion", "unknown")
-        now_ist = ist_now()
+
         entry = JournalEntry(
             child_id=current_user_id,
-            date=now_ist.date(),         
+            date=date.today(),
             text=text,
             mood=mood,
-            created_at=now_ist,          
+            created_at=datetime.utcnow(),
             is_done=True
         )
+
         db.session.add(entry)
         db.session.commit()
-        update_daily_progress(current_user_id, now_ist.date())
-        evaluate_all_badges(current_user_id)
+
+        # Optionally update streak and progress
+        update_daily_progress(current_user_id, date.today())
+        update_streak(current_user_id)
+
         return jsonify({
             'message': 'Journal entry created successfully',
             'mood': mood,
             'journal_text': entry.text
         }), 200
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Failed to process journal entry', 'details': str(e)}), 500
@@ -483,12 +612,15 @@ def create_journal(current_user_id, current_user_role):
 def search_journals(current_user_id, current_user_role):
     date_query = request.args.get('date')
     mood_query = request.args.get('mood')
+
     filters = [JournalEntry.child_id == current_user_id]
     if date_query:
         filters.append(JournalEntry.date == date.fromisoformat(date_query))
     if mood_query:
         filters.append(JournalEntry.mood == mood_query)
+
     results = JournalEntry.query.filter(*filters).order_by(JournalEntry.created_at.desc()).all()
+
     entries = [{
         'id': entry.id,
         'date': entry.date.isoformat(),
@@ -521,13 +653,17 @@ Response:
 def generate_infotainment(current_user_id, current_user_role):
     data = request.get_json()
     prompt = data.get('prompt')
+
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
+
     try:
-        # Generate AI content using agent
+        #  Generate AI content using agent
         response = generate_news(prompt, llm)
-        now = ist_now()  # Use IST time
-        # Store the generated content with time
+
+        now = datetime.utcnow()
+
+        #  Store the generated content with time
         log = InfotainmentReadLog(
             child_id=current_user_id,
             child_prompt=prompt,
@@ -539,6 +675,7 @@ def generate_infotainment(current_user_id, current_user_role):
         )
         db.session.add(log)
         db.session.commit()
+
         return jsonify({
             'message': 'New content generated and stored.',
             'content': response,
@@ -546,11 +683,11 @@ def generate_infotainment(current_user_id, current_user_role):
             'date': log.date.strftime('%Y-%m-%d'),
             'time': log.time.strftime('%H:%M:%S')
         }), 201
+
     except Exception as e:
         db.session.rollback()
         print("Infotainment generation error:", e)
         return jsonify({'error': 'Failed to generate content'}), 500
-
     
 #-----------------------------------Search Infotainment---------------------------------------------------------------
 @app.route('/infotainment/search', methods=['GET'])
@@ -558,7 +695,9 @@ def generate_infotainment(current_user_id, current_user_role):
 def search_infotainment(current_user_id, current_user_role):
     search_query = request.args.get('q', '').strip().lower()
     search_date = request.args.get('date', '').strip()
+
     logs = InfotainmentReadLog.query.filter_by(child_id=current_user_id)
+
     # If user searched by date
     if search_date:
         try:
@@ -566,7 +705,9 @@ def search_infotainment(current_user_id, current_user_role):
             logs = logs.filter(InfotainmentReadLog.date == search_date_obj)
         except ValueError:
             return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
     logs = logs.order_by(InfotainmentReadLog.date.desc(), InfotainmentReadLog.marked_at.desc()).all()
+
     result = []
     for log in logs:
         if not search_query or (
@@ -607,23 +748,21 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
     query = InfotainmentReadLog.query.filter_by(id=log_id, child_id=current_user_id).first()
     if not query:
         return jsonify({'error': 'Content not found'}), 404
-    now = ist_now()
-    if query.date != now.date():
+
+    if query.date != date.today():
         return jsonify({'error': 'You can mark only today\'s content'}), 403
-    marked_at = query.marked_at
-    if marked_at.tzinfo is None:
-        marked_at = IST.localize(marked_at)
-    elapsed = now - marked_at
-    if elapsed.total_seconds() < 180:
-        return jsonify({'error': f'You can mark as read after {int(180 - elapsed.total_seconds())} seconds'}), 403
+
+    elapsed = datetime.utcnow() - query.marked_at
+    if elapsed.total_seconds() < 30:
+        return jsonify({'error': 'You can mark as read after 30 seconds'}), 403
+
     if query.is_done:
         return jsonify({'message': 'Already marked as read'}), 200
+
     try:
         query.is_done = True
-        query.marked_at = now
+        query.marked_at = datetime.utcnow()
         db.session.commit()
-        update_daily_progress(current_user_id, now.date())
-        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -652,7 +791,7 @@ Color Legend:
 - "medium green": 3 tasks completed
 - "light green": 2 tasks completed
 - "gray": 1 task completed
-- "white": 0 tasks completed
+- "red": 0 tasks completed
 """
 @app.route('/calendar-report', methods=['GET'])
 @jwt_required(required_role='child')
@@ -682,14 +821,6 @@ def calendar_report(current_user_id, current_user_role):
 
     if start_date > end_date:
         return jsonify({'error': 'Start date cannot be after end date'}), 400
-    
-    color_map = {
-        4: "#216e39",    # darkest green
-        3: "#7bc96f",    # medium green
-        2: "#c6e48b",    # light green
-        1: "#ebedf0",    # very light gray
-        0: "#f0f0f0"     # almost white
-    }
 
     # Fetch all records
     records = DailyProgress.query.filter(
@@ -716,15 +847,15 @@ def calendar_report(current_user_id, current_user_role):
         done_count = 4 - len(not_done)
         # Assign the color according to number of task done.
         if done_count == 0:
-            color = "#f0f0f0" # almost white
+            color = "red"
         elif done_count == 1:
-            color = "#ebedf0" # very light gray
+            color = "gray"
         elif done_count == 2:
-            color = "#c6e48b" # light green
+            color = "purple"
         elif done_count == 3:
-            color = "#7bc96f" # medium green
+            color = "yellow"
         else:
-            color = "#216e39" # darkest green
+            color = "green"
         result[current_day.isoformat()] = {
             "status": color,
             "not_done": not_done
@@ -737,23 +868,16 @@ def calendar_report(current_user_id, current_user_role):
         "progress": result
     }), 200
 
-# ---------------------------------- Streak, Badges, and Content Stats ---------------------------------------------
+#--------------------------------------------Streak and Badges--------------------------------------------------------------
 """
-API: Get Streak, Badge, and Activity Summary
+API: Get Streak and Badges Info
+This API is fetch the Current Streak, longest_streak, badges of child.
 
 Role Required: Child
 
-Description:
-This API provides the following details for a logged-in child:
-- Current streak and longest streak values.
-- List of all awarded badges with name, type, and date.
-- Total number of stories completed.
-- Total number of journals written.
-- Total number of infotainment articles read.
-
 Response:
-- 200 OK: On success, returns JSON with streaks, badges, and totals.
-- 404 Not Found: If child record is missing.
+- 200: When return the longest streak, current streak, and badges
+- 404: If the child record is not found.
 """
 
 @app.route('/streak-badges', methods=['GET'])
@@ -762,45 +886,14 @@ def get_streak_info(current_user_id, current_user_role):
     child = Child.query.get(current_user_id)
     if not child:
         return jsonify({'error': 'Child not found'}), 404
-
-    # Fetch all badges
-    badge_awards = BadgeAward.query.filter_by(child_id=current_user_id).all()
-    badge_list = [
-        {
-            'name': badge.badge_name,
-            'type': badge.badge_type,
-            'awarded_at': badge.awarded_at.strftime('%Y-%m-%d')
-        }
-        for badge in badge_awards
-    ]
-
-    # Count completed content
-    total_stories_read = DailyStory.query.filter_by(child_id=current_user_id, is_done=True).count()
-    total_journals_written = JournalEntry.query.filter_by(child_id=current_user_id, is_done=True).count()
-    total_infotainment_read = InfotainmentReadLog.query.filter_by(child_id=current_user_id, is_done=True).count()
-
     return jsonify({
         'current_streak': child.streak,
         'longest_streak': child.longest_streak,
-        'badges_count': len(badge_list),
-        'badges': badge_list,
-        'total_stories_read': total_stories_read,
-        'total_journals_written': total_journals_written,
-        'total_infotainment_read': total_infotainment_read
+        'badges': child.badges
     }), 200
 
 
-#-------------------------------------Trigger evaluate badges and streak-----------------------------------------
-
-
-@app.route('/trigger-badges', methods=['POST'])
-@jwt_required(required_role='child')
-def trigger_badges(current_user_id, current_user_role):
-    evaluate_all_badges(current_user_id)
-    return jsonify({'message': 'Badges evaluated successfully'}), 200
-
-
-#-----------------------------------------------Parent APIs--------------------------------------------------------------
+#-----------------------------------------------Parent APIs--------------------------------------------------------------------
 
 
 #---------------------------------------------Fetch all child information-----------------------------------------
@@ -1032,7 +1125,7 @@ def child_journal_entries(child_id, current_user_id, current_user_role):
     child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
     if not child:
         return jsonify({'error': 'Child not found'}), 404
-
+    # Set the Limit Parameter
     try:
         limit = int(request.args.get('limit', 0))
     except ValueError:
@@ -1204,7 +1297,6 @@ def child_summary(child_id, current_user_id, current_user_role):
         summary["dates"].append(day_data)
     return jsonify({
         "child_id": child_id,
-        "child_name": child.name,
         "summary_range": range_type,
         "summary": summary
     }), 200
@@ -1301,7 +1393,6 @@ def generate_child_analysis_report(current_user_id, current_user_role):
     except Exception as e:
         print("Report Generation Error:", e)
         return jsonify({'error': 'Failed to generate analysis report'}), 500
-    
 
 
 # ---------------------------infotainment logs for insights------------------------------------------------

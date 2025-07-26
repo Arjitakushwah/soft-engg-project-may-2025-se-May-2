@@ -9,7 +9,7 @@ import ChildDashboard from '../components/ChildDashboard.vue'
 import ChildCalender from '../components/ChildCalender.vue'
 import ChildStory from '../components/ChildStory.vue'
 import ChildToDoList from '../components/ChildToDoList.vue'
-import QuizPage from '../components/QuizPage.vue'
+// import QuizPage from '../components/QuizPage.vue'
 import ParentCalendar from '../components/ParentCalendar.vue'
 import JournalAnalysis from '../components/ParentJournalAnalysis.vue'
 import ChildHome from '../components/ChildHome.vue'
@@ -35,7 +35,7 @@ const routes = [
       { path: 'calendar', name: 'ChildCalender', component: ChildCalender },
       { path: 'todo', name: 'ChildToDoList', component: ChildToDoList },
       { path: 'story', name: 'ChildStory', component: ChildStory },
-      { path: 'quiz', name: 'QuizPage', component: QuizPage },
+      // { path: 'quiz', name: 'QuizPage', component: QuizPage },
       { path: 'journal', name: 'ChildJournal', component: ChildJournal },
       { path: 'infotainment', name: 'ChildInfotainment', component: ChildInfotainment },
       { path: 'result/:topic', name: 'Result', component: Result, props: true }
