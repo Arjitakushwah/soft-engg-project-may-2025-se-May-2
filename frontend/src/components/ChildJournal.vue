@@ -166,7 +166,9 @@ const formatDate = (dateString) => {
 
 const formatTime = (timeString) => {
   if (!timeString) return ''
-  return new Date(timeString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const fullDateTime = `1970-01-01T${timeString}` // attach dummy date
+  const date = new Date(fullDateTime)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 const performSearch = async () => {

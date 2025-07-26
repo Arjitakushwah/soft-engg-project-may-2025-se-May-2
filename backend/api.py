@@ -1,26 +1,27 @@
 from datetime import datetime, date, timedelta
 from utils import jwt_required
 from flask import request, jsonify, send_file
-from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress
+from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress, BadgeAward
 from app import app
 from pytz import timezone
 from crewai import LLM
-from datetime import datetime, time, timedelta, date
 from sqlalchemy import func
 from pytz import timezone
 from report_pdf import generate_pdf
-from agents.report_agent import analyze_child_data
-from streak_badges_logic import evaluate_all_badges
+
+
 
 
 
 IST = timezone("Asia/Kolkata")
 
 def ist_now():
-    return datetime.now(IST).replace(second=0, microsecond=0)
+    aware_dt = datetime.now(IST).replace(second=0, microsecond=0)
+    return aware_dt.replace(tzinfo=None)
 
 def ist_today():
-    return datetime.now(IST)
+    print("IST Today:", datetime.now(IST).date())
+    return datetime.now(IST).date()
 
 app.config['SQLALCHEMY_ECHO'] = True
 
@@ -29,21 +30,13 @@ from agents.news_agent import generate_news
 from agents.mood_classifier import classify_emotion
 from progressor import update_daily_progress
 from streak_badges_logic import evaluate_all_badges
+from agents.report_agent import analyze_child_data
 import os
 from dotenv import load_dotenv
 load_dotenv("agents/prod.env") 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace with your actual LLM API key
-
-
-# Use for return current date and time according to user local timezone
-# Use for returning the current date in UTC for consistent timezone handling
-
-
-
-def utc_today(): 
-    return datetime.utcnow().date() 
 
 
 #------------------------------------To DO List task creation---------------------------------------------------- 
@@ -109,7 +102,7 @@ def create_todo_task(current_user_id, current_user_role):
                 return jsonify({'error': 'Invalid datetime format'}), 400 
 
         # Check if datetime is in the past (with 1 minute buffer) 
-        if task_datetime < datetime.utcnow() - timedelta(minutes=1): 
+        if task_datetime < ist_now() - timedelta(minutes=1): 
             return jsonify({'error': 'Cannot create tasks for past dates/times'}), 400 
             
         new_task = ToDoItem( 
@@ -206,7 +199,7 @@ def update_todo_task(task_id, current_user_id, current_user_role):
             return jsonify({'error': 'Invalid datetime format'}), 400 
 
         # Check if new datetime is in the past (with 1 minute buffer) 
-        if new_datetime < datetime.utcnow() - timedelta(minutes=1): 
+        if new_datetime < ist_now() - timedelta(minutes=1): 
             return jsonify({'error': 'Cannot set task to past date/time'}), 400 
 
         # Update task properties 
@@ -261,6 +254,8 @@ def delete_todo_task(task_id, current_user_id, current_user_role):
     try: 
         db.session.delete(task) 
         db.session.commit() 
+        update_daily_progress(current_user_id, ist_today()) 
+        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Task deleted successfully'}), 200 
     except Exception as e: 
         db.session.rollback() 
@@ -290,7 +285,7 @@ def tasks_by_date(current_user_id, current_user_role):
         selected_date = ( 
             datetime.strptime(date_select_str, "%Y-%m-%d").date() 
             if date_select_str else 
-            utc_today() 
+            ist_today() 
         ) 
     except ValueError: 
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400 
@@ -352,7 +347,8 @@ def update_task_status(task_id, current_user_id, current_user_role):
     # FIX: This now compares the full datetime against the current UTC time.
     # This correctly handles timezone differences and prevents completing a task
     # before its scheduled time (e.g., completing a 2 PM task at 10 AM).
-    if task.datetime > datetime.utcnow():
+
+    if task.datetime > ist_now() - timedelta(minutes=1):
         return jsonify({'error': "You cannot complete a task before its scheduled time."}), 403
         
     if task.is_done: 
@@ -361,7 +357,7 @@ def update_task_status(task_id, current_user_id, current_user_role):
     task.is_done = True 
     try: 
         db.session.commit() 
-        update_daily_progress(current_user_id, utc_today()) 
+        update_daily_progress(current_user_id, ist_today()) 
         evaluate_all_badges(current_user_id) 
         return jsonify({'message': 'Task Completed successfully'}), 200 
     except Exception as e: 
@@ -426,6 +422,7 @@ def create_daily_story(current_user_id, current_user_role):
         db.session.add(new_story)
         db.session.commit()
         update_daily_progress(current_user_id, date.today())
+        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': 'Story generated successfully',
@@ -622,6 +619,7 @@ def search_journals(current_user_id, current_user_role):
         filters.append(JournalEntry.mood == mood_query)
 
     results = JournalEntry.query.filter(*filters).order_by(JournalEntry.created_at.desc()).all()
+    
 
     entries = [{
         'id': entry.id,
@@ -630,6 +628,7 @@ def search_journals(current_user_id, current_user_role):
         'mood': entry.mood,
         'text': entry.text
     } for entry in results]
+    print(entries)
 
     return jsonify({'entries': entries}), 200
 
@@ -755,10 +754,14 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
     if query.date != now.date():
         return jsonify({'error': 'You can mark only today\'s content'}), 403
     marked_at = query.marked_at
+    
     if marked_at.tzinfo is None:
         marked_at = IST.localize(marked_at)
-    elapsed = now - marked_at
+        marked_at_naive = marked_at.replace(tzinfo=None)
+    
+    elapsed = now - marked_at_naive
     if elapsed.total_seconds() < 180:
+        print(f"Elapsed time: {elapsed.total_seconds()} seconds")
         return jsonify({'error': f'You can mark as read after {int(180 - elapsed.total_seconds())} seconds'}), 403
     if query.is_done:
         return jsonify({'message': 'Already marked as read'}), 200
