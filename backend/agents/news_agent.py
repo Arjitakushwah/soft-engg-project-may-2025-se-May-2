@@ -5,7 +5,7 @@ import os
 from datetime import datetime
 from exa_py import Exa
 
-load_dotenv("agents/exaa.env")
+load_dotenv("exaa.env")
 exa_api_key = os.getenv("exa_api_key")
 
 # --------------------------- Tool Setup ---------------------------
