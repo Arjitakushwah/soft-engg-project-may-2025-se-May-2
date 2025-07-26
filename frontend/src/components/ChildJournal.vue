@@ -1,50 +1,144 @@
 <template>
   <div class="journal-container">
+    <h1 class="journal-header">
+      <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M3 3h18v18H3z" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M7 3v18M15 3v18M3 7h18M3 15h18"/>
+      </svg>
+      My Daily Journal
+    </h1>
+
     <!-- Search Section -->
     <div class="search-container">
-      <input type="text" placeholder="Search by date (e.g. 2025-07-14)" v-model="search_Text" />
-      <select v-model="search_Mood">
-        <option value="">All Moods</option>
-        <option value="happy">Happy</option>
-        <option value="neutral">Neutral</option>
-        <option value="sad">Sad</option>
-      </select>
-      <button @click="performSearch">Search</button>
+      <div class="search-input">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M21 21l-4.35-4.35" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <input type="text" placeholder="Search by date (YYYY-MM-DD)" v-model="search_Text" />
+      </div>
+      
+      <div class="mood-select">
+        <svg class="mood-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <line x1="9" y1="9" x2="9.01" y2="9" stroke="currentColor" stroke-width="2"/>
+          <line x1="15" y1="9" x2="15.01" y2="9" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <select v-model="search_Mood">
+          <option value="">All Moods</option>
+          <option value="happy">Happy</option>
+          <option value="neutral">Neutral</option>
+          <option value="sad">Sad</option>
+        </select>
+      </div>
+      
+      <button @click="performSearch" class="search-btn">
+        <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        Search
+      </button>
     </div>
 
     <!-- Journal Form -->
-    <form @submit.prevent="submitJournal">
+    <form @submit.prevent="submitJournal" class="journal-form">
       <div class="text-container">
-        <label for="message">Write your journal entry:</label><br />
+        <label for="message">
+          <svg class="label-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.375 2.625a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4Z"/>
+          </svg>
+          Write about your day:
+        </label>
         <textarea
           id="message"
           v-model="journalText"
-          placeholder="Reflect on your day..."
+          placeholder="What happened today? How are you feeling?"
           required
         ></textarea>
       </div>
 
-      <div class="button-container">
-        <button type="submit" :disabled="loading">
-          {{ loading ? 'Submitting...' : 'Submit Journal' }}
-        </button>
-      </div>
+      <button type="submit" :disabled="loading" class="submit-btn">
+        <svg v-if="!loading" class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" fill="none" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <svg v-else class="spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M12 2a10 10 0 1 0 10 10" fill="none" stroke="currentColor" stroke-width="2">
+            <animateTransform attributeName="transform" attributeType="XML" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/>
+          </path>
+        </svg>
+        {{ loading ? 'Submitting...' : 'Save Journal' }}
+      </button>
     </form>
 
     <!-- Submission Feedback -->
-    <div v-if="submitted" class="mood-result">
-      <p><strong>Detected Mood:</strong> {{ detectedMood }}</p>
-      <p><strong>Status:</strong> {{ statusMessage }}</p>
+    <div v-if="submitted" class="mood-result" :class="detectedMood">
+      <div class="mood-icon-container">
+        <svg v-if="detectedMood === 'happy'" class="result-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M8 14s1.5 2 4 2 4-2 4-2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg v-else-if="detectedMood === 'sad'" class="result-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M16 16s-1.5-2-4-2-4 2-4 2" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <svg v-else class="result-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/>
+          <line x1="8" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div class="mood-text">
+        <h3>Detected Mood: <span>{{ detectedMood }}</span></h3>
+        <p>{{ statusMessage }}</p>
+      </div>
     </div>
 
     <!-- Search Results -->
     <div v-if="searchResults.length" class="results-section">
-      <h3>Search Results</h3>
-      <div v-for="entry in searchResults" :key="entry.id" class="result-card">
+      <h3 class="results-header">
+        <svg class="results-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/>
+          <line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+        Search Results
+      </h3>
+      <div v-for="entry in searchResults" :key="entry.id" class="result-card" :class="entry.mood">
         <div class="result-header">
-          <span class="date">{{ entry.date }}</span>
-          <span class="time">({{ entry.created_at }})</span>
-          <span class="mood-tag" :class="entry.mood">Mood: {{ entry.mood }}</span>
+          <div class="date-container">
+            <svg class="date-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
+              <line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/>
+              <line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/>
+              <line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/>
+            </svg>
+            <span class="date">{{ formatDate(entry.date) }}</span>
+            <span class="time">{{ formatTime(entry.created_at) }}</span>
+          </div>
+          <div class="mood-tag">
+            <svg v-if="entry.mood === 'happy'" class="mood-tag-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M22 12A10 10 0 1 0 12 22a10 10 0 0 0 10-10z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <svg v-else-if="entry.mood === 'sad'" class="mood-tag-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M22 12A10 10 0 1 0 12 22a10 10 0 0 0 10-10z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M16 16s-1.5-2-4-2-4 2-4 2" fill="none" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <svg v-else class="mood-tag-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path d="M22 12A10 10 0 1 0 12 22a10 10 0 0 0 10-10z" fill="none" stroke="currentColor" stroke-width="2"/>
+              <line x1="8" y1="15" x2="16" y2="15" stroke="currentColor" stroke-width="2"/>
+              <path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span>{{ entry.mood }}</span>
+          </div>
         </div>
         <p class="journal-text">{{ entry.text }}</p>
       </div>
@@ -63,6 +157,19 @@ const submitted = ref(false)
 const detectedMood = ref('')
 const statusMessage = ref('')
 const searchResults = ref([])
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const options = { year: 'numeric', month: 'short', day: 'numeric' }
+  return new Date(dateString).toLocaleDateString(undefined, options)
+}
+
+const formatTime = (timeString) => {
+  if (!timeString) return ''
+  const fullDateTime = `1970-01-01T${timeString}` // attach dummy date
+  const date = new Date(fullDateTime)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 
 const performSearch = async () => {
   const token = localStorage.getItem('access_token')
@@ -111,7 +218,6 @@ const submitJournal = async () => {
     statusMessage.value = result.message
     submitted.value = true
     journalText.value = ''
-    alert(`Journal submitted! Mood detected: ${result.mood}`)
   } catch (error) {
     console.error(error)
     alert('Something went wrong.')
@@ -122,145 +228,480 @@ const submitJournal = async () => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka+One&display=swap');
+
 .journal-container {
   font-family: 'Comic Neue', cursive;
   width: 90%;
-  max-width: 900px;
-  margin: auto;
-  padding: 2rem;
-  background: #f9f9fb;
+  max-width: 1000px;
+  margin: 1.5rem auto;
+  padding: 1.5rem;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Search Bar */
+.journal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #4f46e5;
+  font-size: 1.75rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.header-icon {
+  width: 32px;
+  height: 32px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
 .search-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+  justify-content: center;
 }
 
-input[type='text'],
-select {
+.search-input, .mood-select {
   flex: 1;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
+  min-width: 200px;
+  position: relative;
 }
 
-.search-container button {
-  background-color: #2563eb;
+.search-input input, .mood-select select {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 2px solid #e0e7ff;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.search-input input:focus, .mood-select select:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+.search-icon, .mood-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  stroke: #64748b;
+  stroke-width: 2;
+  fill: none;
+}
+
+.mood-select select {
+  padding-left: 40px;
+}
+
+.search-btn {
+  background-color: #4f46e5;
   color: white;
   border: none;
   padding: 10px 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
+  font-size: 0.95rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  min-width: 120px;
 }
 
-/* Form */
-.text-container textarea {
+.search-btn:hover {
+  background-color: #4338ca;
+  transform: translateY(-2px);
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.journal-form {
+  background-color: #f8fafc;
+  padding: 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  border: 2px dashed #e0e7ff;
+}
+
+.text-container {
+  margin-bottom: 1.25rem;
+}
+
+.text-container label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #334155;
+  margin-bottom: 0.75rem;
+}
+
+.label-icon {
+  width: 20px;
+  height: 20px;
+  stroke: #4f46e5;
+  stroke-width: 2;
+  fill: none;
+}
+
+textarea {
   width: 100%;
-  height: 140px;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
+  min-height: 150px;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  border: 2px solid #e0e7ff;
   border-radius: 8px;
   resize: vertical;
-  margin-top: 8px;
+  background-color: white;
+  transition: all 0.3s ease;
 }
 
-.button-container {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 15px;
+textarea:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
 }
 
-button[type='submit'] {
+.submit-btn {
   background-color: #10b981;
   color: white;
   padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: bold;
+  font-size: 1rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  width: 100%;
+  justify-content: center;
 }
 
-button[type='submit']:hover {
-  background-color: #0f9c75;
+.submit-btn:hover {
+  background-color: #0d9c6e;
+  transform: translateY(-2px);
 }
 
-/* Submission Feedback */
+.spinner {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+  stroke-width: 2;
+  fill: none;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .mood-result {
-  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   padding: 1rem;
-  background-color: #e0f7fa;
-  border-left: 5px solid #00acc1;
-  border-radius: 10px;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  background-color: #f0fdf4;
+  border-left: 5px solid #10b981;
 }
 
-/* Results Display */
+.mood-result.happy {
+  background-color: #f0fdf4;
+  border-left-color: #10b981;
+}
+
+.mood-result.sad {
+  background-color: #fef2f2;
+  border-left-color: #ef4444;
+}
+
+.mood-result.neutral {
+  background-color: #f8fafc;
+  border-left-color: #64748b;
+}
+
+.mood-icon-container {
+  flex-shrink: 0;
+}
+
+.result-icon {
+  width: 40px;
+  height: 40px;
+  stroke-width: 2;
+  fill: none;
+}
+
+.mood-result.happy .result-icon {
+  stroke: #10b981;
+}
+
+.mood-result.sad .result-icon {
+  stroke: #ef4444;
+}
+
+.mood-result.neutral .result-icon {
+  stroke: #64748b;
+}
+
+.mood-text h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #334155;
+}
+
+.mood-text h3 span {
+  text-transform: capitalize;
+}
+
+.mood-text p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
 .results-section {
-  background-color: #f0f8ff;
-  padding: 1rem;
-  border-radius: 10px;
   margin-top: 1.5rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #4f46e5;
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e0e7ff;
+  width: 80%;
+  max-width: 800px;
+}
+
+.results-icon {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
 }
 
 .result-card {
   background: white;
-  border-left: 4px solid #3b82f6;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #e0e7ff;
+  transition: all 0.3s ease;
+  width: 80%;
+  max-width: 800px;
+}
+
+.result-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.result-card.happy {
+  border-left-color: #10b981;
+}
+
+.result-card.sad {
+  border-left-color: #ef4444;
+}
+
+.result-card.neutral {
+  border-left-color: #64748b;
 }
 
 .result-header {
   display: flex;
-  gap: 1rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
+  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.date-container {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.date-icon {
+  width: 18px;
+  height: 18px;
+  stroke: #64748b;
+  stroke-width: 2;
+  fill: none;
 }
 
 .date {
-  color: #2563eb;
+  font-weight: bold;
+  color: #334155;
+  font-size: 1rem;
 }
 
 .time {
-  color: #555;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.85rem;
 }
 
 .mood-tag {
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
   text-transform: capitalize;
 }
 
 .mood-tag.happy {
   background-color: #d1fae5;
-  color: #059669;
+  color: #065f46;
 }
 
 .mood-tag.sad {
   background-color: #fee2e2;
-  color: #b91c1c;
+  color: #991b1b;
 }
 
 .mood-tag.neutral {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.mood-tag-icon {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+  fill: none;
+}
+
+.mood-tag.happy .mood-tag-icon {
+  stroke: #065f46;
+}
+
+.mood-tag.sad .mood-tag-icon {
+  stroke: #991b1b;
+}
+
+.mood-tag.neutral .mood-tag-icon {
+  stroke: #475569;
 }
 
 .journal-text {
   font-size: 1rem;
-  color: #333;
-  line-height: 1.5;
+  color: #334155;
+  line-height: 1.7;
+  margin: 0;
+  white-space: pre-line;
+}
+
+@media (max-width: 768px) {
+  .journal-container {
+    width: 95%;
+    padding: 1rem;
+  }
+  
+  .journal-header {
+    font-size: 1.5rem;
+    gap: 0.5rem;
+  }
+  
+  .header-icon {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .search-container {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-input, .mood-select {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .results-header,
+  .result-card {
+    width: 90%;
+  }
+  
+  .mood-result {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .mood-tag {
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .journal-container {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 0;
+  }
+  
+  .journal-header {
+    font-size: 1.4rem;
+  }
+  
+  .results-header,
+  .result-card {
+    width: 95%;
+  }
+  
+  .text-container label {
+    font-size: 1rem;
+  }
+  
+  .results-header {
+    font-size: 1.1rem;
+  }
 }
 </style>
-  

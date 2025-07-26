@@ -3,9 +3,9 @@ from crewai import Agent, Task, Crew, LLM
 import os
 from dotenv import load_dotenv
 load_dotenv("prod.env")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY") 
 
-llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)
+llm = LLM(model='gemini/gemini-2.0-flash', api_key=('your api key'))
 
 
 def analyze_child_data(json_input, llm):

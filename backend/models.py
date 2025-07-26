@@ -43,7 +43,6 @@ class Child(db.Model):
     badge_awards = db.relationship("BadgeAward", backref="child", lazy=True)
 
 # ---------- To-Do Item Model ----------
-
 class ToDoItem(db.Model):
     __tablename__ = 'todo_items'
     id = db.Column(db.Integer, primary_key=True)
@@ -71,7 +70,7 @@ class DailyStory(db.Model):
     option_d = db.Column(db.Text, nullable=False)
     correct_option = db.Column(db.Text, nullable=False )
     submitted_option = db.Column(db.Text, nullable=False,default='not submitted')
-    is_done = db.Column(db.Boolean, default=False)
+    is_done = db.Column(db.Boolean, default=False,)
 
     #can be wrong , correct , not submitted
     is_correct = db.Column(db.String, nullable=False , default='not submitted')
@@ -135,5 +134,3 @@ class BadgeAward(db.Model):
     __table_args__ = (
         db.UniqueConstraint('child_id', 'badge_name', name='unique_badge_per_child'),
     )
-
-

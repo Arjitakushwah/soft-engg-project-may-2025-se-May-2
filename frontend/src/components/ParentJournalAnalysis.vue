@@ -2,47 +2,27 @@
   <div class="parent-journal-analysis-bg">
     <main class="main-content">
       <div class="analysis-container">
-        <!-- Filter Row + View All Entries -->
-        <div class="filters-container">
-          <div class="filters-row">
-            <label for="child">Select Child:</label>
-            <select id="child" v-model="selectedChild">
-              <option v-for="child in children" :key="child.id" :value="child.id">
-                {{ child.name }}
-              </option>
-            </select>
-
-            <label for="date">Select Date:</label>
-            <input type="date" id="date" v-model="selectedDate" :max="today" />
-          </div>
-
-          <div class="entry-button-wrapper">
-            <button class="view-btn" @click="showEntries = true">View All Entries</button>
-          </div>
-        </div>
+        <!-- No data messages -->
         <p v-if="!moodData.labels.length" class="no-data-msg">No journal data available for this date.</p>
         <p v-if="!weeklyData.labels.length" class="no-data-msg">No journal data available for the last 7 days.</p>
 
-        <!-- Heading -->
-        <!-- <h2 v-if="selectedChild">
-          {{ getChildName(selectedChild) }}'s Journal Activity
-        </h2> -->
+        <div v-if="moodData.labels.length" class="entry-button-wrapper mt-4">
+          <button class="view-btn" @click="showEntries = true">View All Entries</button>
+        </div>
 
-        <!-- Mood Graphs Row -->
+        <!-- Mood Graphs -->
         <div class="mood-graphs-row" v-if="moodData.labels.length">
           <div class="chart-card">
             <h3>Mood Fluctuation (Day)</h3>
             <line-chart :chart-data="moodData" :chart-options="moodOptions" style="height: 250px;" />
           </div>
-
           <div class="chart-card">
             <h3>Mood Distribution</h3>
             <pie-chart :chart-data="moodPieData" :chart-options="moodPieOptions" style="height: 250px;" />
           </div>
         </div>
 
-        <!-- Weekly Chart -->
-        <!-- Weekly Journal Count -->
+        <!-- Weekly Mood Count -->
         <div class="weekly-graph" v-if="weeklyData.labels.length">
           <div class="chart-card weekly-chart-card">
             <h3>Journals Written in Last 7 Days</h3>
@@ -52,10 +32,7 @@
           </div>
         </div>
 
-
-        <!-- No data -->
-
-        <!-- Modal -->
+        <!-- Modal: Entries -->
         <div class="modal-overlay" v-if="showEntries" @click.self="showEntries = false">
           <div class="modal-content">
             <h3>Journal Entries on {{ selectedDate }}</h3>
@@ -67,11 +44,12 @@
             <button @click="showEntries = false" class="close-btn">✕ Close</button>
           </div>
         </div>
+
+       
       </div>
     </main>
   </div>
 </template>
-
 
 <script>
 import {
@@ -90,25 +68,28 @@ ChartJS.register(
 
 export default {
   name: 'ParentJournalAnalysis',
+  props: {
+    selectedChildId: {
+      type: [String, Number],
+      required: true
+    },
+    selectedDate: {
+      type: String,
+      required: true
+    }
+  },
   components: {
     lineChart: Line,
     barChart: Bar,
     pieChart: Pie
   },
   data() {
-    const todayStr = new Date().toISOString().split('T')[0]
     return {
-      children: [],
-      selectedChild: null,
-      selectedDate: todayStr,
-      today: todayStr,
-
       moodData: { labels: [], datasets: [] },
       moodPieData: { labels: [], datasets: [] },
       weeklyData: { labels: [], datasets: [] },
       journalTexts: [],
       showEntries: false,
-
       moodOptions: {
         responsive: true,
         maintainAspectRatio: false,
@@ -130,11 +111,8 @@ export default {
             }
           }
         },
-        layout: {
-          padding: 0
-        }
+        layout: { padding: 0 }
       },
-
       moodPieOptions: {
         responsive: true,
         maintainAspectRatio: false,
@@ -148,63 +126,51 @@ export default {
           },
           tooltip: {
             callbacks: {
-              label: (ctx) => `${ctx.label}: ${ctx.parsed}%`
+              label: ctx => `${ctx.label}: ${ctx.parsed}%`
             }
           }
         }
       },
-
       weeklyOptions: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
+        plugins: { legend: { display: false } },
         scales: {
           y: {
             beginAtZero: true,
             ticks: { stepSize: 1 }
           }
         },
-        layout: {
-          padding: 0
-        }
+        layout: { padding: 0 }
       }
-
     }
   },
   watch: {
-    selectedChild() {
-      this.fetchWeeklyStats()
-      this.fetchMoodByDate()
+    selectedChildId: {
+      handler() {
+        this.fetchWeeklyStats()
+        this.fetchMoodByDate()
+      },
+      immediate: true
     },
     selectedDate() {
       this.fetchMoodByDate()
     }
   },
-  mounted() {
-    this.fetchChildren()
-  },
   methods: {
-    async fetchChildren() {
-      try {
-        const res = await fetch('http://localhost:5000/parent/children', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` }
-        })
-        const data = await res.json()
-        this.children = data.children || []
-        if (this.children.length) {
-          this.selectedChild = this.children[0].id
-        }
-      } catch (err) {
-        console.error('Error fetching children:', err.message)
-      }
+    formatTime(timeStr) {
+      if (!timeStr) return '';
+      const [hourStr, minuteStr] = timeStr.split(':');
+      const hour = parseInt(hourStr, 10);
+      const minute = parseInt(minuteStr, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm}`;
     },
-
     async fetchMoodByDate() {
       try {
         const res = await fetch(
-          `http://localhost:5000/parent/child/${this.selectedChild}/journal-by-date?date=${this.selectedDate}`,
+          `http://localhost:5000/parent/child/${this.selectedChildId}/journal-by-date?date=${this.selectedDate}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
         )
         const data = await res.json()
@@ -221,11 +187,18 @@ export default {
           content: e.content
         }))
 
-        const moodLabels = entries.map(e =>
-          new Date(e.timestamp).toLocaleTimeString('en-IN', {
-            hour: '2-digit', minute: '2-digit'
-          })
-        )
+        const moodLabels = entries.map(e => {
+  const [hourStr, minuteStr] = e.timestamp.split(":");
+  const hour = parseInt(hourStr);
+  const minute = parseInt(minuteStr);
+
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+
+  return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm}`;
+});
+
+
         const moodScores = entries.map(e => this.mapMoodToScore(e.mood))
         const moodCounts = {}
         entries.forEach(e => {
@@ -269,7 +242,7 @@ export default {
     async fetchWeeklyStats() {
       try {
         const res = await fetch(
-          `http://localhost:5000/parent/child/${this.selectedChild}/journal-entries?days=7`,
+          `http://localhost:5000/parent/child/${this.selectedChildId}/journal-entries?days=7`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
         )
         const data = await res.json()
@@ -308,31 +281,24 @@ export default {
       const map = { sad: 1, angry: 2, neutral: 3, excited: 4, happy: 5 }
       return map[mood?.toLowerCase()] || 3
     },
-
-    getChildName(id) {
-      const child = this.children.find(c => c.id === id)
-      return child ? child.name : ''
-    },
-
-    formatTime(ts) {
-      return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
-    }
   }
 }
 </script>
+
+
 
 <style scoped>
 .parent-journal-analysis-bg {
   font-family: 'Comic Neue', cursive;
   background-color: #fff;
   min-height: 100vh;
-  padding: 2rem 0; 
+  
 }
 
 .main-content {
   display: flex;
   justify-content: center;
-  padding: 1rem;
+
 }
 
 .analysis-container {
