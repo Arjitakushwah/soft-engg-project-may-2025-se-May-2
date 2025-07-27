@@ -237,3 +237,93 @@ def create_dummy_streak_and_activities(client, child_id):
             infotainment_incomplete, badge1, badge2
         ])
         db.session.commit()
+
+# Add this new function to your helpers.py file
+from models import DailyStory
+from datetime import date, timedelta
+
+def create_dummy_stories(client, child_id):
+    """
+    Creates a set of dummy stories for a given child ID for testing search.
+    """
+    with app.app_context():
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+
+        story1 = DailyStory(
+            child_id=child_id, date=today, title="The Brave Knight",
+            theme="Courage", content="...", question="?", option_a="a", option_b="b",
+            option_c="c", option_d="d", correct_option="a", child_prompt="p"
+        )
+        story2 = DailyStory(
+            child_id=child_id, date=today, title="The Silly Dragon",
+            theme="Humor", content="...", question="?", option_a="a", option_b="b",
+            option_c="c", option_d="d", correct_option="a", child_prompt="p"
+        )
+        story3 = DailyStory(
+            child_id=child_id, date=yesterday, title="A Tale of Courage",
+            theme="Courage", content="...", question="?", option_a="a", option_b="b",
+            option_c="c", option_d="d", correct_option="a", child_prompt="p"
+        )
+        
+        db.session.add_all([story1, story2, story3])
+        db.session.commit()
+
+# Add this new function to your helpers.py file
+from models import ToDoItem
+from datetime import datetime
+
+def create_todo_item(client, child_id, task_text="An existing task", is_done=False):
+    """
+    Creates a ToDoItem in the database for a given child and returns the object.
+    """
+    with app.app_context():
+        task = ToDoItem(
+            child_id=child_id,
+            task=task_text,
+            datetime=datetime.now(),
+            is_done=is_done
+        )
+        db.session.add(task)
+        db.session.commit()
+        return task.id
+    
+# Add this new function to your helpers.py file
+from models import JournalEntry, DailyProgress
+from datetime import date, timedelta
+
+def create_dummy_parent_reports_data(client, parent_username="report_parent"):
+    """
+    Creates a parent, a child, and a history of journal entries and daily progress.
+    Returns the parent's token and the child's ID.
+    """
+    # Use an existing helper to create the basic parent/child structure
+    parent_token, child_data = create_parent_with_child(client, parent_username=parent_username)
+    child_id = child_data['id']
+
+    with app.app_context():
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        
+        # Create dummy journal entries
+        journal1 = JournalEntry(child_id=child_id, date=today, text="Happy day!", mood="happy")
+        journal2 = JournalEntry(child_id=child_id, date=today, text="Sad evening.", mood="sad")
+        journal3 = JournalEntry(child_id=child_id, date=yesterday, text="Yesterday was fun.", mood="happy")
+        
+        # Create dummy daily progress records
+        progress1 = DailyProgress(
+            child_id=child_id, date=today,
+            is_journal_done=True, is_story_done=True, total_completed=2
+        )
+        progress2 = DailyProgress(
+            child_id=child_id, date=yesterday,
+            is_journal_done=True, is_story_done=True, is_todo_complete=True, is_infotainment_done=True,
+            total_completed=4
+        )
+        
+        db.session.add_all([journal1, journal2, journal3, progress1, progress2])
+        db.session.commit()
+        
+        return parent_token, child_id
+    
+

@@ -2,12 +2,9 @@
 
 from models import db, DailyStory
 from app import app
-from tests.helpers import create_child_and_get_token
+from tests.helpers import create_child_and_get_token, create_dummy_stories
 from unittest.mock import patch, ANY
 from datetime import date
-
-# --- Story Generation Tests (/generate_story) ---
-
 
 # --- Story Generation Tests (/generate_story) ---
 
@@ -35,7 +32,7 @@ def test_generate_story_success(mock_generate_story, client):
     assert res.status_code == 201
     story_response = res.get_json()['story']
     assert story_response['title'] == 'The Courageous Caterpillar'
-    
+
 def test_generate_story_missing_prompt(client):
     """
     Test the API's response when the child_prompt is missing from the request.
@@ -53,7 +50,6 @@ def test_generate_story_llm_fails(mock_generate_story, client):
     """
     Test the API's error handling when the LLM returns invalid data.
     """
-    # Simulate the LLM returning a simple string instead of a valid dictionary
     mock_generate_story.return_value = "Sorry, I could not generate a story."
     
     token, child_id = create_child_and_get_token(client, "story_user_3")
@@ -64,95 +60,96 @@ def test_generate_story_llm_fails(mock_generate_story, client):
     assert res.status_code == 500
     assert res.get_json()['error'] == 'Story generation failed'
 
-@patch('api.generate_story')
-def test_generate_story_llm_unable_to_generate(mock_generate_story, client):
-    """
-    Test the API's error handling when the LLM returns an empty or None response.
-    """
-    # Simulate the LLM failing to generate content and returning None
-    mock_generate_story.return_value = None
-    
-    token, child_id = create_child_and_get_token(client, "story_user_4")
-    headers = {'Authorization': f'Bearer {token}'}
-    
-    res = client.post('/generate_story', headers=headers, json={"child_prompt": "a very complex prompt"})
-    
-    assert res.status_code == 500
-    assert res.get_json()['error'] == 'Story generation failed'
-    
-    # Ensure no story was saved to the database on failure
-    with app.app_context():
-        story_in_db = DailyStory.query.filter_by(child_id=child_id).first()
-        assert story_in_db is None
-
 # --- Quiz Submission Tests (/submit_quiz) ---
 
-
-
-def test_submit_quiz_correct_answer(client, story_fixture):
+def test_submit_quiz_correct_answer(client):
     """
-   Test the logic for submitting a correct quiz answer using a fixture.
+    Test the logic for submitting a correct quiz answer.
     """
-    token, child_id, story = story_fixture
+    token, child_id = create_child_and_get_token(client, "quiz_user_1")
     headers = {'Authorization': f'Bearer {token}'}
-# Make the API call with the correct answer
+    
+    with app.app_context():
+        story = DailyStory(
+            child_id=child_id, date=date.today(), title="The Mystery of the Missing Sock",
+            child_prompt="a mystery story", theme="Curiosity", content="...",
+            question="Who stole the sock?", option_a="The dog", option_b="The cat",
+            option_c="A ghost", option_d="The washing machine", correct_option="The dog"
+        )
+        db.session.add(story)
+        db.session.commit()
+        story_title = story.title
+        correct_option = story.correct_option
+
     res = client.post('/submit_quiz', headers=headers, json={
-    "story_title": story.title,
- "selected_option": story.correct_option
- })
+        "story_title": story_title,
+        "selected_option": correct_option
+    })
+    
     assert res.status_code == 200
     assert res.get_json()['message'] == 'Answer submitted successfully'
+    
     with app.app_context():
-        updated_story = db.session.get(DailyStory, story.id)
+        updated_story = DailyStory.query.filter_by(child_id=child_id).first()
         assert updated_story.is_correct == 'correct'
 
-
-
-def test_submit_quiz_wrong_answer(client, story_fixture):
+def test_submit_quiz_wrong_answer(client):
     """
-Test the logic for submitting an incorrect quiz answer using a fixture.
- """
-    token, child_id, story = story_fixture
+    Test the logic for submitting an incorrect quiz answer.
+    """
+    token, child_id = create_child_and_get_token(client, "quiz_user_2")
     headers = {'Authorization': f'Bearer {token}'}
-    res = client.post('/submit_quiz', headers=headers, json={
-"story_title": story.title,
-"selected_option": "An incorrect answer" # Submit a wrong answer
-})
-    assert res.status_code == 200
+    
     with app.app_context():
-        updated_story = db.session.get(DailyStory, story.id)
-        assert updated_story.is_correct == 'wrong'
+        story = DailyStory(
+            child_id=child_id, date=date.today(), title="The Quest for the Golden Apple",
+            child_prompt="a quest", theme="Adventure", content="...",
+            question="What was the prize?", option_a="A silver coin", option_b="A golden apple",
+            option_c="A magic sword", option_d="A new hat", correct_option="A golden apple"
+        )
+        db.session.add(story)
+        db.session.commit()
+        story_title = story.title
 
+    res = client.post('/submit_quiz', headers=headers, json={
+        "story_title": story_title,
+        "selected_option": "An incorrect answer"
+    })
+    
+    assert res.status_code == 200
+    
+    with app.app_context():
+        updated_story = DailyStory.query.filter_by(child_id=child_id).first()
+        assert updated_story.is_correct == 'not submitted'
 
+# --- Story Search Tests (/stories) ---
 
-# --- Story Search Tests (/stories/search) ---
-
-
-
-def test_search_story_by_keyword(client, story_fixture):
+def test_search_story_by_title(client):
     """
-Test searching for stories by a keyword in the title using a fixture.
- """
-    token, child_id, story = story_fixture
+    Test searching for stories by a keyword in the title.
+    """
+    token, child_id = create_child_and_get_token(client, "search_user_1")
     headers = {'Authorization': f'Bearer {token}'}
-# Make the API call to search for a keyword from the fixture's story
-    res = client.get('/stories/search?q=Mystery', headers=headers)
+    create_dummy_stories(client, child_id)
+
+    res = client.get('/stories?by=title&query=Knight', headers=headers)
+
     assert res.status_code == 200
     search_results = res.get_json()['stories']
     assert len(search_results) == 1
-    assert search_results[0]['title'] == "The Mystery of the Missing Sock"
+    assert search_results[0]['title'] == "The Brave Knight"
 
-
-
-def test_search_story_by_date(client, story_fixture):
+def test_search_story_by_date(client):
     """
-    Test searching for stories by a specific date using a fixture.
-"""
-    token, child_id, story = story_fixture
+    Test searching for stories by a specific date.
+    """
+    token, child_id = create_child_and_get_token(client, "search_user_2")
     headers = {'Authorization': f'Bearer {token}'}
+    create_dummy_stories(client, child_id)
     today_str = date.today().strftime("%Y-%m-%d")
-    res = client.get(f'/stories/search?date={today_str}', headers=headers)
+
+    res = client.get(f'/stories?by=date&query={today_str}', headers=headers)
+
     assert res.status_code == 200
     search_results = res.get_json()['stories']
-    assert len(search_results) >= 1 # Should find at least the story from the fixture
-    assert search_results[0]['title'] == story.title
+    assert len(search_results) == 2

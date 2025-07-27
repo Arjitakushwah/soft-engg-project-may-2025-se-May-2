@@ -16,22 +16,36 @@ def test_app():
     with app.app_context():
         db.create_all()
         yield app
-        db.drop_all()
+        # db.drop_all()
 
 @pytest.fixture()
 def client(test_app):
     """Creates a test client for each test function."""
     return test_app.test_client()
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 @pytest.fixture(autouse=True)
 def db_session(test_app):
-    """Ensures each test has a clean database session."""
+    """
+    Rollback-based session fixture that avoids dropping schema.
+    """
     with test_app.app_context():
-        yield db.session
-        db.session.remove()
-        db.reflect()
-        db.drop_all()
-        db.create_all()
+        connection = db.engine.connect()
+        transaction = connection.begin()
+
+        # Create a new session bound to the connection
+        session_factory = sessionmaker(bind=connection)
+        Session = scoped_session(session_factory)
+        
+        db.session = Session  # Override db.session with the test session
+
+        yield Session  # Provide session to the test
+
+        transaction.rollback()
+        Session.remove()
+        connection.close()
+
+
 
 @pytest.fixture
 def parent_token(client):
