@@ -32,11 +32,78 @@ from progressor import update_daily_progress
 from streak_badges_logic import evaluate_all_badges
 from agents.report_agent import analyze_child_data
 import os
+
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
+from textwrap import dedent
 load_dotenv("agents/prod.env") 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace with your actual LLM API key
+
+def certify_query(query):
+    client = genai.Client(api_key=GOOGLE_API_KEY)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        config=types.GenerateContentConfig(
+            system_instruction=dedent(f"""
+You are a strict assistant helping an English professor determine if a short fictional story can be generated from a prompt.
+
+    Rules:
+    1. Return "true" only if the prompt:
+        - Is appropriate for children aged 8 to 14
+        - Can inspire a creative, imaginative, and positive story
+        - Does not contain violence, politics, abuse, hate speech, adult topics, real-world tragedies, or disturbing content or a factual question or a math question or a question.
+        - Is not too vague, short, or abstract
+        - Is not a general knowledge question
+        - Has clear contextual meaning and narrative potential
+
+    2. Return "false" if:
+        - The prompt is a factual or knowledge-based question
+        - The prompt is emotionally disturbing, controversial, or inappropriate for kids
+        - The prompt is too vague, unclear, or nonsensical
+        - The prompt cannot form a fictional story with characters and a plot
+        - The prompt is a math question , factual question , question.
+
+    You must reply with exactly "true" or "false". No explanation, no formatting.
+
+Examples:
+    Prompt: "What is the capital of India?"  
+    Answer: false
+
+    Prompt: "Explain the process of photosynthesis"  
+    Answer: false
+
+    Prompt: "A dragon who can't breathe fire anymore"  
+    Answer: true
+
+    Prompt: "Describe Newton's third law of motion"  
+    Answer: false
+
+    Prompt: "A cat finds a magical book that can talk"  
+    Answer: true
+
+    Prompt: "Story on my home"  
+    Answer: false
+
+    Prompt: "Who is the prime minister of Canada?"  
+    Answer: false
+
+    Prompt: "A girl who learns to speak to trees in her dreams"  
+    Answer: true
+
+    Prompt: "i want to read stoy on sun a star"
+    Answer: true
+
+Your entire response **must be exactly either "true" or "false"** — no extra text, explanation, or formatting.
+            """),
+            temperature=0.01,
+            ),
+        contents=query
+    )
+    
+    return response.text
 
 
 #------------------------------------To DO List task creation---------------------------------------------------- 
@@ -384,6 +451,7 @@ Response:
 
 
 # ------------------ STORY GENERATION ENDPOINT ------------------
+
 @app.route('/generate_story', methods=['POST'])
 @jwt_required(required_role='child')
 def create_daily_story(current_user_id, current_user_role):
@@ -393,8 +461,17 @@ def create_daily_story(current_user_id, current_user_role):
         return jsonify({'error': 'child_prompt is required'}), 400
 
     try:
+        is_certified = certify_query(child_prompt).strip().lower()
+
+        if is_certified == "false":
+            return jsonify({'error': 'Sorry, we cannot generate a story based on this prompt. Please try a different one.'}), 400
+    except Exception as cert_err:
+        return jsonify({'error': 'Prompt validation failed', 'details': str(cert_err)}), 500
+
+
+    try:
         # LLM generation logic
-        story_data = generate_story(child_prompt, llm)
+        story_data = generate_story(child_prompt)
 
         if not isinstance(story_data, dict) or "quiz" not in story_data:
             return jsonify({'error': 'Story generation failed', 'details': story_data}), 500
@@ -441,6 +518,8 @@ def create_daily_story(current_user_id, current_user_role):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Unexpected error occurred', 'details': str(e)}), 500
+
+
 
 
 #----------------------------------Search Stories (NEW)----------------------------------------------------------------
@@ -661,6 +740,9 @@ def generate_infotainment(current_user_id, current_user_role):
     try:
         #  Generate AI content using agent
         response = generate_news(prompt, llm)
+
+        print("api response of generate infotainemnt")
+        print(response)
 
         now = ist_now()
 
