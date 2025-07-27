@@ -3,7 +3,15 @@ import json
 
 
 
-def generate_story(prompt , llm ):
+def generate_story(prompt  ):
+    import os
+    from dotenv import load_dotenv
+    from crewai import LLM
+
+    load_dotenv("agents/prod.env") 
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace with your actual LLM API key
+
     
     
     story_agent = Agent(
