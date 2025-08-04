@@ -45,18 +45,24 @@ def test_generate_story_missing_prompt(client):
     assert res.status_code == 400
     assert res.get_json()['error'] == 'child_prompt is required'
 
+@patch('api.certify_query')
 @patch('api.generate_story')
-def test_generate_story_llm_fails(mock_generate_story, client):
+def test_generate_story_llm_fails(mock_generate_story, mock_certify_query, client):
     """
     Test the API's error handling when the LLM returns invalid data.
     """
+    # FIX: Mock the certification step to ensure the test proceeds to the generation step.
+    mock_certify_query.return_value = "true"
+    
+    # Simulate the LLM returning a simple string instead of a valid dictionary
     mock_generate_story.return_value = "Sorry, I could not generate a story."
     
     token, child_id = create_child_and_get_token(client, "story_user_3")
     headers = {'Authorization': f'Bearer {token}'}
     
-    res = client.post('/generate_story', headers=headers, json={"child_prompt": "an invalid prompt"})
+    res = client.post('/generate_story', headers=headers, json={"child_prompt": "a prompt that will pass certification"})
     
+    # Now the test should correctly receive the 500 error from the generation failure
     assert res.status_code == 500
     assert res.get_json()['error'] == 'Story generation failed'
 
@@ -117,7 +123,7 @@ def test_submit_quiz_wrong_answer(client):
     })
     
     assert res.status_code == 200
-    
+
     with app.app_context():
         updated_story = DailyStory.query.filter_by(child_id=child_id).first()
         assert updated_story.is_correct == 'not submitted'
