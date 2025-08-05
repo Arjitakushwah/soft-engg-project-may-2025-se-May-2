@@ -1109,15 +1109,19 @@ def child_summary(child_id, current_user_id, current_user_role):
 def generate_child_analysis_report(current_user_id, current_user_role):
     try:
         data = request.get_json()
-        if not data or 'child_id' not in data or 'summary' not in data or 'entries' not in data['summary']:
-            return jsonify({'error': 'Invalid input. JSON must contain child_id and summary with entries'}), 400
+        if not data or 'child_id' not in data or 'summary' not in data or 'dates' not in data['summary']:
+            return jsonify({'error': 'Invalid input. JSON must contain child_id and summary with dates'}), 400
+
         child_id = data['child_id']
         summary_data = data['summary']
-        entries = summary_data.get('entries', [])
+        entries = summary_data.get('dates', [])
+
+        child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
         if not entries:
             return jsonify({'error': 'No daily summary entries found to analyze'}), 400
+
         agent_input = {
-            "child_id": child_id,
+            "child_name": child.name,
             "summary_range": data.get("summary_range", "weekly"),
             "entries": entries,
             "tasks_assigned": summary_data.get("tasks_assigned", 0),
@@ -1127,10 +1131,13 @@ def generate_child_analysis_report(current_user_id, current_user_role):
             "story_done_days": summary_data.get("story_done_days", 0),
             "infotainment_done_days": summary_data.get("infotainment_done_days", 0)
         }
+
         markdown_output = analyze_child_data(agent_input, llm)
         pdf_path = generate_pdf(markdown_output)
+
         if not os.path.exists(pdf_path):
             return jsonify({'error': 'PDF generation failed'}), 500
+
         return send_file(
             pdf_path,
             mimetype='application/pdf',
@@ -1139,4 +1146,4 @@ def generate_child_analysis_report(current_user_id, current_user_role):
         )
     except Exception as e:
         print("Report Generation Error:", e)
-        return jsonify({'error': 'Failed to generate analysis report'}), 500
+        return jsonify({'error': 'Failed to generate analysis report', 'details': str(e)}), 500
