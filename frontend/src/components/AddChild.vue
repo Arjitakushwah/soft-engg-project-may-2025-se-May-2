@@ -105,7 +105,7 @@
 
     // Redirect after short delay
     setTimeout(() => {
-      router.push('/parent_dashboard')
+      router.push('/parent/home')
     }, 2000)
 
   } catch (err) {

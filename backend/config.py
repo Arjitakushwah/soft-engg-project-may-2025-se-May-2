@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 load_dotenv(dotenv_path="prod.env")
+from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 INSTANCE_DIR = os.path.join(BASE_DIR, 'instance')
@@ -11,6 +12,7 @@ class Config:
 
     
     JWT_SECRET_KEY = os.getenv('SEM20257', 'another_secret_key')
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)
 
 class DevelopmentConfig(Config):
     DEBUG = True 

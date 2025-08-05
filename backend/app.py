@@ -11,11 +11,10 @@ import os
 from google_auth_oauthlib.flow import Flow
 import requests
 
-
 # Initialize Flask app
 app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
-CORS(app, origins=["http://localhost:5173"])
+CORS(app)
 
 jwt_blacklist = set()
 # Initialize database
@@ -184,8 +183,8 @@ def login():
             additional_claims={"role": user.role}
         )
         dashboard_route = (
-            '/parent_dashboard' if user.role == 'parent' else
-            '/child_dashboard' if user.role == 'child' else
+            '/parent/home' if user.role == 'parent' else
+            '/child/home' if user.role == 'child' else
             '/'
         )
         return jsonify({
