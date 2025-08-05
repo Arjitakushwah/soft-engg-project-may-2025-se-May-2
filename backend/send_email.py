@@ -19,7 +19,7 @@ def generate_otp(length=6):
     return str(random.randint(10**(length - 1), 10**length - 1))
 
 def send_otp_email(receiver_email, otp):
-    subject = "Your OTP for Username Recovery"
+    subject = "Your OTP for email verification"
     body = f"Your OTP is: {otp}\nIt is valid for 90 seconds."
 
     msg = MIMEMultipart()
@@ -89,5 +89,35 @@ def send_welcome_email(email, user_id):
         print(f"Email sent to {email}")
     except Exception as e:
         print(f"Failed to send email: {e}")
+
+def send_mail_username(email, username):
+    subject = "Your Username Information"
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_EMAIL
+    msg['To'] = email
+    msg['Subject'] = subject
+
+    body = f"""
+    <html>
+        <body>
+            <h3>Welcome to Our Platform!</h3>
+            <p>Hi there,</p>
+            <p><strong>Your username is:</strong> <code>{username}</code></p>
+            <br>
+            <p>Thanks & Regards,<br>Team Slice</p>
+        </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SMTP_EMAIL, SMTP_PASSWORD)
+            smtp.send_message(msg)
+        print(f"Email sent to {email}")
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+
 
 
