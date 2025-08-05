@@ -231,7 +231,7 @@ const getRowClass = (log) => {
 
 
 
-<style>
+<style scoped>
 .table td i {
   margin-right: 6px;
 }
@@ -252,4 +252,118 @@ const getRowClass = (log) => {
   border-radius: 12px;
   background: #fdfdfd;
 }
+
+/* Overall page */
+h3 {
+  font-weight: 600;
+  color: #0d6efd;
+  margin-bottom: 20px;
+}
+
+/* Table Styling */
+.table {
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.table th {
+  background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+  color: #fff;
+  text-align: center;
+  font-weight: 500;
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.table td {
+  vertical-align: middle;
+  text-align: center;
+  font-size: 14px;
+  color: #333;
+  padding: 12px 10px;
+  transition: background 0.2s ease;
+}
+
+.table-hover tbody tr:hover {
+  background: rgba(13, 110, 253, 0.05);
+}
+
+/* Row status highlights */
+.table-success {
+  background: rgba(40, 167, 69, 0.1) !important;
+}
+
+.table-danger {
+  background: rgba(220, 53, 69, 0.1) !important;
+}
+
+.table-warning {
+  background: rgba(255, 193, 7, 0.1) !important;
+}
+
+.table-secondary {
+  background: rgba(108, 117, 125, 0.1) !important;
+}
+
+/* Status Icons */
+.table td i {
+  margin-right: 8px;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+/* Card Styling */
+.card {
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.12);
+}
+
+.card .row {
+  align-items: stretch;
+}
+
+.card .col-md-8,
+.card .col-md-4 {
+  padding: 10px;
+}
+
+/* Chart Containers */
+.chart-container canvas,
+.card canvas {
+  border-radius: 12px;
+  background: #f9f9f9;
+  padding: 10px;
+}
+
+/* Empty State Text */
+.text-muted {
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Responsive Tweaks */
+@media (max-width: 768px) {
+  .card {
+    padding: 20px 15px;
+  }
+
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  h3 {
+    font-size: 20px;
+  }
+}
+
 </style>

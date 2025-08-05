@@ -103,4 +103,83 @@ export default {
   color: white;
   box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
 }
+.container {
+  max-width: 1100px;
+}
+
+/* Page Heading */
+h2 {
+  color: #0d6efd;
+  font-size: 26px;
+  border-left: 6px solid #0d6efd;
+  padding-left: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Form Labels */
+.form-label {
+  font-size: 15px;
+  color: #495057;
+}
+
+/* Form Controls */
+.form-select,
+.form-control {
+  border-radius: 12px;
+  border: 1px solid #ced4da;
+  padding: 10px 14px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-select:focus,
+.form-control:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
+}
+
+/* Tab Buttons */
+.tab-btn {
+  background-color: #f8f9fa;
+  color: #0d6efd;
+  border: 2px solid #0d6efd;
+  border-radius: 25px;
+  padding: 8px 22px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.tab-btn:hover {
+  background-color: #0d6efd;
+  color: white;
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.tab-btn.active {
+  background-color: #0d6efd;
+  color: white;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+/* Tabs Layout */
+.d-flex.gap-3 {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  h2 {
+    font-size: 22px;
+  }
+  .tab-btn {
+    padding: 7px 16px;
+    font-size: 14px;
+  }
+  .form-label {
+    font-size: 14px;
+  }
+}
+
 </style>
