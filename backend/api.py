@@ -1441,76 +1441,28 @@ def child_summary(child_id, current_user_id, current_user_role):
 @jwt_required(required_role='parent')
 def generate_child_analysis_report(current_user_id, current_user_role):
     try:
-        # Get child_id and range from query params
-        child_id = request.args.get("child_id", type=int)
-        summary_range = request.args.get("summary_range", default="weekly")
+        data = request.get_json()
+        if not data or 'child_id' not in data or 'summary' not in data or 'dates' not in data['summary']:
+            return jsonify({'error': 'Invalid input. JSON must contain child_id and summary with dates'}), 400
 
-        if not child_id:
-            return jsonify({'error': 'child_id is required as query parameter'}), 400
-        if summary_range not in ['weekly', 'monthly']:
-            return jsonify({'error': 'Invalid summary_range. Use weekly or monthly'}), 400
+        child_id = data['child_id']
+        summary_data = data['summary']
+        entries = summary_data.get('dates', [])
 
-        # Fetch the child summary (replicating logic from child_summary)
         child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
-        if not child:
-            return jsonify({'error': 'Child not found or unauthorized'}), 404
+        if not entries:
+            return jsonify({'error': 'No daily summary entries found to analyze'}), 400
 
-        today = date.today()
-        if summary_range == 'weekly':
-            start_date = today - timedelta(days=6)
-        else:
-            start_date = today.replace(day=1)
-
-        progress_entries = DailyProgress.query.filter(
-            DailyProgress.child_id == child_id,
-            DailyProgress.date >= start_date,
-            DailyProgress.date <= today
-        ).order_by(DailyProgress.date).all()
-
-        total_days = (today - start_date).days + 1
-        total_tasks = total_days * 4
-
-        summary = {
-            "total_days": total_days,
-            "tasks_assigned": total_tasks,
-            "tasks_completed": 0,
-            "todo_completed_days": 0,
-            "journal_done_days": 0,
-            "story_done_days": 0,
-            "infotainment_done_days": 0,
-            "entries": []
-        }
-
-        for entry in progress_entries:
-            day_data = {
-                "date": entry.date.isoformat(),
-                "todo_done": entry.is_todo_complete,
-                "journal_done": entry.is_journal_done,
-                "story_done": entry.is_story_done,
-                "infotainment_done": entry.is_infotainment_done
-            }
-            completed_count = sum([
-                entry.is_todo_complete,
-                entry.is_journal_done,
-                entry.is_story_done,
-                entry.is_infotainment_done
-            ])
-            summary["tasks_completed"] += completed_count
-            if entry.is_todo_complete:
-                summary["todo_completed_days"] += 1
-            if entry.is_journal_done:
-                summary["journal_done_days"] += 1
-            if entry.is_story_done:
-                summary["story_done_days"] += 1
-            if entry.is_infotainment_done:
-                summary["infotainment_done_days"] += 1
-            summary["entries"].append(day_data)
-
-        # Prepare input for LLM agent
         agent_input = {
-            "child_id": child_id,
-            "summary_range": summary_range,
-            **summary
+            "child_name": child.name,
+            "summary_range": data.get("summary_range", "weekly"),
+            "entries": entries,
+            "tasks_assigned": summary_data.get("tasks_assigned", 0),
+            "tasks_completed": summary_data.get("tasks_completed", 0),
+            "todo_completed_days": summary_data.get("todo_completed_days", 0),
+            "journal_done_days": summary_data.get("journal_done_days", 0),
+            "story_done_days": summary_data.get("story_done_days", 0),
+            "infotainment_done_days": summary_data.get("infotainment_done_days", 0)
         }
 
         markdown_output = analyze_child_data(agent_input, llm)
@@ -1527,7 +1479,7 @@ def generate_child_analysis_report(current_user_id, current_user_role):
         )
     except Exception as e:
         print("Report Generation Error:", e)
-        return jsonify({'error': 'Failed to generate analysis report'}), 500
+        return jsonify({'error': 'Failed to generate analysis report', 'details': str(e)}), 500
 
 
 # ---------------------------infotainment logs for insights------------------------------------------------
