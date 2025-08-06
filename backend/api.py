@@ -44,6 +44,7 @@ llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace wi
 
 def certify_query(query):
     client = genai.Client(api_key=GOOGLE_API_KEY)
+    print("Certifying query:", query)
     response = client.models.generate_content(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
@@ -1694,6 +1695,90 @@ def get_story_logs(child_id, current_user_id, current_user_role):
         'child_prompt': log.child_prompt,
         'title': log.title,
         'theme': log.theme,
+        'is_done': log.is_done
+    } for log in recent_logs]
+
+    return jsonify({
+        'recent_logs': result
+    }), 200
+
+
+# --------------------------- ToDo logs for insights ------------------------------------------------
+@app.route('/parent/child/<int:child_id>/todo-logs', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_todo_logs(child_id, current_user_id, current_user_role):
+    # Optional query parameters
+    date_str = request.args.get('date')  # for daily logs
+    week = request.args.get('week')     # for weekly summary
+
+    # Step 1: Validate Child Ownership
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+    
+
+
+    # Step 2A: If specific date is provided, show daily logs
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        logs = ToDoItem.query.filter(
+            ToDoItem.child_id == child_id,
+            db.func.date(ToDoItem.datetime) == selected_date
+        ).all()
+
+        result = [{
+            'id': log.id,
+            'task': log.task,
+            'datetime': log.datetime.isoformat(),
+            'is_done': log.is_done
+        } for log in logs]
+
+        return jsonify({
+            'date': selected_date.isoformat(),
+            'total_tasks': len(result),
+            'completed_tasks': sum(1 for r in result if r['is_done']),
+            'logs': result
+        }), 200
+
+    # Step 2B: If `week=true`, return weekly grouped stats
+    if week == 'true':
+        today = datetime.utcnow().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)             # Sunday
+        weekly_logs = db.session.query(
+            db.func.date(ToDoItem.datetime).label('task_date'),
+            db.func.count(ToDoItem.id).label('total_tasks'),
+            db.func.sum(db.case((ToDoItem.is_done == True, 1), else_=0)).label('completed_tasks')
+        ).filter(
+            ToDoItem.child_id == child_id,
+            db.func.date(ToDoItem.datetime) >= week_start,
+            db.func.date(ToDoItem.datetime) <= week_end
+        ).group_by(db.func.date(ToDoItem.datetime)).all()
+        print(weekly_logs)
+        result = [{
+            'date': log.task_date,
+            'total_tasks': log.total_tasks,
+            'completed_tasks': int(log.completed_tasks or 0)
+        } for log in weekly_logs]
+          
+        return jsonify({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'weekly_summary': result
+        }), 200
+
+    # Step 2C: If no date or week is given, return last 7 entries
+    recent_logs = ToDoItem.query.filter_by(child_id=child_id)\
+                    .order_by(ToDoItem.datetime.desc())\
+                    .limit(7).all()
+
+    result = [{
+        'task': log.task,
+        'datetime': log.datetime.isoformat(),
         'is_done': log.is_done
     } for log in recent_logs]
 
