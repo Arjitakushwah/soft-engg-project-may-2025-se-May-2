@@ -22,12 +22,19 @@ import ParentJournalAnalysis from '../components/ParentJournalAnalysis.vue'
 import ParentToDoInsight from '../components/ParentToDoInsight.vue'
 import ParentStoryInsight from '../components/ParentStoryInsight.vue'
 import ParentInfotainmentInsight from '../components/ParentInfotainmentInsight.vue'
+import ForgotPassword from '../components/ForgotPassword.vue'
+import ForgotUsername from '../components/ForgotUsername.vue'
+import VerifyOTP from '../components/checkotp.vue'
+import ResetPassword from '../components/ResetPassword.vue'
 
 const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
-
+  { path: '/forgot-password',name: 'ForgotPassword',component: ForgotPassword},
+  { path: '/forgot-username',name: 'ForgotUsername',component: ForgotUsername},
+  { path: '/checkotp',name: 'VerifyOTP',component: VerifyOTP},
+  { path: '/resetpassword',name: 'ResetPassword',component: ResetPassword},
   {
     path: '/child', name: 'Child', component: ChildDashboard,
     children: [
@@ -38,7 +45,7 @@ const routes = [
       // { path: 'quiz', name: 'QuizPage', component: QuizPage },
       { path: 'journal', name: 'ChildJournal', component: ChildJournal },
       { path: 'infotainment', name: 'ChildInfotainment', component: ChildInfotainment },
-      { path: 'result/:topic', name: 'Result', component: Result, props: true }
+      { path: 'result', name: 'infoResult', component: Result, props: true }
     ]
   },
   {

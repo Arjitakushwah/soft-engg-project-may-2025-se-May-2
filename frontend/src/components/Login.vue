@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="role === 'child' ? 'background-wrapper-child' : 'background-wrapper-default'">
     <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
       <div class="container-fluid d-flex justify-content-between align-items-center">
         <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
@@ -31,6 +31,11 @@
           </div>
           <button type="submit" class="btn btn-success w-100">Login as {{ role }}</button>
         </form>
+        <p class="text-center mt-3">
+          <router-link to="/forgot-password" class="text-primary">Forgot Password?</router-link>
+            |
+          <router-link to="/forgot-username" class="text-primary">Forgot Username?</router-link>
+        </p>
         <p class="text-danger mt-3 text-center" v-if="error">{{ error }}</p>
         <p class="text-success mt-3 text-center" v-if="success">{{ success }}</p>
       </div>
@@ -104,8 +109,6 @@ const login = async () => {
     error.value = 'Network error. Please try again.'
   }
 }
-
-
 </script>
 
 <style scoped>
@@ -160,6 +163,7 @@ const login = async () => {
   font-family: 'Comic Neue', cursive;
 }
 
+
 .card {
   background: linear-gradient(135deg, #fff0f5, #f0f8ff);
   border-radius: 20px;
@@ -173,5 +177,27 @@ const login = async () => {
 
 .btn-success:hover {
   background-color: #ff6a88;
+}
+
+.background-wrapper-default {
+  background-image: url('/src/public/parent.jpg');
+  opacity: 0.9;
+  height: 100vh;
+  width: 100vw;
+  background-size:  100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+.background-wrapper-child {
+  background-image: url('/src/public/child2.jpg'); 
+  height: 100vh;
+  width: 100vw;
+  opacity: 80%;
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
 }
 </style>

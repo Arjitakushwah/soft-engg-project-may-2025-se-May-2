@@ -1,12 +1,12 @@
 from flask import Flask, jsonify, request, url_for, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt
 from config import Config
 from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
 from flask_cors import CORS
-from send_email import verify_otp, store_otp, verified_emails, send_welcome_email
+from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username
 import os
 from google_auth_oauthlib.flow import Flow
 import requests
@@ -16,10 +16,16 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_object(Config)
 CORS(app)
 
+jwt_blacklist = set()
 # Initialize database
 db.init_app(app)
-JWTManager(app)
+x=JWTManager(app)
 migrate = Migrate(app, db)
+
+@x.token_in_blocklist_loader
+def check_if_token_revoked(jwt_header, jwt_payload):
+    return jwt_payload["jti"] in jwt_blacklist
+
 
 
 @app.route('/')
@@ -64,8 +70,6 @@ def handle_callback():
     email = user_info.get('email')
     if not email:
         return jsonify({'error': 'Unable to fetch email from Google'}), 400
-
-    # DB logic
     user = User.query.filter_by(email=email).first()
     if not user:
         user = User(email=email, role='parent')
@@ -97,32 +101,70 @@ def check_username():
     return jsonify({'available': not exists})
 
 #--------------------------------------------Parent SignUP-------------------------------------------------------
+@app.route('/register/send-otp', methods=['POST'])
+def register_send_otp():
+    data = request.get_json()
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({"error": "Email already registered"}), 409
+    if store_otp(email):
+        return jsonify({"message": "OTP sent to email"}), 200
+    else:
+        return jsonify({"error": "Failed to send OTP"}), 500
+
+@app.route('/register/verify-otp', methods=['POST'])
+def register_verify_otp():
+    data = request.get_json()
+    email = data.get("email")
+    otp = data.get("otp")
+
+    if not email or not otp:
+        return jsonify({"error": "Email and OTP are required"}), 400
+
+    success, message = verify_otp(email, otp)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
 @app.route('/register', methods=['POST'])
-def register_parent():
-    data = request.json
-    email = data.get('email')
-    password = data.get('password')
-    name = data.get('name')
-    username = data.get('username')
-    if not all([email, password, name, username]):
-        return jsonify({'error': 'Email, password, name, and username are required'}), 400
+def register_user():
+    data = request.get_json()
+    name = data.get("name")
+    email = data.get("email")
+    username = data.get("username")
+    password = data.get("password")
+    if not all([username, name, email, password]):
+        return jsonify({"error": "Missing required fields"}), 400
+    if email not in verified_emails:
+        return jsonify({"error": "OTP verification required"}), 401
     if User.query.filter_by(email=email).first():
-        return jsonify({'error': 'Email already exists'}), 400
-    if User.query.filter_by(username=username).first():
-        return jsonify({'error': 'Username already taken'}), 400
+        return jsonify({"error": "Email already registered"}), 409
+    
     try:
-        hashed_pw = generate_password_hash(password)
-        user = User(email=email, username=username, password=hashed_pw, role='parent')
-        db.session.add(user)
+        hashed_password = generate_password_hash(password)
+        new_user = User(
+        email=email,
+        username=username,
+        password=hashed_password,
+        role="parent")
+        db.session.add(new_user)
         db.session.flush()
-        parent = Parent(id=user.id, name=name)
+        parent = Parent(
+            id=new_user.id,
+            name=name)
         db.session.add(parent)
         db.session.commit()
-        return jsonify({'message': 'Parent registered successfully'}), 201
+        verified_emails.remove(email)
+        return jsonify({"message": "User registered successfully"}), 201
     except Exception as e:
         db.session.rollback()
         print("Error:", e)
-        return jsonify({'error': 'Something went wrong'}), 500
+        return jsonify({'error': 'SOmething wrong'}), 500
+
 
 #------------------------------------User Login---------------------------------------------------------
 @app.route('/login', methods=['POST'])
@@ -170,6 +212,7 @@ def forgot_username():
         return jsonify({"status": "error", "message": "Email is required"}), 400
     user = User.query.filter_by(email=email).first()
     if user:
+        send_mail_username(email, user.username)    
         return jsonify({
             "status": "success",
             "username": user.username
@@ -185,6 +228,7 @@ def forgot_username():
 def send_otp():
     data = request.get_json()
     email = data.get("email")
+    print(email)
 
     if store_otp(email):
         return jsonify({"message": "OTP sent to email"}), 200
@@ -331,6 +375,56 @@ def get_child_info(current_user_id, current_user_role):
         'name': child.name,
         'username': user.username,  #
     })
+
+#----------------------------------- Update Child Profile------------------------------------------------
+@app.route('/child/profile/update', methods=['PUT'])
+@jwt_required(required_role='child')
+def update_child_profile(current_user_id, current_user_role):
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Missing JSON body'}), 400
+        name = data.get('name')
+        age = data.get('age')
+        gender = data.get('gender')
+        child = Child.query.filter_by(id=current_user_id).first()
+        if not child:
+            return jsonify({'error': 'Child not found'}), 404
+        if name is not None:
+            child.name = name
+        if age is not None:
+            child.age = age
+        if gender is not None:
+            child.gender = gender
+        db.session.commit()
+        return jsonify({
+            'message': 'Profile updated successfully',
+            'child': {
+                'id': child.id,
+                'name': child.name,
+                'age': child.age,
+                'gender': child.gender
+            }
+        }), 200
+    except Exception as e:
+        print("Profile Update Error:", e)
+        return jsonify({'error': 'Failed to update profile'}), 500
+    
+#--------------------------------------------------Logout---------------------------------------------------
+@app.route('/logout', methods=['POST'])
+@jwt_required()
+def logout(current_user_id, current_user_role):
+    try:
+        claims = get_jwt()
+        jti = claims.get("jti")
+        if not jti:
+            return jsonify({"error": "Token does not have jti"}), 400
+
+        jwt_blacklist.add(jti)
+        return jsonify({"message": "Logout successful"}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Logout failed", "details": str(e)}), 500
 
 
 
