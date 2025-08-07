@@ -12,8 +12,54 @@
     <div class="register-container container mt-5">
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 500px;">
         <h2 class="text-center mb-4">Register as Parent</h2>
-        <form @submit.prevent="registerParent" novalidate>
-          
+        
+        <!-- Step 1: Email Input and Send OTP -->
+        <form @submit.prevent="handleSendOtp" v-if="step === 1" novalidate>
+          <p class="text-center text-muted">Start by entering your email to receive a verification code.</p>
+          <div class="mb-3">
+            <input
+              type="email"
+              class="form-control"
+              :class="{ 'is-invalid': errors.email }"
+              v-model.trim="form.email"
+              placeholder="Email"
+              @input="handleInput('email')"
+            />
+            <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
+          </div>
+          <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
+            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-else>Send OTP</span>
+          </button>
+        </form>
+
+        <!-- Step 2: OTP Verification -->
+        <form @submit.prevent="handleVerifyOtp" v-if="step === 2" novalidate>
+            <p class="text-center text-muted">An OTP has been sent to <strong>{{ form.email }}</strong>. Please enter it below.</p>
+            <div class="mb-3">
+                <input
+                    type="text"
+                    class="form-control"
+                    :class="{ 'is-invalid': errors.otp }"
+                    v-model.trim="otp"
+                    placeholder="Enter OTP"
+                    maxlength="6"
+                />
+                <div v-if="errors.otp" class="invalid-feedback">{{ errors.otp }}</div>
+            </div>
+            <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
+                <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span v-else>Verify OTP</span>
+            </button>
+             <button @click="step = 1; serverError=''" class="btn btn-link w-100 mt-2">Change Email</button>
+        </form>
+
+        <!-- Step 3: Full Registration Form -->
+        <form @submit.prevent="registerParent" v-if="step === 3" novalidate>
+          <p class="text-center text-success">✓ Email Verified!</p>
+          <div class="mb-3">
+            <input type="email" class="form-control" v-model="form.email" disabled readonly />
+          </div>
           <div class="mb-3">
             <input
               type="text"
@@ -25,7 +71,6 @@
             />
             <div v-if="errors.name" class="invalid-feedback">{{ errors.name }}</div>
           </div>
-
           <div class="mb-3 position-relative">
             <input
               type="text"
@@ -40,19 +85,6 @@
             </div>
             <div v-if="errors.username" class="invalid-feedback">{{ errors.username }}</div>
           </div>
-
-          <div class="mb-3">
-            <input
-              type="email"
-              class="form-control"
-              :class="{ 'is-invalid': errors.email }"
-              v-model.trim="form.email"
-              placeholder="Email"
-              @input="handleInput('email')"
-            />
-            <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
-          </div>
-
           <div class="mb-3">
             <input
               type="password"
@@ -64,7 +96,6 @@
             />
             <div v-if="errors.password" class="invalid-feedback">{{ errors.password }}</div>
           </div>
-
           <div class="mb-3">
             <input
               type="password"
@@ -76,8 +107,10 @@
             />
             <div v-if="errors.passwordConfirm" class="invalid-feedback">{{ errors.passwordConfirm }}</div>
           </div>
-
-          <button type="submit" class="btn btn-success w-100">Register</button>
+          <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
+            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-else>Register</span>
+          </button>
         </form>
 
         <p v-if="serverError" class="text-danger mt-3 text-center">{{ serverError }}</p>
@@ -96,6 +129,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
+// --- STATE MANAGEMENT ---
 const form = ref({
   name: '',
   username: '',
@@ -103,60 +137,145 @@ const form = ref({
   password: '',
   passwordConfirm: '',
 });
-
+const otp = ref('');
+const step = ref(1); // 1: Email, 2: OTP, 3: Details
 const errors = ref({});
 const serverError = ref('');
 const success = ref('');
+const isLoading = ref(false);
+const isCheckingUsername = ref(false);
 const router = useRouter();
 
-const isCheckingUsername = ref(false);
-// Use a single object to manage timers for each field
 const debounceTimers = {};
 
-const handleInput = (fieldName) => {
-  // Clear the previous timer for this specific field
-  clearTimeout(debounceTimers[fieldName]);
-  
-  // Set a new timer
-  debounceTimers[fieldName] = setTimeout(() => {
-    validateField(fieldName);
-  }, 500); // Wait for 500ms of inactivity before validating
+// --- API CALLS ---
+
+const handleSendOtp = async () => {
+  serverError.value = '';
+  success.value = '';
+  validateField('email');
+  if (errors.value.email) return;
+
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:5000/register/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.value.email })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to send OTP.');
+    }
+    success.value = result.message;
+    step.value = 2; // Move to OTP verification step
+  } catch (err) {
+    serverError.value = err.message;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const handleVerifyOtp = async () => {
+  serverError.value = '';
+  success.value = '';
+  errors.value.otp = !otp.value ? 'OTP is required.' : '';
+  if (errors.value.otp) return;
+
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:5000/register/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: form.value.email, otp: otp.value })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'OTP verification failed.');
+    }
+    success.value = result.message;
+    step.value = 3; // Move to final registration details
+  } catch (err) {
+    serverError.value = err.message;
+    errors.value.otp = err.message;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+const registerParent = async () => {
+  serverError.value = '';
+  success.value = '';
+
+  const isFormValid = await validateFormOnSubmit();
+  if (!isFormValid) return;
+
+  isLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:5000/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: form.value.name,
+        username: form.value.username,
+        email: form.value.email,
+        password: form.value.password
+      })
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new Error(result.error || 'Registration failed.');
+    }
+    success.value = 'Registration successful! Redirecting to login...';
+    localStorage.setItem('userRole', 'parent');
+    localStorage.setItem('username', form.value.username);
+    setTimeout(() => {
+      router.push('/login');
+    }, 2000);
+  } catch (err) {
+    serverError.value = err.message;
+  } finally {
+    isLoading.value = false;
+  }
 };
 
 
-// --- REFINED: Function to validate a single field ---
+// --- VALIDATION LOGIC ---
+
+const handleInput = (fieldName) => {
+  clearTimeout(debounceTimers[fieldName]);
+  debounceTimers[fieldName] = setTimeout(() => {
+    validateField(fieldName);
+  }, 500);
+};
+
 const validateField = async (fieldName) => {
-  // CORRECTLY clear the error only when we are about to re-validate
   errors.value[fieldName] = '';
+  serverError.value = ''; // Clear server error on new input
 
   switch (fieldName) {
     case 'name':
       const nameRegex = /^[a-zA-Z\s'-]+$/;
-      if (!form.value.name) {
-        errors.value.name = 'Full Name is required.';
-      } else if (form.value.name.length < 4) { // <-- ADD THIS CHECK
-        errors.value.name = 'Full Name must be at least 4 characters long.';
-      } else if (!nameRegex.test(form.value.name)) {
-        errors.value.name = 'Name can only contain valid characters.';
-      }
+      if (!form.value.name) errors.value.name = 'Full Name is required.';
+      else if (form.value.name.length < 4) errors.value.name = 'Full Name must be at least 4 characters long.';
+      else if (!nameRegex.test(form.value.name)) errors.value.name = 'Name can only contain valid characters.';
       break;
 
     case 'username':
       const usernameRegex = /^[a-zA-Z0-9_]+$/;
       if (!form.value.username) {
-          errors.value.username = 'Username is required.';
-          break;
+        errors.value.username = 'Username is required.';
+        break;
       }
       if (form.value.username.length < 4) {
-          errors.value.username = 'Username must be at least 4 characters long.';
-          break;
+        errors.value.username = 'Username must be at least 4 characters long.';
+        break;
       }
       if (!usernameRegex.test(form.value.username)) {
-          errors.value.username = 'Username can only contain letters, numbers, and underscores.';
-          break;
+        errors.value.username = 'Username can only contain letters, numbers, and underscores.';
+        break;
       }
       
-      // If client-side checks pass, then check availability via API
       isCheckingUsername.value = true;
       try {
         const response = await fetch(`http://localhost:5000/check-username?username=${form.value.username}`);
@@ -183,7 +302,6 @@ const validateField = async (fieldName) => {
       else if (form.value.password.length < 8) errors.value.password = 'Password must be at least 8 characters long.';
       else if (!passwordRegex.test(form.value.password)) errors.value.password = 'Password must include uppercase, lowercase, and a number.';
       
-      // Also re-validate the confirmation field if it has a value
       if(form.value.passwordConfirm) validateField('passwordConfirm');
       break;
 
@@ -194,74 +312,16 @@ const validateField = async (fieldName) => {
   }
 };
 
-// --- Function to validate the entire form on final submit ---
 const validateFormOnSubmit = async () => {
-    // Run all validations and wait for them to complete
     await Promise.all([
         validateField('name'),
         validateField('username'),
-        validateField('email'),
         validateField('password'),
         validateField('passwordConfirm')
     ]);
-
-    // Return true if no error messages exist
     return Object.values(errors.value).every(error => !error);
 };
-
-
-
-const registerParent = async () => {
-  serverError.value = '';
-  success.value = '';
-
-  // Run a final, full validation before submitting
-  const isFormValid = await validateFormOnSubmit();
-  if (!isFormValid) {
-    return;
-  }
-
-  try {
-    const response = await fetch('http://localhost:5000/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: form.value.name,
-        username: form.value.username,
-        email: form.value.email,
-        password: form.value.password
-      })
-    })
-
-    const result = await response.json()
-
-    if (!response.ok) {
-      error.value = result.error || 'Registration failed'
-    } else {
-      success.value = 'Registration successful! Redirecting to login...'
-      localStorage.setItem('userRole', 'parent')
-      localStorage.setItem('username', form.value.username)
-
-      form.value = {
-        name: '',
-        username: '',
-        email: '',
-        password: ''
-      }
-
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
-    }
-  } catch (err) {
-    error.value = 'Network error. Please try again.'
-    console.error(err)
-  }
-}
 </script>
-
 
 <style scoped>
 /* No changes to CSS are needed. */
@@ -276,6 +336,8 @@ const registerParent = async () => {
 .card { background: linear-gradient(135deg, #fff0f5, #f0f8ff); border-radius: 20px; }
 .btn-success { background-color: #ff6a88; font-family: 'Fredoka One', cursive; border: none; }
 .btn-success:hover { background-color: #ff6a88; }
+.btn-link { color: #6c757d; text-decoration: none; }
+.btn-link:hover { color: #0056b3; }
 .login-link { color: #007bff; text-decoration: none; font-weight: bold; }
 .login-link:hover { text-decoration: underline; }
 </style>

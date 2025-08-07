@@ -6,10 +6,11 @@ from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-load_dotenv("prod.env")
+load_dotenv("agents/prod.env")
 
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
 
 # Storage: email -> (otp, timestamp)
 otp_store = {}
@@ -50,14 +51,15 @@ def verify_otp(email, input_otp):
     if email not in otp_store:
         return False, "OTP not requested for this email."  
     stored_otp, timestamp = otp_store[email]
-    print(stored_otp)
     current_time = time.time()
-    if current_time - timestamp > 90:
+    if current_time - timestamp > 190:
         del otp_store[email]
         return False, "OTP has expired."
-    if input_otp == int(stored_otp):
+    print(input_otp, stored_otp)
+    if input_otp == stored_otp:
         del otp_store[email]
         verified_emails.add(email)
+        print(f"Email {email} verified successfully.")
         return True, "OTP verified successfully."
     return False, "Incorrect OTP."
 

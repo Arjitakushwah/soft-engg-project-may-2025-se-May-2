@@ -212,7 +212,7 @@ def forgot_username():
         return jsonify({"status": "error", "message": "Email is required"}), 400
     user = User.query.filter_by(email=email).first()
     if user:
-        send_mail_username(email, user.username)
+        send_mail_username(email, user.username)    
         return jsonify({
             "status": "success",
             "username": user.username
@@ -228,6 +228,7 @@ def forgot_username():
 def send_otp():
     data = request.get_json()
     email = data.get("email")
+    print(email)
 
     if store_otp(email):
         return jsonify({"message": "OTP sent to email"}), 200
