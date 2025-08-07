@@ -11,11 +11,13 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@fullcalendar/daygrid": "^6.1.17",
-    "@fullcalendar/vue3": "^6.1.17",
+    "@fullcalendar/core": "^6.1.18",
+    "@fullcalendar/daygrid": "^6.1.18",
+    "@fullcalendar/interaction": "^6.1.18",
+    "@fullcalendar/vue3": "^6.1.18",
     "bootstrap-icons": "^1.13.1",
     "chart.js": "^3.9.1",
-    "dompurify": "^3.2.6",
+    "date-fns": "^4.1.0",
     "pinia": "^3.0.1",
     "vue": "^3.5.13",
     "vue-chartjs": "^4.1.2",

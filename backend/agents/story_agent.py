@@ -3,7 +3,15 @@ import json
 
 
 
-def generate_story(prompt , llm ):
+def generate_story(prompt  ):
+    import os
+    from dotenv import load_dotenv
+    from crewai import LLM
+
+    load_dotenv("agents/prod.env") 
+    GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+    llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace with your actual LLM API key
+
     
     
     story_agent = Agent(
@@ -20,10 +28,10 @@ def generate_story(prompt , llm ):
 
     story_task = Task(
         description=f"""
-        Create a short 100 words story suitable for children aged 8 to 14. The story should be imaginative, engaging, and convey a positive theme or moral.
+        Create a short 300 words story suitable for children aged 8 to 14 based on this : {prompt}. The story should be imaginative, engaging, and convey a positive theme or moral.
         It should be original, written in simple yet rich language, and contain at least one central character, a clear plot, and a resolution.
-
-
+        => Story should be complete , no incompleteness.
+       
         => Important Story Rules:
         a. Story must be child friendly and should be based on childs wish: {prompt}
         b. Choose one of the following theme: ["Kindness","Courage","Friendship","Bravery","Honesty", "Perseverance", "Imagination","Empathy","Respect",

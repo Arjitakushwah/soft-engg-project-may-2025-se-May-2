@@ -78,7 +78,7 @@ import { ref, computed } from 'vue';
 
 <style scoped>
 .sidebar {
-  width: 200px;
+  width: 160px;
   transition: width 0.3s ease;
   background:  #ff9a8b;
   font-family: 'Comic Neue', cursive;

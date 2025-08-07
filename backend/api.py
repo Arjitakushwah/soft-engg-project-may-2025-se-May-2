@@ -1,32 +1,109 @@
 from datetime import datetime, date, timedelta
 from utils import jwt_required
-from flask import request, jsonify
-from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress
+from flask import request, jsonify, send_file
+from models import db, ToDoItem, User, DailyStory, JournalEntry, InfotainmentReadLog, Child, DailyProgress, BadgeAward
 from app import app
 from pytz import timezone
 from crewai import LLM
+from sqlalchemy import func
+from pytz import timezone
+from report_pdf import generate_pdf
+
+
+
+
+
+IST = timezone("Asia/Kolkata")
+
+def ist_now():
+    aware_dt = datetime.now(IST).replace(second=0, microsecond=0)
+    return aware_dt.replace(tzinfo=None)
+
+def ist_today():
+    print("IST Today:", datetime.now(IST).date())
+    return datetime.now(IST).date()
+
 app.config['SQLALCHEMY_ECHO'] = True
 
 from agents.story_agent import generate_story
 from agents.news_agent import generate_news
 from agents.mood_classifier import classify_emotion
 from progressor import update_daily_progress
-from streak_badges_logic import update_streak
+from streak_badges_logic import evaluate_all_badges
+from agents.report_agent import analyze_child_data
 import os
+
+from google import genai
+from google.genai import types
 from dotenv import load_dotenv
+from textwrap import dedent
 load_dotenv("agents/prod.env") 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace with your actual LLM API key
 
+def certify_query(query):
+    client = genai.Client(api_key=GOOGLE_API_KEY)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash",
+        config=types.GenerateContentConfig(
+            system_instruction=dedent(f"""
+You are a strict assistant helping an English professor determine if a short fictional story can be generated from a prompt.
 
-# Use for return current date and time according to user local timezone
-# Use for returning the current date in UTC for consistent timezone handling
+    Rules:
+    1. Return "true" only if the prompt:
+        - Is appropriate for children aged 8 to 14
+        - Can inspire a creative, imaginative, and positive story
+        - Does not contain violence, politics, abuse, hate speech, adult topics, real-world tragedies, or disturbing content or a factual question or a math question or a question.
+        - Is not too vague, short, or abstract
+        - Is not a general knowledge question
+        - Has clear contextual meaning and narrative potential
 
+    2. Return "false" if:
+        - The prompt is a factual or knowledge-based question
+        - The prompt is emotionally disturbing, controversial, or inappropriate for kids
+        - The prompt is too vague, unclear, or nonsensical
+        - The prompt cannot form a fictional story with characters and a plot
+        - The prompt is a math question , factual question , question.
 
+    You must reply with exactly "true" or "false". No explanation, no formatting.
 
-def utc_today(): 
-    return datetime.utcnow().date() 
+Examples:
+    Prompt: "What is the capital of India?"  
+    Answer: false
+
+    Prompt: "Explain the process of photosynthesis"  
+    Answer: false
+
+    Prompt: "A dragon who can't breathe fire anymore"  
+    Answer: true
+
+    Prompt: "Describe Newton's third law of motion"  
+    Answer: false
+
+    Prompt: "A cat finds a magical book that can talk"  
+    Answer: true
+
+    Prompt: "Story on my home"  
+    Answer: false
+
+    Prompt: "Who is the prime minister of Canada?"  
+    Answer: false
+
+    Prompt: "A girl who learns to speak to trees in her dreams"  
+    Answer: true
+
+    Prompt: "i want to read stoy on sun a star"
+    Answer: true
+
+Your entire response **must be exactly either "true" or "false"** — no extra text, explanation, or formatting.
+            """),
+            temperature=0.01,
+            ),
+        contents=query
+    )
+    
+    return response.text
 
 
 #------------------------------------To DO List task creation---------------------------------------------------- 
@@ -92,7 +169,7 @@ def create_todo_task(current_user_id, current_user_role):
                 return jsonify({'error': 'Invalid datetime format'}), 400 
 
         # Check if datetime is in the past (with 1 minute buffer) 
-        if task_datetime < datetime.utcnow() - timedelta(minutes=1): 
+        if task_datetime < ist_now() - timedelta(minutes=1): 
             return jsonify({'error': 'Cannot create tasks for past dates/times'}), 400 
             
         new_task = ToDoItem( 
@@ -189,7 +266,7 @@ def update_todo_task(task_id, current_user_id, current_user_role):
             return jsonify({'error': 'Invalid datetime format'}), 400 
 
         # Check if new datetime is in the past (with 1 minute buffer) 
-        if new_datetime < datetime.utcnow() - timedelta(minutes=1): 
+        if new_datetime < ist_now() - timedelta(minutes=1): 
             return jsonify({'error': 'Cannot set task to past date/time'}), 400 
 
         # Update task properties 
@@ -244,13 +321,15 @@ def delete_todo_task(task_id, current_user_id, current_user_role):
     try: 
         db.session.delete(task) 
         db.session.commit() 
+        update_daily_progress(current_user_id, ist_today()) 
+        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Task deleted successfully'}), 200 
     except Exception as e: 
         db.session.rollback() 
         print("Delete Error:", e) 
         return jsonify({'error': 'Failed to delete task'}), 500 
 
-#-----------------------------------------View task at particular date---------------------------------------------------- 
+#------------------------------------View task at particular date---------------------------------------------------- 
 """ 
 API: Get To-Do Tasks by Date 
 Fetch all task by taking input of specific date or if child not provided date then fetch the current date task. 
@@ -273,7 +352,7 @@ def tasks_by_date(current_user_id, current_user_role):
         selected_date = ( 
             datetime.strptime(date_select_str, "%Y-%m-%d").date() 
             if date_select_str else 
-            utc_today() 
+            ist_today() 
         ) 
     except ValueError: 
         return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400 
@@ -303,7 +382,7 @@ def tasks_by_date(current_user_id, current_user_role):
         'tasks': task_list 
     }), 200 
 
-#------------------------------------To Do List status update----------------------------------------------------------- 
+#-----------------------------To Do List status update----------------------------------------------------------- 
 """ 
 API: Update Task Status 
 This API allow the child to mark task completed only current date tasks. 
@@ -335,7 +414,8 @@ def update_task_status(task_id, current_user_id, current_user_role):
     # FIX: This now compares the full datetime against the current UTC time.
     # This correctly handles timezone differences and prevents completing a task
     # before its scheduled time (e.g., completing a 2 PM task at 10 AM).
-    if task.datetime > datetime.utcnow():
+
+    if task.datetime > ist_now() - timedelta(minutes=1):
         return jsonify({'error': "You cannot complete a task before its scheduled time."}), 403
         
     if task.is_done: 
@@ -344,8 +424,8 @@ def update_task_status(task_id, current_user_id, current_user_role):
     task.is_done = True 
     try: 
         db.session.commit() 
-        # update_daily_progress(current_user_id, utc_today()) 
-        # update_streak(current_user_id) 
+        update_daily_progress(current_user_id, ist_today()) 
+        evaluate_all_badges(current_user_id) 
         return jsonify({'message': 'Task Completed successfully'}), 200 
     except Exception as e: 
         db.session.rollback() 
@@ -371,6 +451,7 @@ Response:
 
 
 # ------------------ STORY GENERATION ENDPOINT ------------------
+
 @app.route('/generate_story', methods=['POST'])
 @jwt_required(required_role='child')
 def create_daily_story(current_user_id, current_user_role):
@@ -380,8 +461,17 @@ def create_daily_story(current_user_id, current_user_role):
         return jsonify({'error': 'child_prompt is required'}), 400
 
     try:
+        is_certified = certify_query(child_prompt).strip().lower()
+
+        if is_certified == "false":
+            return jsonify({'error': 'Sorry, we cannot generate a story based on this prompt. Please try a different one.'}), 400
+    except Exception as cert_err:
+        return jsonify({'error': 'Prompt validation failed', 'details': str(cert_err)}), 500
+
+
+    try:
         # LLM generation logic
-        story_data = generate_story(child_prompt, llm)
+        story_data = generate_story(child_prompt)
 
         if not isinstance(story_data, dict) or "quiz" not in story_data:
             return jsonify({'error': 'Story generation failed', 'details': story_data}), 500
@@ -403,13 +493,13 @@ def create_daily_story(current_user_id, current_user_role):
             option_c=options[2],
             option_d=options[3],
             correct_option=story_data['quiz']['answer'],
-            is_done=True
+            is_done=False
         )
 
         db.session.add(new_story)
         db.session.commit()
         update_daily_progress(current_user_id, date.today())
-        update_streak(current_user_id)
+        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': 'Story generated successfully',
@@ -428,6 +518,8 @@ def create_daily_story(current_user_id, current_user_role):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': 'Unexpected error occurred', 'details': str(e)}), 500
+
+
 
 
 #----------------------------------Search Stories (NEW)----------------------------------------------------------------
@@ -522,6 +614,8 @@ def submit_quiz(current_user_id, current_user_role):
         
         try:
             db.session.commit()
+            update_daily_progress(current_user_id, date.today())
+            evaluate_all_badges(current_user_id)
             return jsonify({'is_correct': True, 'message': 'Answer submitted successfully'}), 200
         except Exception as e:
             db.session.rollback()
@@ -563,13 +657,13 @@ def create_journal(current_user_id, current_user_role):
     try:
         mood_dict = classify_emotion(text, llm)
         mood = mood_dict.get("emotion", "unknown")
-
+        now_ist = ist_now()
         entry = JournalEntry(
             child_id=current_user_id,
             date=date.today(),
             text=text,
             mood=mood,
-            created_at=datetime.utcnow(),
+            created_at=now_ist,
             is_done=True
         )
 
@@ -578,7 +672,7 @@ def create_journal(current_user_id, current_user_role):
 
         # Optionally update streak and progress
         update_daily_progress(current_user_id, date.today())
-        update_streak(current_user_id)
+        evaluate_all_badges(current_user_id)
 
         return jsonify({
             'message': 'Journal entry created successfully',
@@ -604,6 +698,7 @@ def search_journals(current_user_id, current_user_role):
         filters.append(JournalEntry.mood == mood_query)
 
     results = JournalEntry.query.filter(*filters).order_by(JournalEntry.created_at.desc()).all()
+    
 
     entries = [{
         'id': entry.id,
@@ -612,6 +707,7 @@ def search_journals(current_user_id, current_user_role):
         'mood': entry.mood,
         'text': entry.text
     } for entry in results]
+    print(entries)
 
     return jsonify({'entries': entries}), 200
 
@@ -645,7 +741,10 @@ def generate_infotainment(current_user_id, current_user_role):
         #  Generate AI content using agent
         response = generate_news(prompt, llm)
 
-        now = datetime.utcnow()
+        print("api response of generate infotainemnt")
+        print(response)
+
+        now = ist_now()
 
         #  Store the generated content with time
         log = InfotainmentReadLog(
@@ -710,6 +809,7 @@ def search_infotainment(current_user_id, current_user_role):
     return jsonify({'logs': result}), 200
 
 
+
 #---------------------------------------Marked completed--------------------------------------------------------
 """
 API: Mark Infotainment Content as Read
@@ -732,21 +832,27 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
     query = InfotainmentReadLog.query.filter_by(id=log_id, child_id=current_user_id).first()
     if not query:
         return jsonify({'error': 'Content not found'}), 404
-
-    if query.date != date.today():
+    now = ist_now()
+    if query.date != now.date():
         return jsonify({'error': 'You can mark only today\'s content'}), 403
-
-    elapsed = datetime.utcnow() - query.marked_at
-    if elapsed.total_seconds() < 30:
-        return jsonify({'error': 'You can mark as read after 30 seconds'}), 403
-
+    marked_at = query.marked_at
+    
+    if marked_at.tzinfo is None:
+        marked_at = IST.localize(marked_at)
+        marked_at_naive = marked_at.replace(tzinfo=None)
+    
+    elapsed = now - marked_at_naive
+    if elapsed.total_seconds() < 180:
+        print(f"Elapsed time: {elapsed.total_seconds()} seconds")
+        return jsonify({'error': f'You can mark as read after {int(180 - elapsed.total_seconds())} seconds'}), 403
     if query.is_done:
         return jsonify({'message': 'Already marked as read'}), 200
-
     try:
         query.is_done = True
-        query.marked_at = datetime.utcnow()
+        query.marked_at = now
         db.session.commit()
+        update_daily_progress(current_user_id, now.date())
+        evaluate_all_badges(current_user_id)
         return jsonify({'message': 'Marked as read successfully'}), 200
     except Exception as e:
         db.session.rollback()
@@ -805,7 +911,13 @@ def calendar_report(current_user_id, current_user_role):
 
     if start_date > end_date:
         return jsonify({'error': 'Start date cannot be after end date'}), 400
-
+    color_map = {
+        4: "#216e39",    # darkest green
+        3: "#7bc96f",    # medium green
+        2: "#c6e48b",    # light green
+        1: "#ebedf0",    # very light gray
+        0: "#f0f0f0"     # almost white
+    }
     # Fetch all records
     records = DailyProgress.query.filter(
         DailyProgress.child_id == current_user_id,
@@ -831,15 +943,15 @@ def calendar_report(current_user_id, current_user_role):
         done_count = 4 - len(not_done)
         # Assign the color according to number of task done.
         if done_count == 0:
-            color = "red"
+            color = "#f0f0f0" # almost white
         elif done_count == 1:
-            color = "gray"
+            color = "#ebedf0" # very light gray
         elif done_count == 2:
-            color = "purple"
+            color = "#c6e48b" # light green
         elif done_count == 3:
-            color = "yellow"
+            color = "#7bc96f" # medium green
         else:
-            color = "green"
+            color = "#216e39" # darkest green
         result[current_day.isoformat()] = {
             "status": color,
             "not_done": not_done
@@ -852,17 +964,25 @@ def calendar_report(current_user_id, current_user_role):
         "progress": result
     }), 200
 
-#--------------------------------------------Streak and Badges--------------------------------------------------------------
+# ---------------------------------- Streak, Badges, and Content Stats ---------------------------------------------
 """
-API: Get Streak and Badges Info
-This API is fetch the Current Streak, longest_streak, badges of child.
+API: Get Streak, Badge, and Activity Summary
 
 Role Required: Child
 
+Description:
+This API provides the following details for a logged-in child:
+- Current streak and longest streak values.
+- List of all awarded badges with name, type, and date.
+- Total number of stories completed.
+- Total number of journals written.
+- Total number of infotainment articles read.
+
 Response:
-- 200: When return the longest streak, current streak, and badges
-- 404: If the child record is not found.
+- 200 OK: On success, returns JSON with streaks, badges, and totals.
+- 404 Not Found: If child record is missing.
 """
+
 
 @app.route('/streak-badges', methods=['GET'])
 @jwt_required(required_role='child')
@@ -870,11 +990,41 @@ def get_streak_info(current_user_id, current_user_role):
     child = Child.query.get(current_user_id)
     if not child:
         return jsonify({'error': 'Child not found'}), 404
+
+    # Fetch all badges
+    badge_awards = BadgeAward.query.filter_by(child_id=current_user_id).all()
+    badge_list = [
+        {
+            'name': badge.badge_name,
+            'type': badge.badge_type,
+            'awarded_at': badge.awarded_at.strftime('%Y-%m-%d')
+        }
+        for badge in badge_awards
+    ]
+
+    # Count completed content
+    total_stories_read = DailyStory.query.filter_by(child_id=current_user_id, is_done=True).count()
+    total_journals_written = JournalEntry.query.filter_by(child_id=current_user_id, is_done=True).count()
+    total_infotainment_read = InfotainmentReadLog.query.filter_by(child_id=current_user_id, is_done=True).count()
+
     return jsonify({
         'current_streak': child.streak,
         'longest_streak': child.longest_streak,
-        'badges': child.badges
+        'badges_count': len(badge_list),
+        'badges': badge_list,
+        'total_stories_read': total_stories_read,
+        'total_journals_written': total_journals_written,
+        'total_infotainment_read': total_infotainment_read
     }), 200
+
+#-------------------------------------Trigger evaluate badges and streak-----------------------------------------
+
+
+@app.route('/trigger-badges', methods=['POST'])
+@jwt_required(required_role='child')
+def trigger_badges(current_user_id, current_user_role):
+    evaluate_all_badges(current_user_id)
+    return jsonify({'message': 'Badges evaluated successfully'}), 200
 
 
 #-----------------------------------------------Parent APIs--------------------------------------------------------------------
@@ -1131,6 +1281,63 @@ def child_journal_entries(child_id, current_user_id, current_user_role):
         "journal_entries": journal_list
     }), 200
 
+# ---------------------------------------------journal-by-date-----------------------------------------------------------
+"""
+    Description:
+    Retrieves all journal entries written by a specific child on a given date.
+    This includes the mood, timestamp, and full content of each journal entry.
+    The endpoint ensures the child belongs to the requesting parent.
+
+    Query Parameters:
+    - date (str, required): The target date in YYYY-MM-DD format.
+
+    Path Parameters:
+    - child_id (int): The ID of the child whose journal entries should be retrieved.
+
+    Authorization:
+    - Requires Bearer JWT token with role = parent.
+
+    Responses:
+    - 200 OK: Returns a list of journal entries with id, timestamp, mood, and content.
+    - 400 Bad Request: If date is missing or in the wrong format.
+    - 404 Not Found: If the child does not belong to the parent.
+
+    """
+@app.route('/parent/child/<int:child_id>/journal-by-date', methods=['GET'])
+@jwt_required(required_role='parent')
+def journal_by_date(child_id, current_user_id, current_user_role):
+    date_str = request.args.get('date')
+    if not date_str:
+        return jsonify({'error': 'Date parameter is required'}), 400
+
+    try:
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+    # Verify child belongs to parent
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+    entries = JournalEntry.query.filter(
+        JournalEntry.child_id == child_id,
+        JournalEntry.date == target_date
+    ).order_by(JournalEntry.date.asc()).all()
+
+    result = []
+    for entry in entries:
+        result.append({
+            "id": entry.id,
+            "timestamp": entry.created_at.strftime("%H:%M:%S"),  # Full timestamp
+            "mood": entry.mood,
+            "content": entry.text
+        })
+
+    return jsonify({"journal_entries": result}), 200
+
+
+
 #------------------------------------------Child weekly and monthly report------------------------------------
 """
 API: Get Child Weekly or Monthly Summary
@@ -1228,4 +1435,268 @@ def child_summary(child_id, current_user_id, current_user_role):
         "summary": summary
     }), 200
 
+#--------------------------------------- Report Agent API -----------------------------------------------------------
+@app.route('/parent/child-analysis', methods=['POST'])
+@jwt_required(required_role='parent')
+def generate_child_analysis_report(current_user_id, current_user_role):
+    try:
+        # Get child_id and range from query params
+        child_id = request.args.get("child_id", type=int)
+        summary_range = request.args.get("summary_range", default="weekly")
 
+        if not child_id:
+            return jsonify({'error': 'child_id is required as query parameter'}), 400
+        if summary_range not in ['weekly', 'monthly']:
+            return jsonify({'error': 'Invalid summary_range. Use weekly or monthly'}), 400
+
+        # Fetch the child summary (replicating logic from child_summary)
+        child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+        if not child:
+            return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+        today = date.today()
+        if summary_range == 'weekly':
+            start_date = today - timedelta(days=6)
+        else:
+            start_date = today.replace(day=1)
+
+        progress_entries = DailyProgress.query.filter(
+            DailyProgress.child_id == child_id,
+            DailyProgress.date >= start_date,
+            DailyProgress.date <= today
+        ).order_by(DailyProgress.date).all()
+
+        total_days = (today - start_date).days + 1
+        total_tasks = total_days * 4
+
+        summary = {
+            "total_days": total_days,
+            "tasks_assigned": total_tasks,
+            "tasks_completed": 0,
+            "todo_completed_days": 0,
+            "journal_done_days": 0,
+            "story_done_days": 0,
+            "infotainment_done_days": 0,
+            "entries": []
+        }
+
+        for entry in progress_entries:
+            day_data = {
+                "date": entry.date.isoformat(),
+                "todo_done": entry.is_todo_complete,
+                "journal_done": entry.is_journal_done,
+                "story_done": entry.is_story_done,
+                "infotainment_done": entry.is_infotainment_done
+            }
+            completed_count = sum([
+                entry.is_todo_complete,
+                entry.is_journal_done,
+                entry.is_story_done,
+                entry.is_infotainment_done
+            ])
+            summary["tasks_completed"] += completed_count
+            if entry.is_todo_complete:
+                summary["todo_completed_days"] += 1
+            if entry.is_journal_done:
+                summary["journal_done_days"] += 1
+            if entry.is_story_done:
+                summary["story_done_days"] += 1
+            if entry.is_infotainment_done:
+                summary["infotainment_done_days"] += 1
+            summary["entries"].append(day_data)
+
+        # Prepare input for LLM agent
+        agent_input = {
+            "child_id": child_id,
+            "summary_range": summary_range,
+            **summary
+        }
+
+        markdown_output = analyze_child_data(agent_input, llm)
+        pdf_path = generate_pdf(markdown_output)
+
+        if not os.path.exists(pdf_path):
+            return jsonify({'error': 'PDF generation failed'}), 500
+
+        return send_file(
+            pdf_path,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='child_analysis_report.pdf'
+        )
+    except Exception as e:
+        print("Report Generation Error:", e)
+        return jsonify({'error': 'Failed to generate analysis report'}), 500
+
+
+# ---------------------------infotainment logs for insights------------------------------------------------
+@app.route('/parent/child/<int:child_id>/infotainment-logs', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_infotainment_logs(child_id, current_user_id, current_user_role):
+    # Optional query parameters
+    date_str = request.args.get('date')  # for daily logs
+    week = request.args.get('week')      # for weekly summary
+
+    # Step 1: Validate Child Ownership
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+    # Step 2A: If specific date is provided, show daily logs
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        logs = InfotainmentReadLog.query.filter_by(child_id=child_id, date=selected_date).all()
+        result = [{
+            'id': log.id,
+            'child_prompt': log.child_prompt,
+            'content': log.content,
+            'is_done': log.is_done,
+            'marked_at': log.marked_at.isoformat(),
+            'time': log.time.isoformat(),
+            'date': log.date.isoformat()
+            
+        } for log in logs]
+
+        return jsonify({
+            'date': selected_date.isoformat(),
+            'total_read': len(result),
+            'logs': result
+        }), 200
+
+    # Step 2B: If `week=true`, return weekly grouped stats
+    if week == 'true':
+        today = datetime.utcnow().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)             # Sunday
+
+        weekly_logs = db.session.query(
+            InfotainmentReadLog.date,
+            func.count(InfotainmentReadLog.id).label('topics_read')
+        ).filter(
+            InfotainmentReadLog.child_id == child_id,
+            InfotainmentReadLog.date >= week_start,
+            InfotainmentReadLog.date <= week_end,
+            InfotainmentReadLog.is_done == True
+        ).group_by(InfotainmentReadLog.date).all()
+
+        # Format response
+        result = [{
+            'date': log.date.isoformat(),
+            'topics_read': log.topics_read
+        } for log in weekly_logs]
+
+        return jsonify({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'weekly_summary': result
+        }), 200
+
+    # Step 2C: If no date or week is given, return last 7 entries
+    recent_logs = InfotainmentReadLog.query.filter_by(child_id=child_id)\
+                    .order_by(InfotainmentReadLog.date.desc())\
+                    .limit(7).all()
+
+    result = [{
+        'date': log.date.isoformat(),
+        'child_prompt': log.child_prompt,
+        'is_done': log.is_done,
+        'marked_at': log.marked_at.isoformat()
+    } for log in recent_logs]
+
+    return jsonify({
+        'recent_logs': result
+    }), 200
+
+
+
+# ---------------------------Story logs for insights------------------------------------------------
+@app.route('/parent/child/<int:child_id>/story-logs', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_story_logs(child_id, current_user_id, current_user_role):
+    # Optional query parameters
+    date_str = request.args.get('date')  # for daily logs
+    week = request.args.get('week')      # for weekly summary
+
+    # Step 1: Validate Child Ownership
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+
+    # Step 2A: If specific date is provided, show daily logs
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        logs = DailyStory.query.filter_by(child_id=child_id, date=selected_date).all()
+        result = [{
+            'id': log.id,
+            'child_prompt': log.child_prompt,
+            'title': log.title,
+            'theme': log.theme,
+            'content': log.content,
+            'question': log.question,
+            'option_a': log.option_a,
+            'option_b': log.option_b,
+            'option_c': log.option_c,
+            'option_d': log.option_d,
+            'correct_option': log.correct_option,
+            'submitted_option': log.submitted_option,
+            'is_done': log.is_done,
+            'date': log.date.isoformat()
+        } for log in logs]
+
+        return jsonify({
+            'date': selected_date.isoformat(),
+            'total_read': len(result),
+            'logs': result
+        }), 200
+
+    # Step 2B: If `week=true`, return weekly grouped stats
+    if week == 'true':
+        today = datetime.utcnow().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)             # Sunday
+
+        weekly_logs = db.session.query(
+            DailyStory.date,
+            func.count(DailyStory.id).label('stories_read')
+        ).filter(
+            DailyStory.child_id == child_id,
+            DailyStory.date >= week_start,
+            DailyStory.date <= week_end,
+            DailyStory.is_done == True
+        ).group_by(DailyStory.date).all()
+
+        result = [{
+            'date': log.date.isoformat(),
+            'stories_read': log.stories_read
+        } for log in weekly_logs]
+
+        return jsonify({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'weekly_summary': result
+        }), 200
+
+    # Step 2C: If no date or week is given, return last 7 entries
+    recent_logs = DailyStory.query.filter_by(child_id=child_id)\
+                    .order_by(DailyStory.date.desc())\
+                    .limit(7).all()
+
+    result = [{
+        'date': log.date.isoformat(),
+        'child_prompt': log.child_prompt,
+        'title': log.title,
+        'theme': log.theme,
+        'is_done': log.is_done
+    } for log in recent_logs]
+
+    return jsonify({
+        'recent_logs': result
+    }), 200
