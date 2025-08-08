@@ -80,7 +80,7 @@ import { ref, computed } from 'vue';
 .sidebar {
   width: 160px;
   transition: width 0.3s ease;
-  background:  #ff9a8b;
+  background:  #be6dbe;
   font-family: 'Comic Neue', cursive;
   height: 100vh;
   padding: 10px;

@@ -96,6 +96,9 @@ Examples:
 
     Prompt: "i want to read stoy on sun a star"
     Answer: true
+                                      
+    Prompt: "i want to read stoy on my grandmother"
+    Answer: true
 
 Your entire response **must be exactly either "true" or "false"** — no extra text, explanation, or formatting.
             """),
