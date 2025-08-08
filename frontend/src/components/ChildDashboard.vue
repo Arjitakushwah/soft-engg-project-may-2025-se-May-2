@@ -23,6 +23,7 @@ import { useRouter } from 'vue-router'
 import NavBar from '@/components/Nav.vue'
 import Sidebar from '@/components/Sidebar.vue'
 
+
 const router = useRouter()
 const role = 'child'
 const isSidebarVisible = ref(false)
@@ -34,6 +35,10 @@ const toggleSidebar = () => {
 const navigateToPage = (page) => {
   isSidebarVisible.value = false // auto-close on mobile after navigation
   router.push({ name: page })
+}
+
+const goToEditProfile = () => {
+  router.push({ name: 'ChildEditProfile' })
 }
 
 onMounted(() => {
@@ -64,4 +69,15 @@ onMounted(() => {
   color: #1e293b;
   height: 100vh;
 }
+
+.edit-btn {
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background-color: #4f46e5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 </style>
