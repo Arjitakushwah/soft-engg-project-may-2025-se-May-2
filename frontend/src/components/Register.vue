@@ -15,8 +15,10 @@
 
         <!-- Google Sign-In Button -->
         <div class="mb-3">
-            <button @click="registerWithGoogle" class="btn btn-google w-100">
-                <i class="bi bi-google me-2"></i>Register with Google
+            <button @click="registerWithGoogle" class="btn btn-google w-100" :disabled="isGoogleLoading">
+                <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <i v-else class="bi bi-google me-2"></i>
+                Register with Google
             </button>
         </div>
 
@@ -39,7 +41,7 @@
             <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
           </div>
           <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-            <span v-if="isLoading && !isGoogleLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <span v-else>Send OTP</span>
           </button>
         </form>
@@ -118,6 +120,16 @@
             />
             <div v-if="errors.passwordConfirm" class="invalid-feedback">{{ errors.passwordConfirm }}</div>
           </div>
+
+          <!-- Terms of Service Checkbox -->
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" :class="{'is-invalid': errors.terms}" id="termsCheck" v-model="termsAccepted" @change="validateField('terms')">
+            <label class="form-check-label" for="termsCheck">
+              I agree to the <a href="#" target="_blank">Terms of Service</a> and <a href="#" target="_blank">Privacy Policy</a>.
+            </label>
+            <div v-if="errors.terms" class="invalid-feedback">{{ errors.terms }}</div>
+          </div>
+
           <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
             <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <span v-else>Register</span>
@@ -137,8 +149,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 
 // --- STATE MANAGEMENT ---
 const form = ref({
@@ -149,6 +161,7 @@ const form = ref({
   passwordConfirm: '',
 });
 const otp = ref('');
+const termsAccepted = ref(false); // State for the checkbox
 const step = ref(1); // 1: Email, 2: OTP, 3: Details
 const errors = ref({});
 const serverError = ref('');
@@ -157,16 +170,33 @@ const isLoading = ref(false);
 const isCheckingUsername = ref(false);
 const isGoogleLoading = ref(false);
 const router = useRouter();
+const route = useRoute();
 
 const debounceTimers = {};
+
+// --- Handle Google Auth Errors on Mount ---
+onMounted(() => {
+    const error = route.query.error;
+    if (error) {
+        if (error === 'google_auth_failed') {
+            serverError.value = "Google registration failed. Please try again or use email.";
+        } else if (error === 'google_email_missing') {
+            serverError.value = "Could not retrieve email from Google. Please ensure permissions are granted.";
+        } else {
+            serverError.value = "An unknown error occurred during Google registration.";
+        }
+    }
+});
+
 
 // --- API CALLS ---
 
 const registerWithGoogle = () => {
     isGoogleLoading.value = true;
-    // Redirect to the backend endpoint that initiates the Google OAuth flow
+    // Redirect the entire page to the backend endpoint to start the Google OAuth flow
     window.location.href = 'http://localhost:5000/auth/google/login';
 };
+
 
 const handleSendOtp = async () => {
   serverError.value = '';
@@ -327,6 +357,12 @@ const validateField = async (fieldName) => {
       if (!form.value.passwordConfirm) errors.value.passwordConfirm = 'Please confirm your password.';
       else if (form.value.password !== form.value.passwordConfirm) errors.value.passwordConfirm = 'Passwords do not match.';
       break;
+      
+    case 'terms':
+        if (!termsAccepted.value) {
+            errors.value.terms = 'You must accept the terms and conditions to register.';
+        }
+        break;
   }
 };
 
@@ -335,7 +371,8 @@ const validateFormOnSubmit = async () => {
         validateField('name'),
         validateField('username'),
         validateField('password'),
-        validateField('passwordConfirm')
+        validateField('passwordConfirm'),
+        validateField('terms') // Validate terms on submit
     ]);
     return Object.values(errors.value).every(error => !error);
 };
@@ -345,15 +382,15 @@ const validateFormOnSubmit = async () => {
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
 .invalid-feedback { display: block; text-align: left; margin-top: 0.25rem; }
-.navbar { background-color: #be6dbe !important; }
+.navbar { background-color: #756bdb !important; }
 .app-title { font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: #f3ebec !important; text-decoration: none; }
-.btn-outline-primary { background-color: white; border-color: #3b82f6; color: #be6dbe; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
+.btn-outline-primary { background-color: white; border-color: #3b82f6; color: #756bdb; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
 .btn-outline-primary:hover { transform: scale(1.05); background-color: #faf2f4; }
-.btn-primary { background-color: white; border-color: #3b82f6; color: #be6dbe; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
+.btn-primary { background-color: white; border-color: #3b82f6; color: #756bdb; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
 .btn-primary:hover { transform: scale(1.05); background-color: #faf2f4; }
 .register-container { font-family: 'Comic Neue', cursive; }
 .card { background: linear-gradient(135deg, #fff0f5, #f0f8ff); border-radius: 20px; }
-.btn-success { background-color: #be6dbe; font-family: 'Fredoka One', cursive; border: none; }
+.btn-success { background-color: #756bdb; font-family: 'Fredoka One', cursive; border: none; }
 .btn-success:hover { background-color: #dd6fdd; }
 .btn-link { color: #6c757d; text-decoration: none; }
 .btn-link:hover { color: #0056b3; }
@@ -390,5 +427,13 @@ const validateFormOnSubmit = async () => {
 }
 .separator:not(:empty)::after {
     margin-left: .5em;
+}
+
+.form-check-label a {
+    color: #007bff;
+    text-decoration: none;
+}
+.form-check-label a:hover {
+    text-decoration: underline;
 }
 </style>

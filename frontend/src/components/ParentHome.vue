@@ -257,7 +257,7 @@ const downloadChildReport = async (childId) => {
 }
 
 .child-card {
-  background-color: #fef3f7;
+  background-color: #E6E6FA;
   padding: 1.2rem;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
@@ -272,13 +272,13 @@ const downloadChildReport = async (childId) => {
 
 .child-card h4 {
   color: #ff6a88;
-  font-size: 1.3rem;
+  font-size: 1.5rem;
   margin-bottom: 0.5rem;
 }
 
 .child-card p {
   margin: 0.3rem 0;
-  font-size: 0.95rem;
+  font-size: 1rem;
   color: #555;
 }
 

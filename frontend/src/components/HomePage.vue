@@ -10,6 +10,10 @@
     <header class="hero">
       <h1>Your Adventure in Learning Begins!</h1>
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
+      <div class="nav-links">
+        <button class="btn-primary" @click="$router.push('/register')">Register as Parent</button>
+        <button class="btn-secondary" @click="$router.push('/login')">Login</button>
+      </div>
     </header>
     <main class="features-showcase">
       <h2>What’s Inside for You?</h2>

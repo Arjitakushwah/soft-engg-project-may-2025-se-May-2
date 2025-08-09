@@ -35,7 +35,7 @@ def home():
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-REDIRECT_URI = "http://127.0.0.1:5000/auth/google/callback" 
+REDIRECT_URI = "http://localhost:5000/auth/google/callback" 
 
 # Required for local development to use HTTP instead of HTTPS
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -47,6 +47,7 @@ def login_with_google():
         scopes=['https://www.googleapis.com/auth/userinfo.email', 'openid'],
         redirect_uri=url_for('handle_callback', _external=True)
     )
+    print("Redirect URI:", url_for('handle_callback', _external=True))
     auth_url, _ = flow.authorization_url(prompt='consent')
     return redirect(auth_url)
 
@@ -83,12 +84,11 @@ def handle_callback():
         identity=str(user.id),
         additional_claims={"role": user.role}
     )
-    return jsonify({
-        "message": "Login successful",
-        "access_token": access_token,
-        "role": user.role,
-        "redirect_to": "/parent/dashboard"
-    }), 200
+    frontend_callback_url = (
+    f"http://localhost:5173/auth/google/callback"  # Use your Vue app's address
+    f"?token={access_token}&role={user.role}&username={user.username}"
+)
+    return redirect(frontend_callback_url)
 
 #--------------------------------------------Check Username----------------------------------------------------
 

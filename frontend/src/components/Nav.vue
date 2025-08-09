@@ -76,7 +76,7 @@ const navigateToPage = (page) => {
 
 <style scoped>
 .navbar {
-  background-color: #be6dbe !important;
+  background-color: #E6E6FA !important;
 }
 
 .app-title {

@@ -12,6 +12,20 @@
     <div class="login-container container mt-5">
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
         <h2 class="text-center mb-4">Login</h2>
+
+        <!-- Google Sign-In Button -->
+        <div class="mb-3">
+            <button @click="loginWithGoogle" class="btn btn-google w-100" :disabled="isGoogleLoading">
+                <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <i v-else class="bi bi-google me-2"></i>
+                Login with Google
+            </button>
+        </div>
+
+        <div class="separator">
+            <span>OR</span>
+        </div>
+
         <div class="mb-3 d-flex justify-content-center gap-3">
           <div class="form-check">
             <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
@@ -29,7 +43,10 @@
           <div class="mb-3">
             <input type="password" class="form-control" v-model="password" placeholder="Password" required />
           </div>
-          <button type="submit" class="btn btn-success w-100">Login as {{ role }}</button>
+          <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
+             <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+             <span v-else>Login as {{ role }}</span>
+          </button>
         </form>
         <p class="text-center mt-3">
           <router-link to="/forgot-password" class="text-primary">Forgot Password?</router-link>
@@ -44,22 +61,44 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const username = ref('')
 const password = ref('')
 const role = ref('parent')
 const error = ref('')
 const success = ref('')
+const isLoading = ref(false)
+const isGoogleLoading = ref(false)
 const router = useRouter()
+const route = useRoute()
+
+onMounted(() => {
+    const queryError = route.query.error;
+    if (queryError) {
+        if (queryError === 'google_auth_failed' || queryError === 'google_fetch_failed') {
+            error.value = "Google login failed. Please try again.";
+        } else if (queryError === 'google_email_missing') {
+             error.value = "Could not retrieve email from Google. Please ensure permissions are granted.";
+        }
+    }
+});
+
+const loginWithGoogle = () => {
+    isGoogleLoading.value = true;
+    // Redirect to the backend which handles the Google OAuth flow
+    window.location.href = 'http://localhost:5000/auth/google/login';
+};
 
 const login = async () => {
   error.value = ''
   success.value = ''
+  isLoading.value = true;
 
   if (!username.value || !password.value) {
     error.value = 'Please enter both username and password'
+    isLoading.value = false;
     return
   }
 
@@ -87,11 +126,12 @@ const login = async () => {
     localStorage.setItem('username', username.value)
 
     success.value = 'Login successful! Redirecting...'
-
+    
+    // Store parent/child specific info if needed
     if (result.role === 'parent') {
       localStorage.setItem('parent', JSON.stringify({
         username: username.value,
-        name: username.value
+        name: username.value // Assuming name is same as username for now
       }))
     } else if (result.role === 'child') {
       localStorage.setItem('child', JSON.stringify({
@@ -107,26 +147,30 @@ const login = async () => {
   } catch (err) {
     console.error(err)
     error.value = 'Network error. Please try again.'
+  } finally {
+      isLoading.value = false;
   }
 }
 </script>
 
 <style scoped>
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
+
 .navbar {
-  background-color: #be6dbe !important;
+  background-color: #756bdb !important;
 }
 
 .app-title {
   font-family: 'Fredoka One', cursive;
   font-size: 1.6rem;
-  color: #ff6a88 !important;
+  color: #f0f8ff !important;
   text-decoration: none;
 }
 
 .btn-outline-primary {
-  background-color: white;
+  background-color: #f0f8ff;
   border-color: #3b82f6;
-  color: #ff6a88;
+  color: #756bdb;
   border: none;
   margin-left: 10px;
   padding: 10px 20px;
@@ -142,9 +186,9 @@ const login = async () => {
 }
 
 .btn-primary {
-  background-color: white;
+  background-color: #f0f8ff;
   border-color: #3b82f6;
-  color: #ff6a88;
+  color: #756bdb;
   border: none;
   margin-left: 10px;
   padding: 10px 20px;
@@ -170,7 +214,7 @@ const login = async () => {
 }
 
 .btn-success {
-  background-color: #ff6a88;
+  background-color: #756bdb;
   font-family: 'Fredoka One', cursive;
   border: none;
 }
@@ -199,5 +243,37 @@ const login = async () => {
   background-position: center;
   background-repeat: no-repeat;
   overflow: hidden;
+}
+
+.btn-google {
+    background-color: #ffffff;
+    color: #4285F4;
+    border: 1px solid #dcdcdc;
+    font-weight: bold;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.btn-google:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #aaa;
+    margin: 1.5rem 0;
+}
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+}
+.separator:not(:empty)::before {
+    margin-right: .5em;
+}
+.separator:not(:empty)::after {
+    margin-left: .5em;
 }
 </style>

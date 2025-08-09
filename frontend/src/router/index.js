@@ -28,6 +28,7 @@ import ResetPassword from '../components/ResetPassword.vue'
 import Error404 from '../components/Error404.vue'
 import ParentEditProfile from '../components/ParentEditProfile.vue'
 import ChildEditProfile from '../components/ChildEditProfile.vue'
+import GoogleAuthCallback from '../components/GoogleAuthCallback.vue' // Adjust this path if needed
 
 const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
@@ -38,6 +39,11 @@ const routes = [
   { path: '/checkotp',name: 'VerifyOTP',component: VerifyOTP},
   { path: '/resetpassword',name: 'ResetPassword',component: ResetPassword},
   { path: '/error-404',name: 'Error404',component: Error404},
+  {
+    path: '/auth/google/callback',
+    name: 'GoogleAuthCallback',
+    component: GoogleAuthCallback
+  },
   {
     path: '/child',
     component: ChildDashboard,
@@ -64,7 +70,7 @@ const routes = [
       { path: 'add-child', name: 'AddChild', component: AddChild },
       { path: 'calendar', name: 'ParentCalendar', component: ParentCalendar },
       {
-        path: 'activity-analysis',
+        path: 'activity_analysis',
         component: ParentActivityInsight,
         name: 'ParentActivityInsight',
         children: [
