@@ -68,7 +68,7 @@ const logout = () => {
 
 <style scoped>
 .navbar {
-  background-color: #f0eae9 !important;
+  background-color: #be6dbe !important;
 }
 
 .app-title {

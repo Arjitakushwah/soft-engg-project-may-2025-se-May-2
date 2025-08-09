@@ -12,10 +12,21 @@
     <div class="register-container container mt-5">
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 500px;">
         <h2 class="text-center mb-4">Register as Parent</h2>
+
+        <!-- Google Sign-In Button -->
+        <div class="mb-3">
+            <button @click="registerWithGoogle" class="btn btn-google w-100">
+                <i class="bi bi-google me-2"></i>Register with Google
+            </button>
+        </div>
+
+        <div class="separator">
+            <span>OR</span>
+        </div>
         
         <!-- Step 1: Email Input and Send OTP -->
         <form @submit.prevent="handleSendOtp" v-if="step === 1" novalidate>
-          <p class="text-center text-muted">Start by entering your email to receive a verification code.</p>
+          <p class="text-center text-muted small">Register with your email to receive a verification code.</p>
           <div class="mb-3">
             <input
               type="email"
@@ -28,7 +39,7 @@
             <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
           </div>
           <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-if="isLoading && !isGoogleLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             <span v-else>Send OTP</span>
           </button>
         </form>
@@ -144,11 +155,18 @@ const serverError = ref('');
 const success = ref('');
 const isLoading = ref(false);
 const isCheckingUsername = ref(false);
+const isGoogleLoading = ref(false);
 const router = useRouter();
 
 const debounceTimers = {};
 
 // --- API CALLS ---
+
+const registerWithGoogle = () => {
+    isGoogleLoading.value = true;
+    // Redirect to the backend endpoint that initiates the Google OAuth flow
+    window.location.href = 'http://localhost:5000/auth/google/login';
+};
 
 const handleSendOtp = async () => {
   serverError.value = '';
@@ -324,20 +342,53 @@ const validateFormOnSubmit = async () => {
 </script>
 
 <style scoped>
-/* No changes to CSS are needed. */
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
+
 .invalid-feedback { display: block; text-align: left; margin-top: 0.25rem; }
-.navbar { background-color: #f0eae9 !important; }
-.app-title { font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: #ff6a88 !important; text-decoration: none; }
-.btn-outline-primary { background-color: white; border-color: #3b82f6; color: #ff6a88; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
+.navbar { background-color: #be6dbe !important; }
+.app-title { font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: #f3ebec !important; text-decoration: none; }
+.btn-outline-primary { background-color: white; border-color: #3b82f6; color: #be6dbe; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
 .btn-outline-primary:hover { transform: scale(1.05); background-color: #faf2f4; }
-.btn-primary { background-color: white; border-color: #3b82f6; color: #ff6a88; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
+.btn-primary { background-color: white; border-color: #3b82f6; color: #be6dbe; border: none; margin-left: 10px; padding: 10px 20px; font-family: 'Fredoka One', cursive; border-radius: 30px; cursor: pointer; transition: transform 0.3s, background-color 0.3s; }
 .btn-primary:hover { transform: scale(1.05); background-color: #faf2f4; }
 .register-container { font-family: 'Comic Neue', cursive; }
 .card { background: linear-gradient(135deg, #fff0f5, #f0f8ff); border-radius: 20px; }
-.btn-success { background-color: #ff6a88; font-family: 'Fredoka One', cursive; border: none; }
-.btn-success:hover { background-color: #ff6a88; }
+.btn-success { background-color: #be6dbe; font-family: 'Fredoka One', cursive; border: none; }
+.btn-success:hover { background-color: #dd6fdd; }
 .btn-link { color: #6c757d; text-decoration: none; }
 .btn-link:hover { color: #0056b3; }
 .login-link { color: #007bff; text-decoration: none; font-weight: bold; }
 .login-link:hover { text-decoration: underline; }
+
+.btn-google {
+    background-color: #ffffff;
+    color: #4285F4;
+    border: 1px solid #dcdcdc;
+    font-weight: bold;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.btn-google:hover {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: #aaa;
+    margin: 1.5rem 0;
+}
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ddd;
+}
+.separator:not(:empty)::before {
+    margin-right: .5em;
+}
+.separator:not(:empty)::after {
+    margin-left: .5em;
+}
 </style>

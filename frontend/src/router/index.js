@@ -26,6 +26,7 @@ import ForgotPassword from '../components/ForgotPassword.vue'
 import ForgotUsername from '../components/ForgotUsername.vue'
 import VerifyOTP from '../components/checkotp.vue'
 import ResetPassword from '../components/ResetPassword.vue'
+import Error404 from '../components/Error404.vue'
 
 const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
@@ -35,6 +36,7 @@ const routes = [
   { path: '/forgot-username',name: 'ForgotUsername',component: ForgotUsername},
   { path: '/checkotp',name: 'VerifyOTP',component: VerifyOTP},
   { path: '/resetpassword',name: 'ResetPassword',component: ResetPassword},
+  { path: '/error-404',name: 'Error404',component: Error404},
   {
     path: '/child', name: 'Child', component: ChildDashboard,
     children: [
