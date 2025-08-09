@@ -654,13 +654,29 @@ Response:
 @jwt_required(required_role='child')
 def create_journal(current_user_id, current_user_role):
     data = request.get_json()
-    text = data.get('text')
+    text = data.get('text', '').strip()
+
     if not text:
         return jsonify({'error': 'Journal text is required'}), 400
 
     try:
-        mood_dict = classify_emotion(text, llm)
-        mood = mood_dict.get("emotion", "unknown")
+        print("DEBUG: Received journal text =", text)
+
+        mood_dict = classify_emotion(text)
+        print("DEBUG: mood_dict =", mood_dict)
+
+        mood = mood_dict.get("emotion", "")
+
+        # Defensive: If mood is a list by accident, join into string
+        if isinstance(mood, list):
+            mood = ", ".join(mood)
+
+        mood = mood.strip().lower()
+
+        if mood in ["invalid", "error", "unknown", None, ""]:
+            print("WARNING: Mood detection failed or invalid. Defaulting to 'Unknown'")
+            mood = "Unknown"
+
         now_ist = ist_now()
         entry = JournalEntry(
             child_id=current_user_id,
@@ -674,19 +690,23 @@ def create_journal(current_user_id, current_user_role):
         db.session.add(entry)
         db.session.commit()
 
-        # Optionally update streak and progress
         update_daily_progress(current_user_id, date.today())
         evaluate_all_badges(current_user_id)
 
         return jsonify({
-            'message': 'Journal entry created successfully',
+            'message': mood_dict.get("message", "Journal entry created successfully"),
             'mood': mood,
             'journal_text': entry.text
         }), 200
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Failed to process journal entry', 'details': str(e)}), 500
+        print("ERROR: Failed to process journal entry:", str(e))
+        return jsonify({
+            'error': 'Failed to process journal entry',
+            'details': str(e)
+        }), 500
+
 
 #----------------------------------search Journal---------------------------------------------------------------
 @app.route('/journal/search', methods=['GET'])
