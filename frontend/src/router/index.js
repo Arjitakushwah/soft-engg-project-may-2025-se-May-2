@@ -56,7 +56,7 @@ const routes = [
       // { path: 'quiz', name: 'QuizPage', component: QuizPage },
       { path: 'journal', name: 'ChildJournal', component: ChildJournal },
       { path: 'infotainment', name: 'ChildInfotainment', component: ChildInfotainment },
-      { path: 'result', name: 'InfoResult', component: Result, props: true },
+      { path: 'result', name: 'infoResult', component: Result, props: true },
       { path: 'edit-profile', name: 'ChildEditProfile', component: ChildEditProfile }
     ]
   },

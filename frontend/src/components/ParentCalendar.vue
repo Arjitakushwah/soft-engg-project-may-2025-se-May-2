@@ -239,7 +239,7 @@ onMounted(() => {
 
 .calendar-container h2 {
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
   text-align: center;
   margin-bottom: 1.5rem;
 }
@@ -261,7 +261,7 @@ onMounted(() => {
 .fc .fc-toolbar-title {
   font-size: 1.2rem;
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
 }
 
 .fc-daygrid-day-number {

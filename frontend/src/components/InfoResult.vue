@@ -23,9 +23,9 @@
         </div>
         <h3 class="news-title">{{ article.title || 'Untitled' }}</h3>
         <p class="news-summary">{{ article.summary || article.content }}</p>
-        <a v-if="article.read_more" :href="article.read_more" target="_blank" class="read-more">
+        <!-- <a v-if="article.read_more" :href="article.read_more" target="_blank" class="read-more">
           Read More →
-        </a>
+        </a> -->
       </div>
     </div>
 

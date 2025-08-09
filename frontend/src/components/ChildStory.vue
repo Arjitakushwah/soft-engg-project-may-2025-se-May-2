@@ -366,7 +366,7 @@ onMounted(async () => {
 }
 .action-input:focus {
   outline: none;
-  border-color: #ff6a88;
+  border-color: #5A4FCF;
 }
 .separator {
   width: 2px;
@@ -409,7 +409,7 @@ onMounted(async () => {
   stroke-width: 2.5;
 }
 .generate-btn { 
-  background-color: #ff6a88; 
+  background-color: #5A4FCF; 
   min-width: 110px;
 }
 .search-btn { 
@@ -494,7 +494,7 @@ onMounted(async () => {
 .prompt-container .rocket { 
   width: 60px; 
   height: 60px; 
-  color: #ff6a88; 
+  color: #5A4FCF; 
   margin-bottom: 1.5rem; 
 }
 .message { 

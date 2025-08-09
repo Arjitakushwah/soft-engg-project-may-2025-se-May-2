@@ -216,12 +216,12 @@ export default {
           datasets: [{
             label: 'Mood Score (1=Sad, 5=Happy)',
             data: moodScores,
-            borderColor: '#ff6a88',
-            backgroundColor: 'rgba(255,106,136,0.2)',
+            borderColor: '#5A4FCF',
+            backgroundColor: '#5A4FCF',
             tension: 0.4,
             fill: true,
             pointRadius: 5,
-            pointBackgroundColor: '#ff6a88'
+            pointBackgroundColor: '#5A4FCF'
           }]
         }
 
@@ -230,7 +230,7 @@ export default {
           datasets: [{
             label: 'Mood Distribution',
             data: piePercent,
-            backgroundColor: ['#ff6a88', '#ffc371', '#8ae9c1', '#a9a0f3', '#ffb347']
+            backgroundColor: ['#5A4FCF', '#ffc371', '#8ae9c1', '#a9a0f3', '#ffb347']
           }]
         }
       } catch (err) {
@@ -348,7 +348,7 @@ h2 {
 
 /* BUTTON */
 .view-btn {
-  background: #ff6a88;
+  background: #5A4FCF;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -369,7 +369,7 @@ h2 {
 }
 
 .chart-card {
-  background: #ffe6ec;
+  background: #E6E6FA;
   padding: 18px;
   border-radius: 16px;
   flex: 1 1 45%;
@@ -378,7 +378,7 @@ h2 {
 }
 
 .chart-card h3 {
-  color: #ff6a88;
+  color: #5A4FCF;
   font-family: 'Fredoka One', cursive;
   text-align: center;
   margin-bottom: 1rem;
@@ -395,7 +395,7 @@ h2 {
 .weekly-chart-card {
   /* max-width: 600px; */
   width: 100%;
-  background: #ffe6ec;
+  background: #E6E6FA;
   padding: 20px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(255, 106, 136, 0.08);
@@ -406,7 +406,7 @@ h2 {
 
 .weekly-chart-card h3 {
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
   font-size: 1.2rem;
   margin-bottom: 1rem;
   text-align: center;

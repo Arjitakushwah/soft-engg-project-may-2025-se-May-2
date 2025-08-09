@@ -274,7 +274,7 @@ const updateExistingProfile = async () => {
     message.value = '';
     try {
         const token = localStorage.getItem('access_token');
-        const response = await fetch('http://localhost:5000/parent/profile-update', {
+        const response = await fetch('http://localhost:5000/parent/update-profile', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({

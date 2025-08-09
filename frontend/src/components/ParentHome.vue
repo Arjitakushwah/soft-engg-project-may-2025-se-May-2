@@ -227,7 +227,7 @@ const downloadChildReport = async (childId) => {
 
 .title {
   font-size: 2.2rem;
-  color: #ff6a88;
+  color: #5A4FCF;
   margin-bottom: 1rem;
   font-family: 'Fredoka One', cursive;
 }
@@ -271,7 +271,7 @@ const downloadChildReport = async (childId) => {
 }
 
 .child-card h4 {
-  color: #ff6a88;
+  color: #5A4FCF;
   font-size: 1.5rem;
   margin-bottom: 0.5rem;
 }
