@@ -149,6 +149,16 @@
 .feature-icon {
   font-size: 3rem;
   margin-bottom: 15px;
+  color: #5A4FCF;
+}
+
+.feature-icon i {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.feature-card:hover .feature-icon i {
+  transform: scale(1.1);
+  color: #F7D96F;
 }
 
 .feature-card h3 {

@@ -28,7 +28,7 @@ import ResetPassword from '../components/ResetPassword.vue'
 import Error404 from '../components/Error404.vue'
 import ParentEditProfile from '../components/ParentEditProfile.vue'
 import ChildEditProfile from '../components/ChildEditProfile.vue'
-import GoogleAuthCallback from '../components/GoogleAuthCallback.vue' // Adjust this path if needed
+import GoogleAuthCallback from '../components/GoogleAuthCallBack.vue' // Adjust this path if needed
 
 const routes = [
   { path: '/', name: 'HomePage', component: HomePage },
