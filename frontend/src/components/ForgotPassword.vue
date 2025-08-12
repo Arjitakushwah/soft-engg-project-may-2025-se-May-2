@@ -227,26 +227,26 @@ const handleSetPassword = async () => {
 
 <style scoped>
 .btn-success {
-  background-color: #ff6a88;
+  background-color: #756bdb;
   font-family: 'Fredoka One', cursive;
   border: none;
 }
 .btn-success:hover {
-  background-color: #ff6a88;
+  background-color: #756bdb;
 }
 .navbar {
-  background-color: #f0eae9 !important;
+  background-color: #756bdb !important;
 }
 .app-title {
   font-family: 'Fredoka One', cursive;
   font-size: 1.6rem;
-  color: #ff6a88 !important;
+  color: white !important;
   text-decoration: none;
 }
 .btn-outline-primary {
   background-color: white;
   border-color: #3b82f6;
-  color: #ff6a88;
+  color: #756bdb;
   border: none;
   margin-left: 10px;
   padding: 10px 20px;
@@ -262,7 +262,7 @@ const handleSetPassword = async () => {
 .btn-primary {
   background-color: white;
   border-color: #3b82f6;
-  color: #ff6a88;
+  color: #756bdb;
   border: none;
   margin-left: 10px;
   padding: 10px 20px;
@@ -282,7 +282,7 @@ const handleSetPassword = async () => {
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #ff6a88;
+  color: #756bdb;
   cursor: pointer;
   transition: transform 0.2s ease;
 }

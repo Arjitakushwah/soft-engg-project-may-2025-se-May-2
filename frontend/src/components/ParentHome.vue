@@ -30,32 +30,68 @@
               <h4>{{ child.name }}</h4>
               <p><strong>Age:</strong> {{ child.age }}</p>
               <p><strong>Gender:</strong> {{ child.gender }}</p>
-              <button class="btn btn-primary btn-sm mt-2" @click="fetchChildProfile(child.id)">
-                View Profile
-              </button>
+              <!-- Action Buttons -->
+              <div class="btn-group mt-2">
+                <button class="btn btn-info btn-sm" @click="fetchChildProfile(child.id)">
+                  View Profile
+                </button>
+                <button class="btn btn-secondary btn-sm" @click="openEditModal(child)">
+                  Edit Profile
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Modal -->
+        <!-- View Profile Modal -->
         <transition name="modal-fade">
           <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
             <div class="modal-content">
               <span class="modal-close" @click="showModal = false">×</span>
-
               <h4 class="modal-title">{{ profile.name }}'s Profile</h4>
               <p><strong>Age:</strong> {{ profile.age }}</p>
               <p><strong>Gender:</strong> {{ profile.gender }}</p>
               <p><strong>Streak:</strong> {{ profile.streak }}</p>
               <p><strong>Longest Streak:</strong> {{ profile.longest_streak }}</p>
               <p><strong>Badges:</strong> {{ profile.badges }}</p>
-
               <button class="btn btn-success mt-3" @click="downloadChildReport(profile.id)" :disabled="isDownloading">
                 <span v-if="isDownloading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                 <span v-else>Download Weekly Report</span>
               </button>
             </div>
           </div>
+        </transition>
+
+        <!-- Edit Profile Modal -->
+        <transition name="modal-fade">
+            <div v-if="showEditModal" class="modal-backdrop" @click.self="showEditModal = false">
+                <div class="modal-content">
+                    <span class="modal-close" @click="showEditModal = false">×</span>
+                    <h4 class="modal-title">Edit {{ editingChild.name }}'s Profile</h4>
+                    <form @submit.prevent="updateChildProfile">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input v-model="editingChild.name" type="text" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input v-model="editingChild.age" type="number" min="1" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select v-model="editingChild.gender" class="form-control" required>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3 w-100" :disabled="isUpdating">
+                            <span v-if="isUpdating" class="spinner-border spinner-border-sm"></span>
+                            <span v-else>Save Changes</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
         </transition>
     </div>
   </div>
@@ -68,11 +104,16 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const parentName = ref('Parent')
 const children = ref([])
-const showModal = ref(false)
 const profile = ref({})
 const isLoading = ref(true)
 const noChildrenFound = ref(false)
 const isDownloading = ref(false)
+
+// State for modals
+const showModal = ref(false)
+const showEditModal = ref(false)
+const editingChild = ref(null)
+const isUpdating = ref(false)
 
 const fetchChildrenData = async () => {
     isLoading.value = true;
@@ -134,6 +175,47 @@ const fetchChildProfile = async (childId) => {
     alert('Network error')
   }
 }
+
+const openEditModal = (child) => {
+    // Create a copy to avoid mutating the original object until save
+    editingChild.value = { ...child };
+    showEditModal.value = true;
+};
+
+const updateChildProfile = async () => {
+    if (!editingChild.value) return;
+    isUpdating.value = true;
+    const token = localStorage.getItem('access_token');
+    try {
+        // Assuming an endpoint structure like this. You may need to create it.
+        const res = await fetch(`http://localhost:5000/child/profile/update`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                // The API expects the child ID to be identified by the token
+                name: editingChild.value.name,
+                age: editingChild.value.age,
+                gender: editingChild.value.gender
+            })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.error || 'Failed to update profile');
+        }
+        // Success
+        showEditModal.value = false;
+        await fetchChildrenData(); // Refresh the list to show updated data
+        alert('Profile updated successfully!');
+    } catch (err) {
+        console.error('Update error:', err);
+        alert(err.message || 'Could not update profile.');
+    } finally {
+        isUpdating.value = false;
+    }
+};
 
 const downloadChildReport = async (childId) => {
   isDownloading.value = true;
@@ -282,6 +364,12 @@ const downloadChildReport = async (childId) => {
   color: #555;
 }
 
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
 /* Modal Styles */
 .modal-backdrop {
   position: fixed;
@@ -314,6 +402,18 @@ const downloadChildReport = async (childId) => {
   color: #ff6a88;
   margin-bottom: 1rem;
 }
+
+.modal-content .form-group {
+    margin-bottom: 1rem;
+}
+
+.modal-content .form-control {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
 
 /* Animations */
 @keyframes pop-in {

@@ -13,8 +13,8 @@
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
         <h2 class="text-center mb-4">Login</h2>
 
-        <!-- Google Sign-In Button -->
-        <div class="mb-3">
+        <!-- Google Sign-In Button (Visible only for parents) -->
+        <div v-if="role === 'parent'" class="mb-3">
             <button @click="loginWithGoogle" class="btn btn-google w-100" :disabled="isGoogleLoading">
                 <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 <svg v-else class="google-icon me-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -27,7 +27,8 @@
             </button>
         </div>
 
-        <div class="separator">
+        <!-- Separator (Visible only for parents) -->
+        <div v-if="role === 'parent'" class="separator">
             <span>OR</span>
         </div>
 
@@ -115,7 +116,8 @@ const login = async () => {
       },
       body: JSON.stringify({
         username: username.value,
-        password: password.value
+        password: password.value,
+        role: role.value // Send the selected role to the backend
       })
     })
 
@@ -235,7 +237,7 @@ const login = async () => {
   opacity: 0.9;
   height: 100vh;
   width: 100vw;
-  background-size:  100% 100%;
+  background-size:   100% 100%;
   background-position: center;
   background-repeat: no-repeat;
   overflow: hidden;
