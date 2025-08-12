@@ -78,17 +78,17 @@ import { ref, computed } from 'vue';
 
 <style scoped>
 .sidebar {
-  width: 160px;
+  min-width: 160px;
   transition: width 0.3s ease;
   background:  #756bdb;
   font-family: 'Comic Neue', cursive;
   height: 100vh;
   padding: 10px;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .sidebar.collapsed {
-  width: 70px;
+  min-width: 70px;
 }
 
 .collapse-toggle {

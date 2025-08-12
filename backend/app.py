@@ -373,7 +373,9 @@ def get_child_info(current_user_id, current_user_role):
 
     return jsonify({
         'name': child.name,
-        'username': user.username,  #
+        'username': user.username, 
+        'age': child.age,
+        'gender' :child.gender,
     })
 
 #----------------------------------- Update Child Profile------------------------------------------------

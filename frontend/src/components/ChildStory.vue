@@ -46,7 +46,12 @@
           </div>
 
           <transition name="fade" mode="out-in">
-            <div v-if="showStoryList" class="story-list-container">
+            <div v-if="loading" class="loader-container">
+              <div class="loader"></div>
+              <p class="loader-text">Crafting a magical tale for you...</p>
+            </div>
+            
+            <div v-else-if="showStoryList" class="story-list-container">
               <h3 class="story-list-header">Search Results</h3>
               <ul v-if="stories.length > 0" class="story-list">
                 <li v-for="story in stories" :key="story.id" @click="displayStory(story, true)" class="story-list-item">
@@ -67,7 +72,7 @@
               </button>
             </div>
             <div v-else class="prompt-container">
-               <svg class="action-svg rocket" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.3.7-3.29s-.01-2.45-.7-3.29c-1.26-1.5-5-2-5-2s.74 3.5 2 5z"/><path d="m12 15-3-3a9 9 0 0 1 3-7 9 9 0 0 1 7 3 9 9 0 0 1-7 7z"/></svg>
+                <svg class="action-svg rocket" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.3.7-3.29s-.01-2.45-.7-3.29c-1.26-1.5-5-2-5-2s.74 3.5 2 5z"/><path d="m12 15-3-3a9 9 0 0 1 3-7 9 9 0 0 1 7 3 9 9 0 0 1-7 7z"/></svg>
               <h3>Let's Start a New Adventure!</h3>
               <p>Create a new story or search your past adventures</p>
             </div>
@@ -92,21 +97,21 @@
           
           <div v-else class="result-view">
             <div v-if="isCorrect" class="result-content">
-               <div class="svg-container">
+                <div class="svg-container">
                   <svg class="result-svg checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/><path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/></svg>
-               </div>
+                </div>
               <h2 class="result-text correct-text">Correct!</h2>
               <p class="result-feedback">Great job! You understood the story well.</p>
             </div>
             <div v-else class="result-content">
-               <div class="svg-container">
+                <div class="svg-container">
                   <svg class="result-svg cross" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52"><circle class="cross-circle" cx="26" cy="26" r="25" fill="none"/><path class="cross-path" fill="none" d="M16 16 36 36 M36 16 16 36"/></svg>
-               </div>
+                </div>
               <h2 class="result-text wrong-text">Not Quite</h2>
               <p class="result-feedback">Review the story and try again!</p>
             </div>
             <button @click="returnToStoryView" class="back-btn">
-                {{ isCorrect ? 'Finish' : 'Try Again' }}
+              {{ isCorrect ? 'Finish' : 'Try Again' }}
             </button>
           </div>
         </div>
@@ -139,6 +144,9 @@ const storyPrompt = ref('');
 const searchQuery = ref('');
 const searchBy = ref('theme');
 
+// ✨ ADDED: A new ref to hold the correct answer text
+const correctAnswer = ref('');
+
 function formatDate(dateString) {
   if (!dateString) return '';
   const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -149,6 +157,15 @@ function showMessage(text, type, duration = 4000) {
   message.value = text;
   messageType.value = type;
   setTimeout(() => { message.value = ''; }, duration);
+}
+
+function shuffleArray(array) {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
 }
 
 function displayStory(story, isHistoric = false) {
@@ -225,22 +242,36 @@ async function generateStory() {
   }
 }
 
+// ✨ MODIFIED: Now stores the correct answer before shuffling
 function goToQuiz() {
   try {
     const quizData = JSON.parse(selectedQuestion.value);
+    // Assuming the quiz object from your backend has a key like "answer"
+    if (!quizData.answer) {
+        throw new Error("Quiz data is missing the correct answer.");
+    }
     quizQuestion.value = quizData.question;
-    quizOptions.value = quizData.options;
+    correctAnswer.value = quizData.answer; // Store the correct answer
+    quizOptions.value = shuffleArray(quizData.options); // Shuffle options for display
     quizSubmitted.value = false;
     isCorrect.value = false;
     viewMode.value = 'quiz';
   } catch (e) {
-    showMessage('Could not start the quiz.', 'error');
+    showMessage('Could not start the quiz. ' + e.message, 'error');
   }
 }
 
+// ✨ MODIFIED: Checks answer on the frontend before notifying the backend
 async function submitAnswer(selectedOption) {
   loading.value = true;
-  await new Promise(resolve => setTimeout(resolve, 300)); // For UX effect
+  
+  // 1. Check for correctness on the frontend
+  isCorrect.value = (selectedOption === correctAnswer.value);
+  
+  // Show the result screen immediately for a better user experience
+  quizSubmitted.value = true; 
+
+  // 2. Notify the backend of the result (for logging/scoring)
   try {
     const token = localStorage.getItem('access_token');
     if (!token) throw new Error('Authentication token not found.');
@@ -250,48 +281,45 @@ async function submitAnswer(selectedOption) {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
         story_title: displayTitle.value,
-        selected_option: selectedOption
+        selected_option: selectedOption,
+        is_correct: isCorrect.value // Tell the backend the result
       }),
     });
 
-    const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.error || 'Failed to submit the answer.');
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to submit the answer to the server.');
     }
 
-    // THE KEY FIX: Directly use the boolean value from the backend
-    isCorrect.value = data.is_correct;
-    
-    // Show the result screen (correct/incorrect)
-    quizSubmitted.value = true; 
-
   } catch (error) {
+    // If the API fails, the user still sees their result. 
+    // We just show an error that the result might not have been saved.
     showMessage(error.message, 'error');
-    quizSubmitted.value = false; // Don't get stuck on the result screen if API fails
   } finally {
     loading.value = false;
   }
 }
 
 function returnToStoryView() {
-  // If the answer was correct, the quiz is over.
   if (isCorrect.value) {
     showMessage('Correct! Great job! 🎉', 'success');
-    isQuizCompleted.value = true; 
+    isQuizCompleted.value = true;
     sessionStorage.removeItem('lastStory');
-    
-    // Reset state to show the initial "Create a new story" prompt
+
     displayTitle.value = '';
     storyContent.value = '';
+    selectedQuestion.value = '';
+    
+    quizSubmitted.value = false;
     viewMode.value = 'story';
-    quizSubmitted.value = false; // Reset for the next story's quiz
+
   } else {
-    // If the answer was wrong, send the user back to the story to re-read.
     showMessage('That was not quite right. Read the story and give it another try!', 'error');
-    viewMode.value = 'story';      // Return to the story view
-    quizSubmitted.value = false; // Reset the quiz so they can try again from the start
+    viewMode.value = 'story';
+    quizSubmitted.value = false;
   }
 }
+
 
 onMounted(async () => {
   const lastStoryRaw = sessionStorage.getItem('lastStory');
@@ -362,7 +390,7 @@ onMounted(async () => {
   border: 2px solid #E0E0E0;
   font-size: 1.05rem;
   transition: border-color 0.2s;
-  min-width: 0; /* Allows input to shrink properly */
+  min-width: 0;
 }
 .action-input:focus {
   outline: none;
@@ -518,6 +546,37 @@ onMounted(async () => {
 }
 .fade-enter-from, .fade-leave-to { 
   opacity: 0; 
+}
+
+.loader-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+  min-height: 300px;
+}
+.loader {
+  border: 6px solid #f0f0f0;
+  border-top: 6px solid #5A4FCF;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+.loader-text {
+  font-family: 'Comic Neue', cursive;
+  font-size: 1.2rem;
+  color: #555;
+  font-weight: bold;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Quiz Styles */
