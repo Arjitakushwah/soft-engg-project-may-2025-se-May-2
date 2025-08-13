@@ -120,4 +120,34 @@ def send_mail_username(email, username):
         print(f"Failed to send email: {e}")
 
 
+def send_child_credentials_email(email, username, password, child_name):
+    subject = f"Account Details for Your Child - {child_name}"
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_EMAIL
+    msg['To'] = email
+    msg['Subject'] = subject
 
+    body = f"""
+    <html>
+        <body>
+            <h3>Child Account Created Successfully!</h3>
+            <p>Hello,</p>
+            <p>The account for your child <strong>{child_name}</strong> has been successfully created.</p>
+            <p><strong>Username:</strong> <code>{username}</code></p>
+            <p><strong>Password:</strong> <code>{password}</code></p>
+            <p>Please keep these credentials safe.</p>
+            <br>
+            <p>Thanks & Regards,<br>Team Slice</p>
+        </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SMTP_EMAIL, SMTP_PASSWORD)
+            smtp.send_message(msg)
+        print(f"Child credentials email sent to {email}")
+    except Exception as e:
+        print(f"Failed to send child credentials email: {e}")
