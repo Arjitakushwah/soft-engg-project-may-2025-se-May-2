@@ -1,24 +1,25 @@
 <template>
   <div class="edit-profile-wrapper">
     <div class="edit-profile">
-      <h2 class="form-title">Edit Child Profile</h2>
-      <!-- Replaced the loading text with the Loader component -->
-      <Loader v-if="loading" />
+      <h2 class="form-title">Edit Your Profile</h2>
+      
+      <div v-if="loading" class="text-center py-5">
+        <div class="spinner-border text-primary-custom" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
       
       <form v-else @submit.prevent="updateProfile">
-        <!-- Name -->
+        <!-- Section 1: Profile Details -->
+        <h3 class="section-title">Your Details</h3>
         <div class="form-group">
           <label for="name">Name</label>
           <input id="name" v-model="form.name" type="text" placeholder="Enter name" required />
         </div>
-
-        <!-- Age -->
         <div class="form-group">
           <label for="age">Age</label>
           <input id="age" v-model="form.age" type="number" min="1" placeholder="Enter age" required />
         </div>
-
-        <!-- Gender -->
         <div class="form-group">
           <label for="gender">Gender</label>
           <select id="gender" v-model="form.gender" required>
@@ -30,14 +31,30 @@
           </select>
         </div>
 
+        <hr class="my-4">
+
+        <!-- Section 2: Change Password (Optional) -->
+        <h3 class="section-title">Change Your Password</h3>
+        <p class="text-muted small">Leave these fields blank if you don't want to change your password.</p>
+        <div class="form-group">
+          <label for="password">New Password</label>
+          <input id="password" v-model="passwordForm.password" type="password" placeholder="Enter new password" />
+           <div v-if="errors.password" class="invalid-feedback d-block">{{ errors.password }}</div>
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm New Password</label>
+          <input id="confirmPassword" v-model="passwordForm.confirmPassword" type="password" placeholder="Confirm new password" />
+           <div v-if="errors.confirmPassword" class="invalid-feedback d-block">{{ errors.confirmPassword }}</div>
+        </div>
+
         <!-- Feedback Message -->
-        <div v-if="message" :class="['message', messageType]">
+        <div v-if="message" :class="['message', messageType, 'mt-3']">
           {{ message }}
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" :disabled="isSubmitting">
-          <span v-if="isSubmitting">Saving...</span>
+        <button type="submit" :disabled="isSubmitting" class="mt-4">
+          <span v-if="isSubmitting" class="spinner-border spinner-border-sm"></span>
           <span v-else>Save Changes</span>
         </button>
       </form>
@@ -48,7 +65,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import Loader from './Loader.vue'; // Import the Loader component
 
 const router = useRouter();
 
@@ -58,21 +74,25 @@ const form = ref({
   age: '',
   gender: ''
 });
-
-const loading = ref(true); // For initial data fetch
-const isSubmitting = ref(false); // For form submission
-const message = ref(''); // For user feedback
-const messageType = ref(''); // 'success' or 'error'
+const passwordForm = ref({
+    password: '',
+    confirmPassword: ''
+});
+const errors = ref({});
+const loading = ref(true);
+const isSubmitting = ref(false);
+const message = ref('');
+const messageType = ref('');
 
 // --- API & LOGIC ---
 
 // 1. Fetch existing profile data when the component loads
 async function fetchProfile() {
   loading.value = true;
-  message.value = ''; // Clear previous messages
+  message.value = '';
   try {
     const token = localStorage.getItem("access_token");
-    // IMPORTANT: You need to create this GET endpoint in your Flask API
+    // NOTE: This assumes you have a GET endpoint for the child's own profile
     const res = await fetch('http://localhost:5000/child_dashboard', {
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -95,23 +115,54 @@ async function fetchProfile() {
   }
 }
 
-// 2. Update the profile on form submission
+// 2. Validate form before submission
+function validateForm() {
+    errors.value = {};
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    
+    // Only validate password if user is trying to change it
+    if (passwordForm.value.password || passwordForm.value.confirmPassword) {
+        if (!passwordForm.value.password) {
+            errors.value.password = 'New password is required.';
+        } else if (!passwordRegex.test(passwordForm.value.password)) {
+            errors.value.password = 'Password must be 8+ characters with uppercase, lowercase, and a number.';
+        }
+        if (passwordForm.value.password !== passwordForm.value.confirmPassword) {
+            errors.value.confirmPassword = 'Passwords do not match.';
+        }
+    }
+
+    return Object.keys(errors.value).length === 0;
+}
+
+// 3. Update the profile on form submission
 async function updateProfile() {
+  if (!validateForm()) return;
+
   isSubmitting.value = true;
-  message.value = ''; // Clear previous messages
+  message.value = '';
   try {
     const token = localStorage.getItem("access_token");
-    const res = await fetch('http://localhost:5000/child/profile-update', {
+    
+    // Construct payload with profile details
+    const payload = {
+      name: form.value.name,
+      age: parseInt(form.value.age, 10),
+      gender: form.value.gender
+    };
+
+    // Add password to payload only if it's being changed
+    if (passwordForm.value.password) {
+        payload.password = passwordForm.value.password;
+    }
+
+    const res = await fetch('http://localhost:5000/child/profile/update', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        name: form.value.name,
-        age: parseInt(form.value.age, 10), // Ensure age is an integer
-        gender: form.value.gender
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await res.json();
@@ -120,9 +171,13 @@ async function updateProfile() {
       throw new Error(data.error || 'Failed to update profile.');
     }
 
-    // Show success message and redirect after a short delay
     message.value = 'Profile updated successfully!';
     messageType.value = 'success';
+    
+    // Clear password fields after successful update
+    passwordForm.value.password = '';
+    passwordForm.value.confirmPassword = '';
+
     setTimeout(() => {
       router.push('/child/home');
     }, 1500);
@@ -168,7 +223,16 @@ onMounted(() => {
   font-size: 1.75rem;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #3b82f6;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e5e7eb;
 }
 
 .form-group {
@@ -223,7 +287,6 @@ button:disabled {
 .message {
   padding: 0.75rem;
   border-radius: 6px;
-  margin-bottom: 1rem;
   text-align: center;
   font-weight: 500;
 }
@@ -236,5 +299,10 @@ button:disabled {
 .message.error {
   background-color: #fee2e2;
   color: #991b1b;
+}
+
+.invalid-feedback {
+    font-size: 0.8rem;
+    color: #ef4444;
 }
 </style>

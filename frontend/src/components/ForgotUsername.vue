@@ -15,32 +15,55 @@
         <i class="bi bi-arrow-left"></i>
       </button>
       <h3 class="text-center mb-4">Forgot Username</h3>
-      <p class="text-center text-muted">Enter your registered email, and we will send your username to your inbox.</p>
-      
-      <!-- Hide form on success and show message and login button instead -->
-      <form @submit.prevent="submitEmail" v-if="!successMessage">
-        <div class="mb-3">
-            <input
-            type="email"
-            class="form-control"
-            :class="{ 'is-invalid': error }"
-            v-model="email"
-            placeholder="Enter your registered email"
-            required
-            />
-            <div v-if="error" class="invalid-feedback">{{ error }}</div>
-        </div>
-        <button class="btn btn-success w-100" type="submit" :disabled="isLoading">
-            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            <span v-else>Retrieve Username</span>
-        </button>
-      </form>
 
-      <div v-if="successMessage" class="text-center">
-        <p class="mt-3 text-success">
-          {{ successMessage }}
-        </p>
-        <router-link to="/login" class="btn btn-primary mt-2">Go to Login</router-link>
+      <!-- Role Selector -->
+      <div class="mb-4 d-flex justify-content-center gap-3">
+          <div class="form-check">
+              <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
+              <label class="form-check-label" for="roleParent">I am a Parent</label>
+          </div>
+          <div class="form-check">
+              <input class="form-check-input" type="radio" value="child" v-model="role" id="roleChild" />
+              <label class="form-check-label" for="roleChild">I am a Child</label>
+          </div>
+      </div>
+
+      <!-- Parent Logic -->
+      <div v-if="role === 'parent'">
+        <p class="text-center text-muted">Enter your registered email, and we will send your username to your inbox.</p>
+        
+        <!-- Hide form on success and show message and login button instead -->
+        <form @submit.prevent="submitEmail" v-if="!successMessage">
+          <div class="mb-3">
+              <input
+              type="email"
+              class="form-control"
+              :class="{ 'is-invalid': error }"
+              v-model="email"
+              placeholder="Enter your registered email"
+              required
+              />
+              <div v-if="error" class="invalid-feedback">{{ error }}</div>
+          </div>
+          <button class="btn btn-success w-100" type="submit" :disabled="isLoading">
+              <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span v-else>Retrieve Username</span>
+          </button>
+        </form>
+
+        <div v-if="successMessage" class="text-center">
+          <p class="mt-3 text-success">
+            {{ successMessage }}
+          </p>
+          <router-link to="/login" class="btn btn-primary-custom mt-2">Go to Login</router-link>
+        </div>
+      </div>
+
+      <!-- Child Logic -->
+      <div v-else class="text-center alert alert-info">
+          <i class="bi bi-info-circle-fill h4"></i>
+          <p class="mt-2 mb-0">Child accounts cannot retrieve usernames directly.</p>
+          <p class="small text-muted">Please ask your parent for help to find your username.</p>
       </div>
 
     </div>
@@ -52,7 +75,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-
+const role = ref('parent') // Default role
 const email = ref('')
 const successMessage = ref('')
 const error = ref('')
@@ -100,6 +123,8 @@ const submitEmail = async () => {
 }
 </script>
 <style scoped>
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
+
 .btn-success {
   background-color: #756bdb;
   font-family: 'Fredoka One', cursive;
@@ -107,7 +132,7 @@ const submitEmail = async () => {
 }
 
 .btn-success:hover {
-  background-color: #756bdb;
+  background-color: #6155b1;
 }
 .navbar {
   background-color: #756bdb !important;
@@ -138,7 +163,7 @@ const submitEmail = async () => {
   background-color: #faf2f4;
 }
 
-.btn-primary {
+.btn-primary-custom, .btn-primary {
   background-color: white;
   border-color: #3b82f6;
   color: #756bdb;
@@ -151,7 +176,7 @@ const submitEmail = async () => {
   transition: transform 0.3s, background-color 0.3s;
 }
 
-.btn-primary:hover {
+.btn-primary-custom:hover, .btn-primary:hover {
   transform: scale(1.05);
   background-color: #faf2f4;
 }
@@ -172,5 +197,9 @@ const submitEmail = async () => {
 }
 .invalid-feedback {
     display: block;
+}
+.form-check-input:checked {
+    background-color: #756bdb;
+    border-color: #756bdb;
 }
 </style>

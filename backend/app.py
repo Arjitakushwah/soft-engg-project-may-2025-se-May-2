@@ -6,7 +6,7 @@ from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
 from flask_cors import CORS
-from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username
+from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username ,send_child_credentials_email
 import os
 from google_auth_oauthlib.flow import Flow
 import requests
@@ -345,6 +345,7 @@ def add_child(current_user_id, current_user_role):
         )
         db.session.add(child)
         db.session.commit()
+        send_child_credentials_email(username, password, name, parent.email)
         return jsonify({'message': 'Child added successfully'}), 201
     except Exception as e:
         db.session.rollback()
@@ -389,7 +390,11 @@ def update_child_profile(current_user_id, current_user_role):
         name = data.get('name')
         age = data.get('age')
         gender = data.get('gender')
+        password = data.get('password') 
         child = Child.query.filter_by(id=current_user_id).first()
+        user = User.query.filter_by(id=current_user_id).first()
+        if not user:
+            return jsonify({'error': 'User record not found'}), 404
         if not child:
             return jsonify({'error': 'Child not found'}), 404
         if name is not None:
@@ -398,6 +403,18 @@ def update_child_profile(current_user_id, current_user_role):
             child.age = age
         if gender is not None:
             child.gender = gender
+        if password:
+            hashed_pw = generate_password_hash(password)
+            user.password = hashed_pw
+            parent = User.query.filter_by(id=child.parent_id).first()
+            if parent:
+                send_child_credentials_email(
+                    parent.email,
+                    user.username,
+                    password, 
+                    child.name
+                )
+
         db.session.commit()
         return jsonify({
             'message': 'Profile updated successfully',

@@ -714,6 +714,8 @@ def create_journal(current_user_id, current_user_role):
 def search_journals(current_user_id, current_user_role):
     date_query = request.args.get('date')
     mood_query = request.args.get('mood')
+    print(date_query)
+    print( date.fromisoformat(date_query))
 
     filters = [JournalEntry.child_id == current_user_id]
     if date_query:
@@ -1072,14 +1074,17 @@ def get_all_children(current_user_id, current_user_role):
     try:
         # Fetch all children which is added by parent
         children = Child.query.filter_by(parent_id=current_user_id).all()
+
         if not children:
             return jsonify({'message': 'No children found'}), 404
         result = []
         for child in children:
+            user = User.query.filter_by(id=child.id).first()
             result.append({
                 'id': child.id,
                 'name': child.name,
                 'age': child.age,
+                'username': user.username,
                 'gender': child.gender,
                 'streak': child.streak,
                 'longest_streak': child.longest_streak
