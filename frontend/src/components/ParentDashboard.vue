@@ -2,6 +2,7 @@
   <div class="dashboard-wrapper">
     <!-- Top NavBar -->
     <NavBar @toggle-sidebar="toggleSidebar" />
+    
 
     <!-- Sidebar + Main Content -->
     <div class="layout-body">
@@ -64,4 +65,18 @@ onMounted(() => {
   color: #1e293b;
   height: 100vh;
 }
+
+.edit-btn {
+  background-color: #2563eb;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  cursor: pointer;
+}
+.edit-btn:hover {
+  background-color: #1e40af;
+}
+
 </style>

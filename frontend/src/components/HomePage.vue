@@ -10,28 +10,37 @@
     <header class="hero">
       <h1>Your Adventure in Learning Begins!</h1>
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
+
     </header>
     <main class="features-showcase">
       <h2>What’s Inside for You?</h2>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">📖</div>
+          <div class="feature-icon">
+            <i class="fas fa-book-open"></i>
+          </div>
           <h3>Daily Journaling</h3>
           <p>Help children express their thoughts and emotions with engaging journal prompts.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">📅</div>
+          <div class="feature-icon">
+            <i class="fas fa-calendar-alt"></i>
+          </div>
           <h3>Task Planner</h3>
           <p>Track daily learning tasks, set routines, and visualize progress on calendars.</p>
         
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🧩</div>
+          <div class="feature-icon">
+            <i class="fas fa-puzzle-piece"></i>
+          </div>
           <h3>Fun Facts</h3>
           <p>Crack codes, learn amazing facts and sharpen your brain.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">🌟</div>
+          <div class="feature-icon">
+            <i class="fas fa-trophy"></i>
+          </div>
           <h3>Track Achievements</h3>
           <p>See badges, streaks, and celebrate learning milestones!</p>
         </div>

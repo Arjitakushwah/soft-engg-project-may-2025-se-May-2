@@ -247,7 +247,8 @@ const submitJournal = async () => {
   justify-content: center;
   gap: 0.75rem;
   color: #4f46e5;
-  font-size: 1.75rem;
+  font-size: 2.2rem;
+  font-weight: bold;
   margin-bottom: 1.5rem;
   text-align: center;
 }

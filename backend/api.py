@@ -44,6 +44,7 @@ llm = LLM(model='gemini/gemini-2.0-flash', api_key=GOOGLE_API_KEY)  # Replace wi
 
 def certify_query(query):
     client = genai.Client(api_key=GOOGLE_API_KEY)
+    print("Certifying query:", query)
     response = client.models.generate_content(
         model="gemini-2.0-flash",
         config=types.GenerateContentConfig(
@@ -94,6 +95,9 @@ Examples:
     Answer: true
 
     Prompt: "i want to read stoy on sun a star"
+    Answer: true
+                                      
+    Prompt: "i want to read stoy on my grandmother"
     Answer: true
 
 Your entire response **must be exactly either "true" or "false"** — no extra text, explanation, or formatting.
@@ -650,13 +654,29 @@ Response:
 @jwt_required(required_role='child')
 def create_journal(current_user_id, current_user_role):
     data = request.get_json()
-    text = data.get('text')
+    text = data.get('text', '').strip()
+
     if not text:
         return jsonify({'error': 'Journal text is required'}), 400
 
     try:
-        mood_dict = classify_emotion(text, llm)
-        mood = mood_dict.get("emotion", "unknown")
+        print("DEBUG: Received journal text =", text)
+
+        mood_dict = classify_emotion(text)
+        print("DEBUG: mood_dict =", mood_dict)
+
+        mood = mood_dict.get("emotion", "")
+
+        # Defensive: If mood is a list by accident, join into string
+        if isinstance(mood, list):
+            mood = ", ".join(mood)
+
+        mood = mood.strip().lower()
+
+        if mood in ["invalid", "error", "unknown", None, ""]:
+            print("WARNING: Mood detection failed or invalid. Defaulting to 'Unknown'")
+            mood = "Unknown"
+
         now_ist = ist_now()
         entry = JournalEntry(
             child_id=current_user_id,
@@ -670,19 +690,23 @@ def create_journal(current_user_id, current_user_role):
         db.session.add(entry)
         db.session.commit()
 
-        # Optionally update streak and progress
         update_daily_progress(current_user_id, date.today())
         evaluate_all_badges(current_user_id)
 
         return jsonify({
-            'message': 'Journal entry created successfully',
+            'message': mood_dict.get("message", "Journal entry created successfully"),
             'mood': mood,
             'journal_text': entry.text
         }), 200
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({'error': 'Failed to process journal entry', 'details': str(e)}), 500
+        print("ERROR: Failed to process journal entry:", str(e))
+        return jsonify({
+            'error': 'Failed to process journal entry',
+            'details': str(e)
+        }), 500
+
 
 #----------------------------------search Journal---------------------------------------------------------------
 @app.route('/journal/search', methods=['GET'])
@@ -1440,28 +1464,76 @@ def child_summary(child_id, current_user_id, current_user_role):
 @jwt_required(required_role='parent')
 def generate_child_analysis_report(current_user_id, current_user_role):
     try:
-        data = request.get_json()
-        if not data or 'child_id' not in data or 'summary' not in data or 'dates' not in data['summary']:
-            return jsonify({'error': 'Invalid input. JSON must contain child_id and summary with dates'}), 400
+        # Get child_id and range from query params
+        child_id = request.args.get("child_id", type=int)
+        summary_range = request.args.get("summary_range", default="weekly")
 
-        child_id = data['child_id']
-        summary_data = data['summary']
-        entries = summary_data.get('dates', [])
+        if not child_id:
+            return jsonify({'error': 'child_id is required as query parameter'}), 400
+        if summary_range not in ['weekly', 'monthly']:
+            return jsonify({'error': 'Invalid summary_range. Use weekly or monthly'}), 400
 
+        # Fetch the child summary (replicating logic from child_summary)
         child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
-        if not entries:
-            return jsonify({'error': 'No daily summary entries found to analyze'}), 400
+        if not child:
+            return jsonify({'error': 'Child not found or unauthorized'}), 404
 
+        today = date.today()
+        if summary_range == 'weekly':
+            start_date = today - timedelta(days=6)
+        else:
+            start_date = today.replace(day=1)
+
+        progress_entries = DailyProgress.query.filter(
+            DailyProgress.child_id == child_id,
+            DailyProgress.date >= start_date,
+            DailyProgress.date <= today
+        ).order_by(DailyProgress.date).all()
+
+        total_days = (today - start_date).days + 1
+        total_tasks = total_days * 4
+
+        summary = {
+            "total_days": total_days,
+            "tasks_assigned": total_tasks,
+            "tasks_completed": 0,
+            "todo_completed_days": 0,
+            "journal_done_days": 0,
+            "story_done_days": 0,
+            "infotainment_done_days": 0,
+            "entries": []
+        }
+
+        for entry in progress_entries:
+            day_data = {
+                "date": entry.date.isoformat(),
+                "todo_done": entry.is_todo_complete,
+                "journal_done": entry.is_journal_done,
+                "story_done": entry.is_story_done,
+                "infotainment_done": entry.is_infotainment_done
+            }
+            completed_count = sum([
+                entry.is_todo_complete,
+                entry.is_journal_done,
+                entry.is_story_done,
+                entry.is_infotainment_done
+            ])
+            summary["tasks_completed"] += completed_count
+            if entry.is_todo_complete:
+                summary["todo_completed_days"] += 1
+            if entry.is_journal_done:
+                summary["journal_done_days"] += 1
+            if entry.is_story_done:
+                summary["story_done_days"] += 1
+            if entry.is_infotainment_done:
+                summary["infotainment_done_days"] += 1
+            summary["entries"].append(day_data)
+
+        # Prepare input for LLM agent
         agent_input = {
-            "child_name": child.name,
-            "summary_range": data.get("summary_range", "weekly"),
-            "entries": entries,
-            "tasks_assigned": summary_data.get("tasks_assigned", 0),
-            "tasks_completed": summary_data.get("tasks_completed", 0),
-            "todo_completed_days": summary_data.get("todo_completed_days", 0),
-            "journal_done_days": summary_data.get("journal_done_days", 0),
-            "story_done_days": summary_data.get("story_done_days", 0),
-            "infotainment_done_days": summary_data.get("infotainment_done_days", 0)
+            "child_id": child_id,
+            "summary_range": summary_range,
+            **summary
         }
 
         markdown_output = analyze_child_data(agent_input, llm)
@@ -1478,7 +1550,7 @@ def generate_child_analysis_report(current_user_id, current_user_role):
         )
     except Exception as e:
         print("Report Generation Error:", e)
-        return jsonify({'error': 'Failed to generate analysis report', 'details': str(e)}), 500
+        return jsonify({'error': 'Failed to generate analysis report'}), 500
 
 
 # ---------------------------infotainment logs for insights------------------------------------------------
@@ -1646,6 +1718,90 @@ def get_story_logs(child_id, current_user_id, current_user_role):
         'child_prompt': log.child_prompt,
         'title': log.title,
         'theme': log.theme,
+        'is_done': log.is_done
+    } for log in recent_logs]
+
+    return jsonify({
+        'recent_logs': result
+    }), 200
+
+
+# --------------------------- ToDo logs for insights ------------------------------------------------
+@app.route('/parent/child/<int:child_id>/todo-logs', methods=['GET'])
+@jwt_required(required_role='parent')
+def get_todo_logs(child_id, current_user_id, current_user_role):
+    # Optional query parameters
+    date_str = request.args.get('date')  # for daily logs
+    week = request.args.get('week')     # for weekly summary
+
+    # Step 1: Validate Child Ownership
+    child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+    if not child:
+        return jsonify({'error': 'Child not found or unauthorized'}), 404
+    
+
+
+    # Step 2A: If specific date is provided, show daily logs
+    if date_str:
+        try:
+            selected_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format. Use YYYY-MM-DD'}), 400
+
+        logs = ToDoItem.query.filter(
+            ToDoItem.child_id == child_id,
+            db.func.date(ToDoItem.datetime) == selected_date
+        ).all()
+
+        result = [{
+            'id': log.id,
+            'task': log.task,
+            'datetime': log.datetime.isoformat(),
+            'is_done': log.is_done
+        } for log in logs]
+
+        return jsonify({
+            'date': selected_date.isoformat(),
+            'total_tasks': len(result),
+            'completed_tasks': sum(1 for r in result if r['is_done']),
+            'logs': result
+        }), 200
+
+    # Step 2B: If `week=true`, return weekly grouped stats
+    if week == 'true':
+        today = datetime.utcnow().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_end = week_start + timedelta(days=6)             # Sunday
+        weekly_logs = db.session.query(
+            db.func.date(ToDoItem.datetime).label('task_date'),
+            db.func.count(ToDoItem.id).label('total_tasks'),
+            db.func.sum(db.case((ToDoItem.is_done == True, 1), else_=0)).label('completed_tasks')
+        ).filter(
+            ToDoItem.child_id == child_id,
+            db.func.date(ToDoItem.datetime) >= week_start,
+            db.func.date(ToDoItem.datetime) <= week_end
+        ).group_by(db.func.date(ToDoItem.datetime)).all()
+        print(weekly_logs)
+        result = [{
+            'date': log.task_date,
+            'total_tasks': log.total_tasks,
+            'completed_tasks': int(log.completed_tasks or 0)
+        } for log in weekly_logs]
+          
+        return jsonify({
+            'week_start': week_start.isoformat(),
+            'week_end': week_end.isoformat(),
+            'weekly_summary': result
+        }), 200
+
+    # Step 2C: If no date or week is given, return last 7 entries
+    recent_logs = ToDoItem.query.filter_by(child_id=child_id)\
+                    .order_by(ToDoItem.datetime.desc())\
+                    .limit(7).all()
+
+    result = [{
+        'task': log.task,
+        'datetime': log.datetime.isoformat(),
         'is_done': log.is_done
     } for log in recent_logs]
 
