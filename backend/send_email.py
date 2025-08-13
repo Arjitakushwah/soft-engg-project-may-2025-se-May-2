@@ -6,11 +6,10 @@ from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-load_dotenv("agents/prod.env")
+load_dotenv("prod.env")
 
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
-
 
 # Storage: email -> (otp, timestamp)
 otp_store = {}
@@ -51,15 +50,14 @@ def verify_otp(email, input_otp):
     if email not in otp_store:
         return False, "OTP not requested for this email."  
     stored_otp, timestamp = otp_store[email]
+    print(stored_otp)
     current_time = time.time()
-    if current_time - timestamp > 190:
+    if current_time - timestamp > 90:
         del otp_store[email]
         return False, "OTP has expired."
-    print(input_otp, stored_otp)
-    if input_otp == stored_otp:
+    if input_otp == int(stored_otp):
         del otp_store[email]
         verified_emails.add(email)
-        print(f"Email {email} verified successfully.")
         return True, "OTP verified successfully."
     return False, "Incorrect OTP."
 
@@ -122,4 +120,34 @@ def send_mail_username(email, username):
         print(f"Failed to send email: {e}")
 
 
+def send_child_credentials_email(email, username, password, child_name):
+    subject = f"Account Details for Your Child - {child_name}"
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_EMAIL
+    msg['To'] = email
+    msg['Subject'] = subject
 
+    body = f"""
+    <html>
+        <body>
+            <h3>Child Account Created Successfully!</h3>
+            <p>Hello,</p>
+            <p>The account for your child <strong>{child_name}</strong> has been successfully created.</p>
+            <p><strong>Username:</strong> <code>{username}</code></p>
+            <p><strong>Password:</strong> <code>{password}</code></p>
+            <p>Please keep these credentials safe.</p>
+            <br>
+            <p>Thanks & Regards,<br>Team Slice</p>
+        </body>
+    </html>
+    """
+
+    msg.attach(MIMEText(body, 'html'))
+
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(SMTP_EMAIL, SMTP_PASSWORD)
+            smtp.send_message(msg)
+        print(f"Child credentials email sent to {email}")
+    except Exception as e:
+        print(f"Failed to send child credentials email: {e}")
