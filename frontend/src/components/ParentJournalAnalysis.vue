@@ -2,23 +2,50 @@
   <div class="parent-journal-analysis-bg">
     <main class="main-content">
       <div class="analysis-container">
-        <div class="child-select">
-          <label for="child">Select Child:</label>
-          <select id="child" v-model="selectedChild">
-            <option v-for="child in children" :key="child" :value="child">{{ child }}</option>
-          </select>
+        <!-- No data messages -->
+        <p v-if="!moodData.labels.length" class="no-data-msg">No journal data available for this date.</p>
+        <p v-if="!weeklyData.labels.length" class="no-data-msg">No journal data available for the last 7 days.</p>
+
+        <div v-if="moodData.labels.length" class="entry-button-wrapper mt-4">
+          <button class="view-btn" @click="showEntries = true">View All Entries</button>
         </div>
-        <h2>{{ selectedChild }}</h2>
-        <div class="charts-grid">
+
+        <!-- Mood Graphs -->
+        <div class="mood-graphs-row" v-if="moodData.labels.length">
           <div class="chart-card">
-            <h3>Mood Over Last 7 Days</h3>
-            <line-chart :chart-data="moodData" :chart-options="moodOptions" />
+            <h3>Mood Fluctuation (Day)</h3>
+            <line-chart :chart-data="moodData" :chart-options="moodOptions" style="height: 250px;" />
           </div>
           <div class="chart-card">
-            <h3>Word Count Per Day</h3>
-            <bar-chart :chart-data="wordCountData" :chart-options="wordCountOptions" />
+            <h3>Mood Distribution</h3>
+            <pie-chart :chart-data="moodPieData" :chart-options="moodPieOptions" style="height: 250px;" />
           </div>
         </div>
+
+        <!-- Weekly Mood Count -->
+        <div class="weekly-graph" v-if="weeklyData.labels.length">
+          <div class="chart-card weekly-chart-card">
+            <h3>Journals Written in Last 7 Days</h3>
+            <div class="chart-wrapper">
+              <bar-chart :chart-data="weeklyData" :chart-options="weeklyOptions" style="height: 350px;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal: Entries -->
+        <div class="modal-overlay" v-if="showEntries" @click.self="showEntries = false">
+          <div class="modal-content">
+            <h3>Journal Entries on {{ selectedDate }}</h3>
+            <ul>
+              <li v-for="entry in journalTexts" :key="entry.id">
+                <strong>{{ formatTime(entry.timestamp) }}:</strong> {{ entry.content || '(No content)' }}
+              </li>
+            </ul>
+            <button @click="showEntries = false" class="close-btn">✕ Close</button>
+          </div>
+        </div>
+
+       
       </div>
     </main>
   </div>
@@ -27,181 +54,435 @@
 <script>
 import {
   Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  BarElement,
-  PointElement,
-  CategoryScale,
-  LinearScale
+  Title, Tooltip, Legend,
+  LineElement, BarElement, ArcElement,
+  PointElement, CategoryScale, LinearScale
 } from 'chart.js'
-
-import { Line, Bar } from 'vue-chartjs'
+import { Line, Bar, Pie } from 'vue-chartjs'
 
 ChartJS.register(
-  Title,
-  Tooltip,
-  Legend,
-  LineElement,
-  BarElement,
-  PointElement,
-  CategoryScale,
-  LinearScale
+  Title, Tooltip, Legend,
+  LineElement, BarElement, ArcElement,
+  PointElement, CategoryScale, LinearScale
 )
 
 export default {
   name: 'ParentJournalAnalysis',
+  props: {
+    selectedChildId: {
+      type: [String, Number],
+      required: true
+    },
+    selectedDate: {
+      type: String,
+      required: true
+    }
+  },
   components: {
     lineChart: Line,
-    barChart: Bar
+    barChart: Bar,
+    pieChart: Pie
   },
   data() {
     return {
-      children: ['Anya', 'Ravi', 'Meera'],
-      selectedChild: 'Anya',
-
-      moodData: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [
-          {
-            label: 'Mood Score (1=Sad, 5=Happy)',
-            data: [3, 4, 2, 5, 4, 3, 5],
-            borderColor: '#ff6a88',
-            backgroundColor: 'rgba(255,106,136,0.2)',
-            tension: 0.4,
-            fill: true,
-            pointRadius: 5,
-            pointBackgroundColor: '#ff6a88'
-          }
-        ]
-      },
+      moodData: { labels: [], datasets: [] },
+      moodPieData: { labels: [], datasets: [] },
+      weeklyData: { labels: [], datasets: [] },
+      journalTexts: [],
+      showEntries: false,
       moodOptions: {
         responsive: true,
-        plugins: {
-          legend: { display: false },
-          title: { display: false }
-        },
+        maintainAspectRatio: false,
         scales: {
           y: {
             min: 1,
             max: 5,
             ticks: {
               stepSize: 1,
-              callback: value => ['Sad', '', 'Neutral', '', 'Happy'][value - 1] || value
+              callback: val => ['Sad', '', 'Neutral', '', 'Happy'][val - 1] || val
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: {
+              boxWidth: 10,
+              font: { size: 10 }
+            }
+          }
+        },
+        layout: { padding: 0 }
+      },
+      moodPieOptions: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              font: { size: 10 },
+              boxWidth: 10
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: ctx => `${ctx.label}: ${ctx.parsed}%`
             }
           }
         }
       },
-      wordCountData: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [
-          {
-            label: 'Word Count',
-            data: [120, 200, 150, 180, 220, 170, 210],
-            backgroundColor: '#ff6a88',
-            borderRadius: 8
-          }
-        ]
-      },
-      wordCountOptions: {
+      weeklyOptions: {
         responsive: true,
-        plugins: {
-          legend: { display: false },
-          title: { display: false }
-        },
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
         scales: {
           y: {
-            beginAtZero: true
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
           }
-        }
+        },
+        layout: { padding: 0 }
       }
     }
+  },
+  watch: {
+    selectedChildId: {
+      handler() {
+        this.fetchWeeklyStats()
+        this.fetchMoodByDate()
+      },
+      immediate: true
+    },
+    selectedDate() {
+      this.fetchMoodByDate()
+    }
+  },
+  methods: {
+    formatTime(timeStr) {
+      if (!timeStr) return '';
+      const [hourStr, minuteStr] = timeStr.split(':');
+      const hour = parseInt(hourStr, 10);
+      const minute = parseInt(minuteStr, 10);
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      const hour12 = hour % 12 || 12;
+      return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm}`;
+    },
+    async fetchMoodByDate() {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/parent/child/${this.selectedChildId}/journal-by-date?date=${this.selectedDate}`,
+          { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
+        )
+        const data = await res.json()
+        const entries = data.journal_entries || []
+
+        if (!entries.length) {
+          this.resetMoodCharts()
+          return
+        }
+
+        this.journalTexts = entries.map(e => ({
+          id: e.id,
+          timestamp: e.timestamp,
+          content: e.content
+        }))
+
+        const moodLabels = entries.map(e => {
+  const [hourStr, minuteStr] = e.timestamp.split(":");
+  const hour = parseInt(hourStr);
+  const minute = parseInt(minuteStr);
+
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  const hour12 = hour % 12 || 12;
+
+  return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm}`;
+});
+
+
+        const moodScores = entries.map(e => this.mapMoodToScore(e.mood))
+        const moodCounts = {}
+        entries.forEach(e => {
+          const mood = e.mood.toLowerCase()
+          moodCounts[mood] = (moodCounts[mood] || 0) + 1
+        })
+
+        const pieLabels = Object.keys(moodCounts)
+        const pieData = Object.values(moodCounts)
+        const total = pieData.reduce((a, b) => a + b, 0)
+        const piePercent = pieData.map(count => ((count / total) * 100).toFixed(1))
+
+        this.moodData = {
+          labels: moodLabels,
+          datasets: [{
+            label: 'Mood Score (1=Sad, 5=Happy)',
+            data: moodScores,
+            borderColor: '#ff6a88',
+            backgroundColor: 'rgba(255,106,136,0.2)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 5,
+            pointBackgroundColor: '#ff6a88'
+          }]
+        }
+
+        this.moodPieData = {
+          labels: pieLabels.map(m => m.charAt(0).toUpperCase() + m.slice(1)),
+          datasets: [{
+            label: 'Mood Distribution',
+            data: piePercent,
+            backgroundColor: ['#ff6a88', '#ffc371', '#8ae9c1', '#a9a0f3', '#ffb347']
+          }]
+        }
+      } catch (err) {
+        console.error('Error fetching mood by date:', err.message)
+        this.resetMoodCharts()
+      }
+    },
+
+    async fetchWeeklyStats() {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/parent/child/${this.selectedChildId}/journal-entries?days=7`,
+          { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
+        )
+        const data = await res.json()
+        const entries = data.journal_entries || []
+
+        const dayMap = {}
+        entries.forEach(e => {
+          const day = new Date(e.date).toLocaleDateString('en-IN', { weekday: 'short' })
+          dayMap[day] = (dayMap[day] || 0) + 1
+        })
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        const counts = days.map(day => dayMap[day] || 0)
+
+        this.weeklyData = {
+          labels: days,
+          datasets: [{
+            label: 'Journals Written',
+            data: counts,
+            backgroundColor: '#a4cafe',
+            borderRadius: 8
+          }]
+        }
+      } catch (err) {
+        console.error('Error fetching weekly stats:', err.message)
+      }
+    },
+
+    resetMoodCharts() {
+      this.moodData = { labels: [], datasets: [] }
+      this.moodPieData = { labels: [], datasets: [] }
+      this.journalTexts = []
+    },
+
+    mapMoodToScore(mood) {
+      const map = { sad: 1, angry: 2, neutral: 3, excited: 4, happy: 5 }
+      return map[mood?.toLowerCase()] || 3
+    },
   }
 }
 </script>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');
 
+
+<style scoped>
 .parent-journal-analysis-bg {
   font-family: 'Comic Neue', cursive;
-  /* background: linear-gradient(to bottom right, #f0f8ff, #ffe6f0); */
-  /* min-height: 100vh; */
-  color: #333;
-  display: flex;
-  flex-direction: column;
+  background-color: #fff;
+  min-height: 100vh;
+  
 }
 
 .main-content {
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  /* padding: 2rem; */
-  /* min-height: calc(100vh - 100px); */
+
 }
 
 .analysis-container {
   background: white;
-  padding: 30px 24px;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-  /* max-width: 900px; */
+  padding: 30px;
+  border-radius: 20px;
+  max-width: 1000px;
   width: 100%;
-  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+.filters-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
-.analysis-container h2 {
-  font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
-  font-size: 2.2rem;
-  margin-bottom: 30px;
+.filters-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  font-size: 14px;
+}
+
+.filters-row select,
+.filters-row input {
+  padding: 6px 10px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.entry-button-wrapper {
+  margin-left: auto;
+}
+
+
+/* HEADER */
+h2 {
+  font-size: 1rem;
+  color: #222;
   text-align: center;
+  margin-bottom: 1.4rem;
+  font-family: 'Fredoka One', cursive;
 }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+/* BUTTON */
+.view-btn {
+  background: #ff6a88;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  height: 36px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* CHARTS */
+.mood-graphs-row {
+  display: flex;
+  gap: 24px;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
 .chart-card {
   background: #ffe6ec;
-  border-radius: 18px;
+  padding: 18px;
+  border-radius: 16px;
+  flex: 1 1 45%;
+  min-width: 300px;
   box-shadow: 0 4px 12px rgba(255, 106, 136, 0.08);
-  padding: 22px 18px 18px 18px;
+}
+
+.chart-card h3 {
+  color: #ff6a88;
+  font-family: 'Fredoka One', cursive;
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+
+.weekly-graph {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.weekly-chart-card {
+  /* max-width: 600px; */
+  width: 100%;
+  background: #ffe6ec;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(255, 106, 136, 0.08);
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.chart-card h3 {
+.weekly-chart-card h3 {
   font-family: 'Fredoka One', cursive;
   color: #ff6a88;
-  font-size: 1rem;
-  margin-bottom: 18px;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
   text-align: center;
 }
 
-.child-select {
+.chart-wrapper {
+  width: 100%;
   display: flex;
+  justify-content: center;
+}
+
+
+/* MODAL */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  font-size: 16px;
+  z-index: 999;
 }
 
-.child-select select {
-  padding: 6px 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
-@media (max-width: 900px) {
-  .charts-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
+.close-btn {
+  margin-top: 1rem;
+  background: #ccc;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.no-data-msg {
+  text-align: center;
+  margin-top: 2rem;
+  color: #777;
+  font-style: italic;
+  font-size: 15px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .mood-graphs-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chart-card {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .filters-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .view-btn {
+    width: 100%;
+    margin-top: 0.5rem;
   }
 }
 </style>
