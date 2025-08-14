@@ -16,7 +16,7 @@
         <!-- Google Sign-In Button -->
         <div class="mb-3">
             <button @click="registerWithGoogle" class="btn btn-google w-100" :disabled="isGoogleLoading">
-                <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm text-purple me-2" role="status" aria-hidden="true"></span>
                 <svg v-else class="google-icon me-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -46,7 +46,7 @@
             <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
           </div>
           <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-if="isLoading" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
             <span v-else>Send OTP</span>
           </button>
         </form>
@@ -66,7 +66,7 @@
                 <div v-if="errors.otp" class="invalid-feedback">{{ errors.otp }}</div>
             </div>
             <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-                <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span v-if="isLoading" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
                 <span v-else>Verify OTP</span>
             </button>
              <button @click="step = 1; serverError=''" class="btn btn-link w-100 mt-2">Change Email</button>
@@ -98,7 +98,7 @@
               placeholder="Username"
               @input="handleInput('username')"
             />
-            <div v-if="isCheckingUsername" class="spinner-border spinner-border-sm text-secondary position-absolute" style="top: 12px; right: 12px;" role="status">
+            <div v-if="isCheckingUsername" class="spinner-border spinner-border-sm text-purple position-absolute" style="top: 12px; right: 12px;" role="status">
               <span class="visually-hidden">Loading...</span>
             </div>
             <div v-if="errors.username" class="invalid-feedback">{{ errors.username }}</div>
@@ -136,7 +136,7 @@
           </div>
 
           <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-            <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span v-if="isLoading" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
             <span v-else>Register</span>
           </button>
         </form>
@@ -461,5 +461,9 @@ const validateFormOnSubmit = async () => {
 }
 .form-check-label a:hover {
     text-decoration: underline;
+}
+
+.text-purple {
+    color: #756bdb !important;
 }
 </style>

@@ -2,7 +2,6 @@
   <div class="parent-journal-analysis-bg">
     <main class="main-content">
       <div class="analysis-container">
-        <!-- No data messages -->
         <p v-if="!moodData.labels.length" class="no-data-msg">No journal data available for this date.</p>
         <p v-if="!weeklyData.labels.length" class="no-data-msg">No journal data available for the last 7 days.</p>
 
@@ -10,7 +9,6 @@
           <button class="view-btn" @click="showEntries = true">View All Entries</button>
         </div>
 
-        <!-- Mood Graphs -->
         <div class="mood-graphs-row" v-if="moodData.labels.length">
           <div class="chart-card">
             <h3>Mood Fluctuation (Day)</h3>
@@ -22,7 +20,6 @@
           </div>
         </div>
 
-        <!-- Weekly Mood Count -->
         <div class="weekly-graph" v-if="weeklyData.labels.length">
           <div class="chart-card weekly-chart-card">
             <h3>Journals Written in Last 7 Days</h3>
@@ -32,7 +29,6 @@
           </div>
         </div>
 
-        <!-- Modal: Entries -->
         <div class="modal-overlay" v-if="showEntries" @click.self="showEntries = false">
           <div class="modal-content">
             <h3>Journal Entries on {{ selectedDate }}</h3>
@@ -44,8 +40,6 @@
             <button @click="showEntries = false" class="close-btn">✕ Close</button>
           </div>
         </div>
-
-       
       </div>
     </main>
   </div>
@@ -188,16 +182,15 @@ export default {
         }))
 
         const moodLabels = entries.map(e => {
-  const [hourStr, minuteStr] = e.timestamp.split(":");
-  const hour = parseInt(hourStr);
-  const minute = parseInt(minuteStr);
+          const [hourStr, minuteStr] = e.timestamp.split(":");
+          const hour = parseInt(hourStr);
+          const minute = parseInt(minuteStr);
 
-  const ampm = hour >= 12 ? 'PM' : 'AM';
-  const hour12 = hour % 12 || 12;
+          const ampm = hour >= 12 ? 'PM' : 'AM';
+          const hour12 = hour % 12 || 12;
 
-  return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm}`;
-});
-
+          return `${hour12.toString().padStart(2, '0')}:${minuteStr} ${ampm}`;
+        });
 
         const moodScores = entries.map(e => this.mapMoodToScore(e.mood))
         const moodCounts = {}
@@ -262,7 +255,7 @@ export default {
           datasets: [{
             label: 'Journals Written',
             data: counts,
-            backgroundColor: '#a4cafe',
+            backgroundColor: '#5A4FCF', // Changed to purple to match theme
             borderRadius: 8
           }]
         }
@@ -317,13 +310,6 @@ export default {
   flex-wrap: wrap;
 }
 
-.filters-row {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  font-size: 14px;
-}
-
 .filters-row select,
 .filters-row input {
   padding: 6px 10px;
@@ -352,11 +338,18 @@ h2 {
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 50px;
   cursor: pointer;
   height: 36px;
   font-size: 14px;
   font-weight: bold;
+  transition: transform 0.3s, background-color 0.3s;
+}
+
+.view-btn:hover {
+  transform: scale(1.05);
+  background-color: #F7D96F;
+  color: #4A4A4A;
 }
 
 /* CHARTS */
@@ -393,7 +386,6 @@ h2 {
 }
 
 .weekly-chart-card {
-  /* max-width: 600px; */
   width: 100%;
   background: #E6E6FA;
   padding: 20px;
@@ -473,16 +465,6 @@ h2 {
   .chart-card {
     width: 100%;
     min-width: unset;
-  }
-
-  .filters-container {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .view-btn {
-    width: 100%;
-    margin-top: 0.5rem;
   }
 }
 </style>

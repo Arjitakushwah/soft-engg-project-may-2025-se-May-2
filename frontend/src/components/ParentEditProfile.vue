@@ -5,7 +5,7 @@
 
     <!-- Loading State -->
     <div v-if="isLoading" class="text-center py-5">
-      <div class="spinner-border text-primary-custom" role="status">
+      <div class="spinner-border text-purple" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <p class="mt-2 text-muted">Loading your profile...</p>
@@ -26,7 +26,7 @@
             <div class="mb-3 position-relative">
               <label for="username" class="form-label">Username</label>
               <input type="text" id="username" class="form-control" v-model.trim="profileForm.username" @input="handleInput('username')" />
-              <div v-if="isCheckingUsername" class="spinner-border spinner-border-sm text-secondary position-absolute" style="top: 42px; right: 12px;" role="status">
+              <div v-if="isCheckingUsername" class="spinner-border spinner-border-sm text-purple position-absolute" style="top: 42px; right: 12px;" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
               <div v-if="errors.username" class="invalid-feedback d-block">{{ errors.username }}</div>
@@ -37,7 +37,7 @@
               <div class="form-text">Your email address cannot be changed.</div>
             </div>
             <button type="submit" class="btn btn-primary-custom w-100 mt-3" :disabled="isUpdatingProfile">
-              <span v-if="isUpdatingProfile" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <span v-if="isUpdatingProfile" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
               <span v-else>Save Changes</span>
             </button>
           </form>
@@ -70,7 +70,7 @@
         <div class="mb-3 position-relative">
           <label for="setup-username" class="form-label">Username</label>
           <input type="text" id="setup-username" class="form-control" v-model.trim="profileForm.username" @input="handleInput('username')" />
-           <div v-if="isCheckingUsername" class="spinner-border spinner-border-sm text-secondary position-absolute" style="top: 42px; right: 12px;" role="status">
+           <div v-if="isCheckingUsername" class="spinner-border spinner-border-sm text-purple position-absolute" style="top: 42px; right: 12px;" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
           <div v-if="errors.username" class="invalid-feedback d-block">{{ errors.username }}</div>
@@ -86,7 +86,7 @@
           <div v-if="errors.confirm_password" class="invalid-feedback d-block">{{ errors.confirm_password }}</div>
         </div>
         <button type="submit" class="btn btn-primary-custom w-100 mt-3" :disabled="isUpdatingProfile">
-          <span v-if="isUpdatingProfile" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <span v-if="isUpdatingProfile" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
           <span v-else>Save Profile</span>
         </button>
       </form>
@@ -103,7 +103,7 @@
                 <form v-if="forgotPasswordStep === 1" @submit.prevent="sendResetOtp" class="mt-3">
                     <p class="text-muted text-center small">An OTP will be sent to your registered email: <strong>{{ profileForm.email }}</strong></p>
                     <button type="submit" class="btn btn-primary-custom w-100" :disabled="isChangingPassword">
-                        <span v-if="isChangingPassword" class="spinner-border spinner-border-sm"></span>
+                        <span v-if="isChangingPassword" class="spinner-border spinner-border-sm text-purple"></span>
                         <span v-else>Send OTP</span>
                     </button>
                 </form>
@@ -116,7 +116,7 @@
                         <input v-model="passwordForm.otp" type="text" class="form-control" required maxlength="6" />
                     </div>
                     <button type="submit" class="btn btn-primary-custom w-100" :disabled="isChangingPassword">
-                        <span v-if="isChangingPassword" class="spinner-border spinner-border-sm"></span>
+                        <span v-if="isChangingPassword" class="spinner-border spinner-border-sm text-purple"></span>
                         <span v-else>Verify OTP</span>
                     </button>
                 </form>
@@ -133,7 +133,7 @@
                         <input v-model="passwordForm.confirm_password" type="password" class="form-control" required />
                     </div>
                     <button type="submit" class="btn btn-danger w-100" :disabled="isChangingPassword">
-                        <span v-if="isChangingPassword" class="spinner-border spinner-border-sm"></span>
+                        <span v-if="isChangingPassword" class="spinner-border spinner-border-sm text-purple"></span>
                         <span v-else>Reset Password</span>
                     </button>
                 </form>
@@ -302,6 +302,10 @@ const setNewPassword = async () => {
 
 <style scoped>
 /* ... (all existing styles remain the same) ... */
+
+.text-purple {
+    color: #756bdb !important;
+}
 .modal-content {
   position: relative;
   background: #fff;

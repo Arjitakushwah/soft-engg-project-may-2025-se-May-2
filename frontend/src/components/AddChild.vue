@@ -61,7 +61,10 @@
           </select>
           <div v-if="errors.gender" class="invalid-feedback">{{ errors.gender }}</div>
         </div>
-        <button type="submit" class="btn btn-info w-100 text-white fw-bold">Add Child</button>
+        <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
+          <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          <span v-else>Add Child</span>
+        </button>
       </form>
       <p v-if="serverMessage" class="mt-3 text-center" :class="messageClass">{{ serverMessage }}</p>
     </div>
@@ -85,6 +88,7 @@ const form = ref({
 const errors = ref({});
 const serverMessage = ref('')
 const parentUsername = ref('')
+const isLoading = ref(false)
 
 onMounted(() => {
   const role = localStorage.getItem('userRole')
@@ -152,8 +156,10 @@ const validateForm = () => {
 
 const addChild = async () => {
   serverMessage.value = ''
+  isLoading.value = true
 
   if (!validateForm()) {
+    isLoading.value = false
     return;
   }
 
@@ -194,6 +200,8 @@ const addChild = async () => {
   } catch (err) {
     console.error(err)
     serverMessage.value = 'Network error. Please try again.'
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
@@ -204,21 +212,25 @@ const addChild = async () => {
 }
 
 .card {
-  background: linear-gradient(135deg, #fff8dc, #e0f7fa);
+  background: linear-gradient(135deg, #fff0f5, #f0f8ff);
   border-radius: 20px;
 }
 
-.btn-info {
-  background-color: #17a2b8;
-  border: none;
+.btn-success {
+  background-color: #756bdb;
   font-family: 'Fredoka One', cursive;
+  border: none;
+  color: white;
 }
 
-.btn-info:hover {
-  background-color: #148a9e;
+.btn-success:hover {
+  background-color: #F7D96F;
+  color: black;
 }
 
 .invalid-feedback {
-    display: block;
+  display: block;
+  text-align: left;
+  margin-top: 0.25rem;
 }
 </style>

@@ -4,7 +4,7 @@
       <h2 class="form-title">Edit Your Profile</h2>
       
       <div v-if="loading" class="text-center py-5">
-        <div class="spinner-border text-primary-custom" role="status">
+        <div class="spinner-border text-purple" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
       </div>
@@ -54,7 +54,7 @@
 
         <!-- Submit Button -->
         <button type="submit" :disabled="isSubmitting" class="mt-4">
-          <span v-if="isSubmitting" class="spinner-border spinner-border-sm"></span>
+          <span v-if="isSubmitting" class="spinner-border spinner-border-sm text-purple"></span>
           <span v-else>Save Changes</span>
         </button>
       </form>
@@ -304,5 +304,9 @@ button:disabled {
 .invalid-feedback {
     font-size: 0.8rem;
     color: #ef4444;
+}
+
+.text-purple {
+    color: #756bdb !important;
 }
 </style>

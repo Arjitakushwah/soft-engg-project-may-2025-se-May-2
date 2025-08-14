@@ -3,7 +3,7 @@
     <main class="main-content">
       <!-- Loading State -->
       <div v-if="isLoading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status">
+        <div class="spinner-border text-purple" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
         <p class="mt-2 text-muted">Loading calendar data...</p>
@@ -381,6 +381,10 @@ onMounted(() => {
 
 .text-primary {
     color: #ff6a88 !important;
+}
+
+.text-purple {
+    color: #756bdb !important;
 }
 
 .btn-primary-custom {
