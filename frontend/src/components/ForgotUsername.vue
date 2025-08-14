@@ -1,14 +1,15 @@
 <template>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
-      <div class="container-fluid d-flex justify-content-between align-items-center">
-        <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
-        <div class="d-flex">
-          <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
-          <router-link to="/register" class="btn btn-primary">Register</router-link>
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+          <router-link to="/" class="navbar-brand app-title">Skill Explorers</router-link>
+          <div class="d-flex">
+            <router-link to="/login" class="btn btn-outline-primary me-2">Login</router-link>
+            <router-link to="/register" class="btn btn-primary">Register</router-link>
+          </div>
         </div>
-      </div>
-    </nav>
-  <div class="container mt-5">
+      </nav>
+    <div class="container mt-5">
     <div class="card p-4 shadow-lg mx-auto position-relative" style="max-width: 500px;">
       <!-- Back Icon -->
       <button @click="goBack" class="back-icon-btn" aria-label="Go Back">
@@ -46,8 +47,8 @@
               <div v-if="error" class="invalid-feedback">{{ error }}</div>
           </div>
           <button class="btn btn-success w-100" type="submit" :disabled="isLoading">
-              <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              <span v-else>Retrieve Username</span>
+                <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span v-else>Retrieve Username</span>
           </button>
         </form>
 
@@ -65,8 +66,8 @@
           <p class="mt-2 mb-0">Child accounts cannot retrieve usernames directly.</p>
           <p class="small text-muted">Please ask your parent for help to find your username.</p>
       </div>
-
     </div>
+  </div>
   </div>
 </template>
 

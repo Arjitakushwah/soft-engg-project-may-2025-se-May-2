@@ -1,58 +1,68 @@
 <template>
-  <div class="container py-4">
-    <h2 class="mb-4 fw-bold">Activity Insight</h2>
+  <div class="activity-insight-container">
+    <div class="header-section">
+      <h2 class="page-title">Progress Tracker</h2>
+      <p class="page-subtitle">Track and analyze your child's learning activities and progress</p>
+    </div>
 
     <!-- Loading State -->
-    <div v-if="isLoading" class="text-center py-5">
-      <div class="spinner-border text-primary" role="status">
+    <div v-if="isLoading" class="loading-container">
+      <div class="spinner-border text-purple" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
-      <p class="mt-2 text-muted">Loading activity data...</p>
+      <p class="loading-text">Loading activity data...</p>
     </div>
 
     <!-- No Children Found State -->
-    <div v-else-if="noChildrenFound" class="text-center bg-light p-4 p-md-5 rounded-3">
-        <i class="bi bi-person-plus-fill display-4 text-primary mb-3"></i>
-        <h4 class="fw-semibold">No Child Profile Found</h4>
-        <p class="text-muted">Please add a child profile first to view their activity insights.</p>
-        <router-link to="/parent/add_child" class="btn btn-primary-custom mt-2">
-            <i class="bi bi-plus-circle me-2"></i>Add Child Profile
-        </router-link>
+    <div v-else-if="noChildrenFound" class="no-children-container">
+        <div class="no-children-card">
+          <i class="bi bi-person-plus-fill no-children-icon"></i>
+          <h4 class="no-children-title">No Child Profile Found</h4>
+          <p class="no-children-text">Please add a child profile first to view their activity insights.</p>
+          <router-link to="/parent/add_child" class="btn btn-primary-custom">
+              <i class="bi bi-plus-circle me-2"></i>Add Child Profile
+          </router-link>
+        </div>
     </div>
 
     <!-- Main Content State -->
-    <div v-else>
-      <!-- Selectors -->
-      <div class="row g-4 mb-4">
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Select Child</label>
-          <select v-model="selectedChildId" class="form-select">
-            <option v-for="child in children" :key="child.id" :value="child.id">
-              {{ child.name }}
-            </option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label fw-semibold">Select Date</label>
-          <input type="date" v-model="selectedDate" class="form-control" />
+    <div v-else class="main-content">
+      <!-- Selectors Card -->
+      <div class="selectors-card">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <label class="form-label">Select Child</label>
+            <select v-model="selectedChildId" class="form-select custom-select">
+              <option v-for="child in children" :key="child.id" :value="child.id">
+                {{ child.name }}
+              </option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Select Date</label>
+            <input type="date" v-model="selectedDate" class="form-control custom-input" />
+          </div>
         </div>
       </div>
 
-      <!-- Tabs as Buttons -->
-      <div class="mb-4 d-flex flex-wrap gap-3">
+      <!-- Tabs Navigation -->
+      <div class="tabs-container">
         <router-link
           v-for="tab in tabs"
           :key="tab.name"
           :to="`/parent/activity_analysis/${tab.route}`"
-          class="tab-btn btn"
+          class="tab-btn"
           :class="{ active: $route.path.includes(tab.route) }"
         >
+          <i :class="getTabIcon(tab.route)" class="tab-icon"></i>
           {{ tab.name }}
         </router-link>
       </div>
 
       <!-- Router View for Tab Content -->
-      <router-view :selectedChildId="selectedChildId" :selectedDate="selectedDate" />
+      <div class="tab-content-container">
+        <router-view :selectedChildId="selectedChildId" :selectedDate="selectedDate" />
+      </div>
     </div>
   </div>
 </template>
@@ -76,6 +86,16 @@ export default {
       { name: 'Infotainment', route: 'infotainment' }
     ]
 
+    const getTabIcon = (route) => {
+      const icons = {
+        'journal': 'bi bi-journal-text',
+        'to-do-list': 'bi bi-check2-square',
+        'story': 'bi bi-book',
+        'infotainment': 'bi bi-lightbulb'
+      }
+      return icons[route] || 'bi bi-activity'
+    }
+
     const fetchChildren = async () => {
       isLoading.value = true;
       try {
@@ -98,14 +118,16 @@ export default {
             noChildrenFound.value = true;
         }
       } catch (err) {
-        console.error('Failed to load children', err)
-        noChildrenFound.value = true; // Set to true on error as well
+        console.error('Error fetching children:', err);
+        noChildrenFound.value = true;
       } finally {
-          isLoading.value = false;
+        isLoading.value = false;
       }
     }
 
-    onMounted(fetchChildren)
+    onMounted(() => {
+      fetchChildren()
+    })
 
     return {
       tabs,
@@ -113,98 +135,269 @@ export default {
       selectedChildId,
       selectedDate,
       isLoading,
-      noChildrenFound
+      noChildrenFound,
+      getTabIcon
     }
   }
 }
 </script>
 
 <style scoped>
-.container {
-  max-width: 1100px;
+.activity-insight-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Comic Neue', cursive;
+  /* background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); */
+  background:white;
+  min-height: 100vh;
 }
 
-h2 {
-  color: #0d6efd;
-  font-size: 26px;
-  border-left: 6px solid #0d6efd;
-  padding-left: 12px;
-  letter-spacing: 0.5px;
+.header-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem 0;
+}
+
+
+.page-title {
+  font-size: 2.2rem;
+  color: #5A4FCF;
+  margin-bottom: 1rem;
+  font-family: 'Fredoka One', cursive;
+}
+
+.page-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Loading State */
+.loading-container {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(117, 107, 219, 0.1);
+  margin: 2rem 0;
+}
+
+.loading-text {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  font-weight: 500;
+}
+
+/* No Children State */
+.no-children-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.no-children-card {
+  background: white;
+  padding: 3rem;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(117, 107, 219, 0.1);
+  max-width: 500px;
+  width: 100%;
+}
+
+.no-children-icon {
+  font-size: 4rem;
+  color: #756bdb;
+  margin-bottom: 1.5rem;
+  opacity: 0.8;
+}
+
+.no-children-title {
+  color: #756bdb;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  font-family: 'Fredoka One', cursive;
+}
+
+.no-children-text {
+  color: #6c757d;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Main Content */
+.main-content {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 32px rgba(117, 107, 219, 0.1);
+}
+
+/* Selectors Card */
+.selectors-card {
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(117, 107, 219, 0.1);
 }
 
 .form-label {
-  font-size: 15px;
-  color: #495057;
+  font-size: 1rem;
+  color: #756bdb;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  font-family: 'Fredoka One', cursive;
 }
 
-.form-select,
-.form-control {
+.custom-select,
+.custom-input {
   border-radius: 12px;
-  border: 1px solid #ced4da;
-  padding: 10px 14px;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid #e9ecef;
+  padding: 12px 16px;
+  transition: all 0.3s ease;
+  background: white;
+  font-size: 1rem;
 }
 
-.form-select:focus,
-.form-control:focus {
-  border-color: #0d6efd;
-  box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
+.custom-select:focus,
+.custom-input:focus {
+  border-color: #756bdb;
+  box-shadow: 0 0 0 3px rgba(117, 107, 219, 0.1);
+  outline: none;
+}
+
+/* Tabs Navigation */
+.tabs-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
 }
 
 .tab-btn {
-  background-color: #f8f9fa;
-  color: #0d6efd;
-  border: 2px solid #0d6efd;
+  background: white;
+  color: #756bdb;
+  border: 2px solid #756bdb;
   border-radius: 25px;
-  padding: 8px 22px;
+  padding: 12px 24px;
   transition: all 0.3s ease;
-  font-weight: 500;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(117, 107, 219, 0.1);
 }
 
 .tab-btn:hover {
-  background-color: #0d6efd;
+  background: #756bdb;
   color: white;
   text-decoration: none;
   transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(117, 107, 219, 0.2);
 }
 
 .tab-btn.active {
-  background-color: #0d6efd;
+  background: #756bdb;
   color: white;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+  box-shadow: 0 6px 20px rgba(117, 107, 219, 0.3);
 }
 
+.tab-icon {
+  font-size: 1.1rem;
+}
+
+/* Tab Content */
+.tab-content-container {
+  background: #f8f9ff;
+  border-radius: 15px;
+  padding: 2rem;
+  min-height: 400px;
+}
+
+/* Button Styling */
 .btn-primary-custom {
-    background-color: #0d6efd;
-    color: white;
-    border-radius: 25px;
-    padding: 10px 25px;
-    font-weight: 500;
-    transition: all 0.3s ease;
+  background: linear-gradient(135deg, #756bdb 0%, #6155b1 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(117, 107, 219, 0.2);
 }
 
 .btn-primary-custom:hover {
-    background-color: #0b5ed7;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+  background: linear-gradient(135deg, #6155b1 0%, #4a3f8a 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(117, 107, 219, 0.3);
+  text-decoration: none;
 }
 
-.d-flex.gap-3 {
-  flex-wrap: wrap;
-  justify-content: flex-start;
+/* Purple Color Class */
+.text-purple {
+  color: #756bdb !important;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
-  h2 {
-    font-size: 22px;
+  .activity-insight-container {
+    padding: 1rem;
   }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .page-subtitle {
+    font-size: 1rem;
+  }
+  
+  .main-content {
+    padding: 1.5rem;
+  }
+  
+  .tabs-container {
+    justify-content: flex-start;
+    gap: 0.5rem;
+  }
+  
   .tab-btn {
-    padding: 7px 16px;
-    font-size: 14px;
+    padding: 10px 16px;
+    font-size: 0.9rem;
   }
-  .form-label {
-    font-size: 14px;
+  
+  .no-children-card {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .no-children-icon {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs-container {
+    flex-direction: column;
+  }
+  
+  .tab-btn {
+    justify-content: center;
   }
 }
 </style>

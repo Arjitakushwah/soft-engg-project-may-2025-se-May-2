@@ -1,6 +1,6 @@
 <template>
     <div class="callback-container">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border text-purple" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <p class="mt-3">Finalizing your login, please wait...</p>
@@ -57,9 +57,9 @@
     color: #555;
   }
   
-  .spinner-border.text-primary {
+  .spinner-border.text-purple {
       /* Match the theme color from your other pages */
-      color: #be6dbe !important;
+              color: #756bdb !important;
   }
   </style>
   

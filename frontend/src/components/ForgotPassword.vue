@@ -47,7 +47,7 @@
                 <div v-if="errors.email" class="invalid-feedback">{{ errors.email }}</div>
               </div>
               <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-                <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span v-if="isLoading" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
                 <span v-else>Send OTP</span>
               </button>
             </form>
@@ -68,7 +68,7 @@
                 <div v-if="errors.otp" class="invalid-feedback">{{ errors.otp }}</div>
               </div>
                <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-                <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span v-if="isLoading" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
                 <span v-else>Verify OTP</span>
               </button>
               <button @click="step = 1; serverError=''" class="btn btn-link w-100 mt-2">Change Email</button>
@@ -100,7 +100,7 @@
                 <div v-if="errors.confirmPassword" class="invalid-feedback">{{ errors.confirmPassword }}</div>
               </div>
               <button type="submit" class="btn btn-success w-100" :disabled="isLoading">
-                <span v-if="isLoading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <span v-if="isLoading" class="spinner-border spinner-border-sm text-purple" role="status" aria-hidden="true"></span>
                 <span v-else>Reset Password</span>
               </button>
             </form>
@@ -327,5 +327,9 @@ const handleSetPassword = async () => {
 .form-check-input:checked {
     background-color: #756bdb;
     border-color: #756bdb;
+}
+
+.text-purple {
+    color: #756bdb !important;
 }
 </style>

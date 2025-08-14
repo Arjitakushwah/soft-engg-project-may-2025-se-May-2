@@ -2,7 +2,7 @@
   <div class="parent-home-container">
     <!-- Loading State -->
     <div v-if="isLoading" class="centered-message">
-      <div class="spinner-border text-primary" role="status">
+      <div class="spinner-border text-purple" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
       <p class="mt-2 text-muted">Loading dashboard...</p>
@@ -441,6 +441,10 @@ const downloadChildReport = async (childId) => {
 
 .text-primary {
     color: #ff6a88 !important;
+}
+
+.text-purple {
+    color: #756bdb !important;
 }
 
 .btn-primary-custom {

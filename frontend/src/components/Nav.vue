@@ -17,10 +17,7 @@
         </router-link>
       </div>
 
-      <!-- Welcome Text -->
-      <span class="me-3 welcome-text d-none d-md-inline">
-        Welcome, {{ username }}!
-      </span>
+
 
       <!-- Action Buttons -->
       <div class="d-flex">
