@@ -141,9 +141,9 @@ soft-engg-project-may-2025-se-May-2/
    ```
     cp exaa.env prod.env          # Copy and configure environment variables
    ```
-   5. Create Database:
+   5. Create Database and Add initial data:
    ```
-    python setup_db.py
+    python seed_data.py
    ```
    6. Initialize the database:
    ```
@@ -191,7 +191,7 @@ The backend includes email-based communication for account security and updates.
    ```
  ### Adding EXA API Key
 
-- Sign up for an account at EXA API (or your provider).
+- Sign up for an account at EXA API (https://exa.ai/).
 
 - Generate your API key.
 
@@ -254,7 +254,7 @@ The backend includes email-based communication for account security and updates.
    3. Start the Flask development server::
       
      python app.py
-   Server runs at: [http://localhost:5000]
+   Server runs at: (http://localhost:5000)
 
 **Start Frontend**
    1. Navigate to the Frontend directory:
@@ -265,13 +265,53 @@ The backend includes email-based communication for account security and updates.
       
      npm run dev
   
-   App runs at: [http://localhost:5173]
+   App runs at: (http://localhost:5173)
 
 ---
 
 ## Feature Walkthrough
 
-- **Mood Classification** – Detects child’s emotional state from journal entries or activities.  
+1. **Authentication**
+- Navigate to http://localhost:8080/
+- Login as Parent with "parent1" and "Parent@123" as username and password respectively.
+- Login as Child with "child1" and "Child@123" as username and password respectively.
+- Register with new credentials or use Google OAuth SignIn as parent role then add child to get child credential.
+
+2. **Child Dashboard**
+   When logged in as a Child, the dashboard displays:
+    Statistics:
+    - Longest streak
+    - Total badges earned
+    - All milestones with corresponding badges
+    
+    Sidebar Features:
+    - Calendar report
+    - To-Do Task Manager
+    - Story
+    - Journaling
+    - Infotainment
+ 3. **To-Do Task Manager Rules**
+
+    Creating Tasks:
+      A child can create a task with a specific date and time.
+    Updating Task Status:
+    
+       Not allowed:
+         - Update past date/time tasks.
+         - Mark as complete a task scheduled for a future day.
+
+       Allowed:
+         - Mark as complete only within 15 minutes before the scheduled time up to 1 hour after the scheduled time.
+
+    Deleting Tasks:
+
+Not allowed:
+
+Delete completed tasks.
+
+Delete any past-date tasks (whether completed or not).
+
+**Mood Classification**Detects child’s emotional state from journal entries or activities.  
 - **News Agent** – Fetches curated child-friendly news.  
 - **Story Agent** – Generates personalized bedtime or educational stories.  
 - **Report Agent** – Compiles child’s activity report in PDF.  
@@ -280,6 +320,7 @@ The backend includes email-based communication for account security and updates.
 - **Email Notifications** – Sends OTP, Credential, and Confirmation.  
 
 ---
+
 
 
 
