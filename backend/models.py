@@ -1,9 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from pytz import timezone
+IST = timezone('Asia/Kolkata')
 
 db = SQLAlchemy()
 
-# ---------- User Model ---------
+# ---------- User Model ----------
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -12,7 +14,7 @@ class User(db.Model):
     username = db.Column(db.String, unique=True, nullable=True)
     password = db.Column(db.String, nullable=True)
     role = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(IST))
 
 # ---------- Parent Model ----------
 
@@ -36,7 +38,6 @@ class Child(db.Model):
     parent_id = db.Column(db.Integer, db.ForeignKey('parents.id'), nullable=False)
     parent = db.relationship("Parent", back_populates="children")
     to_do_items = db.relationship("ToDoItem", back_populates="child")
-    # story_attempts = db.relationship("StoryAttempt", back_populates="child")
     daily_stories = db.relationship("DailyStory", back_populates="child")
     journal_entries = db.relationship("JournalEntry", back_populates="child")
     infotainment_logs = db.relationship("InfotainmentReadLog", back_populates="child")
@@ -84,7 +85,7 @@ class JournalEntry(db.Model):
     date = db.Column(db.Date, nullable=False)
     text = db.Column(db.String, nullable=False)
     mood = db.Column(db.String, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(IST))
     is_done = db.Column(db.Boolean, default=False)
     child = db.relationship("Child", back_populates="journal_entries")
 
@@ -96,9 +97,9 @@ class InfotainmentReadLog(db.Model):
     child_prompt = db.Column(db.Text, nullable=False)
     content = db.Column(db.Text)
     date = db.Column(db.Date, nullable=False)
-    time = db.Column(db.Time, nullable=False, default=datetime.utcnow().time()) 
+    time = db.Column(db.Time, nullable=False, default=datetime.now(IST).time()) 
     is_done = db.Column(db.Boolean, default=False)
-    marked_at = db.Column(db.DateTime, default=datetime.utcnow)
+    marked_at = db.Column(db.DateTime, default=lambda: datetime.now(IST))
     child = db.relationship("Child", back_populates="infotainment_logs")
 
 class DailyProgress(db.Model):
@@ -111,18 +112,8 @@ class DailyProgress(db.Model):
     is_story_done = db.Column(db.Boolean, default=False)
     is_infotainment_done = db.Column(db.Boolean, default=False)
     total_completed = db.Column(db.Integer, default=0)
-    last_updated = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    last_updated = db.Column(db.DateTime, default=lambda: datetime.now(IST), onupdate=lambda: datetime.now(IST))
     child = db.relationship("Child", backref="daily_progress")
-
-# class StreakMilestone(db.Model):
-#     __tablename__ = 'streak_milestones'
-#     id = db.Column(db.Integer, primary_key=True)
-#     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
-#     milestone = db.Column(db.Integer, nullable=False)
-#     awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-#     db.UniqueConstraint('child_id', 'milestone')  # Prevent duplicates
-
 
 class BadgeAward(db.Model):
     __tablename__ = 'badge_awards'
@@ -130,7 +121,7 @@ class BadgeAward(db.Model):
     child_id = db.Column(db.Integer, db.ForeignKey('children.id'), nullable=False)
     badge_type = db.Column(db.String, nullable=False)
     badge_name = db.Column(db.String, nullable=False) 
-    awarded_at = db.Column(db.DateTime, default=datetime.utcnow)
+    awarded_at = db.Column(db.DateTime, default=lambda: datetime.now(IST))
     __table_args__ = (
         db.UniqueConstraint('child_id', 'badge_name', name='unique_badge_per_child'),
     )

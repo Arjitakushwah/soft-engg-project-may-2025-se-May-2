@@ -1,5 +1,5 @@
 from app import app
-from setup_db import creat_db
+from setup_db import create_db
 from werkzeug.security import generate_password_hash
 from datetime import datetime
 import pytz
@@ -9,9 +9,9 @@ now_ist = datetime.now(IST)
 
 
 with app.app_context():
-    creat_db()
+    create_db()
     from models import db, User, Parent, Child
-    # Create a parent user
+    # Create a parent user,
     parent_user = User(
         email="parent@example.com",
         username="parent1",
