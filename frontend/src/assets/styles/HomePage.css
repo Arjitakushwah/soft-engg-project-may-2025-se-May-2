@@ -2,7 +2,7 @@
 
 .homepage {
   font-family: 'Comic Neue', cursive;
-  background: linear-gradient(to bottom right, #f0f8ff, #ffe6f0);
+  background: #F8F8FF;
   min-height: 100vh;
   color: #333;
 }
@@ -12,20 +12,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #ff6a88;
+  background-color: #F8F8FF;
   padding: 1rem 2rem;
-  color: white;
+  color: rgb(169, 208, 240);
   font-family: 'Fredoka One', cursive;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar .logo {
+  color: #5A4FCF;
   font-size: 1.8rem;
 }
 
 .navbar .nav-links button {
-  background: white;
-  color: #ff6a88;
+  background: #5A4FCF;
+  color: white;
   border: none;
   margin-left: 10px;
   padding: 10px 20px;
@@ -37,13 +38,14 @@
 
 .navbar .nav-links button:hover {
   transform: scale(1.05);
-  background-color: #faf2f4;
+  background-color: #F7D96f ;
+  color: #4A4A4A;
 }
 
 /* === HERO === */
 .hero {
   text-align: center;
-  background: linear-gradient(135deg, #ff9a8b 0%, #ff6a88 100%);
+  background: #756bdb;
   color: white;
   padding: 80px 20px;
   border-bottom-left-radius: 50% 30px;
@@ -63,6 +65,53 @@
   margin: 0 auto;
 }
 
+/* === HERO BUTTONS === */
+.hero .nav-links {
+  margin-top: 30px; /* Adds some space above the buttons */
+}
+
+/* Shared styles for both buttons */
+.hero .nav-links button {
+  font-family: 'Fredoka One', cursive;
+  padding: 12px 30px;
+  border-radius: 50px; /* Creates the pill shape */
+  border: 2px solid white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin: 0 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Primary Button Style (Register) */
+.hero .nav-links .btn-primary {
+  background-color: #F7D96F;
+  color: #4A4A4A; /* Uses the hero background color for text */
+}
+
+/* Secondary Button Style (Login) */
+.hero .nav-links .btn-secondary {
+  background-color: transparent;
+  color: white;
+}
+
+/* --- HOVER EFFECTS --- */
+
+/* Primary button gets slightly darker on hover */
+.hero .nav-links .btn-primary:hover {
+  background-color: #fff0e9; /* A very light pink/orange */
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Secondary button fills with color on hover */
+.hero .nav-links .btn-secondary:hover {
+  background-color: white;
+  color: #483D8B;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
 /* === FEATURES SECTION === */
 .features-showcase {
   padding: 60px 20px;
@@ -73,6 +122,7 @@
   font-family: 'Fredoka One', cursive;
   font-size: 3rem;
   margin-bottom: 40px;
+  color: #4A4A4A;
 }
 
 .features-grid {
@@ -84,7 +134,7 @@
 }
 
 .feature-card {
-  background: white;
+  background: #E6E6FA;
   padding: 30px;
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -99,6 +149,16 @@
 .feature-icon {
   font-size: 3rem;
   margin-bottom: 15px;
+  color: #5A4FCF;
+}
+
+.feature-icon i {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.feature-card:hover .feature-icon i {
+  transform: scale(1.1);
+  color: #F7D96F;
 }
 
 .feature-card h3 {
