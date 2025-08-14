@@ -1,10 +1,8 @@
 # soft-engg-project-may-2025-se-May-2
-Software Engineering Project - Life Skills App for School Aged Children
-# Child–Parent AI Assistance Platform
 
 ## Project Overview
-A comprehensive **AI-powered child and parent engagement platform** built with a **Python backend** (Flask/FastAPI) and a **Vue.js frontend** (using CDN).  
-The system offers mood classification, news curation, storytelling, automated PDF reports, streak and badge tracking, email notifications, and an AI-driven analytics dashboard for both children and parents.
+A comprehensive **AI-powered child and parent engagement platform** built with a **Python backend** (Flask/FastAPI) and a **Vue.js frontend** .  
+The system offers mood classification, news curation, storytelling, analytics, streak and badge tracking, email notifications, and an AI-driven analytics Report for children.
 
 ## Project Team
 - **Arjita Singh Kushwaha**
@@ -147,10 +145,18 @@ soft-engg-project-may-2025-se-May-2/
    ```
     python setup_db.py
    ```
-   6. Run Backend server:
+   6. Initialize the database:
+   ```
+    flask db init
+    flask db migrate -m "Initial migration"
+    flask db upgrade
+   ```
+   8. Run Backend server:
    ```
     python app.py             
    ```
+
+---
 ### Google API Setup
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
@@ -172,7 +178,7 @@ The backend includes email-based communication for account security and updates.
 - **Send Credentials** – On successful account creation (for child or parent), login credentials or a Google OAuth link are sent via email.
 - **Confirmation Emails** – After actions like password reset, account update, or report generation, a confirmation email is sent to notify the user.
 
-**Configuration (Gmail SMTP example):**
+### Configuration (Gmail SMTP example)
 1. Go to your [Google Account](https://myaccount.google.com/).
 2. Navigate to **Security** → enable **2-Step Verification**.
 3. In the search bar, type **"App Passwords"**.
@@ -183,7 +189,7 @@ The backend includes email-based communication for account security and updates.
    EMAIL_USER=your_email@gmail.com
    EMAIL_PASSWORD=XXXX XXXX XXXX XXXX
    ```
- **Adding EXA API Key**
+ ### Adding EXA API Key
 
 - Sign up for an account at EXA API (or your provider).
 
@@ -195,7 +201,7 @@ The backend includes email-based communication for account security and updates.
     EXA_API_KEY=your_exa_api_key_here
   ```
 
-**Adding Google Gemini Flash 2.0 API Key**
+### Adding Google Gemini Flash 2.0 API Key
 
 - Go to Google AI Studio.
 
@@ -206,26 +212,30 @@ The backend includes email-based communication for account security and updates.
   ```
     GEMINI_API_KEY=your_gemini_flash_2_api_key_here
   ```
+### JWT Secret Keys
+- Visit https://jwtsecret.com/generate
+- Set the length parameter to 128
+- Click "Generate Secret Key"
+- Copy the generated key and add it to config.py file
+
+   ```
+     JWT_SECRET_KEY = "ENTER GENERATED KEY"
+   ```
   ---
 
 ### Frontend Setup
+
    1. Navigate to the frontend directory:
       
-    ```
      cd frontend
-    ```
     
-   3. Install dependencies:
+   2. Install dependencies:
       
-    ```
      npm install
-    ```
     
-   5. Run frontend server:
+   3. Run frontend server:
       
-    ```
      npm run dev
-    ```
 
 ---
 
@@ -235,38 +245,27 @@ The backend includes email-based communication for account security and updates.
 
    1. Navigate to the backend directory:
       
-
      cd backend
     
-   3. Activate the virtual environment(if not activated):
-    ```
+   2. Activate the virtual environment(if not activated):
+      
      source venv/scripts/activate
-    ```
-   4. Start Backend server:
-    ```
+    
+   3. Start the Flask development server::
+      
      python app.py
-    ```
    Server runs at: [http://localhost:5000]
 
-2. **Start Frontend**
-```bash
-cd frontend
-npm run dev
-```
-App runs at: [http://localhost:5173](http://localhost:5173) (default Vite port)
+**Start Frontend**
+   1. Navigate to the Frontend directory:
 
----
-
-## API Keys Setup
-
-### Google API Key
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create/select a project
-3. Enable APIs & create credentials
-4. Add API key to `.env` as:
-```
-GOOGLE_API_KEY=your_key_here
-```
+     cd frontend
+     
+   2. Start the Vue development server:
+      
+     npm run dev
+  
+   App runs at: [http://localhost:5173]
 
 ---
 
@@ -278,10 +277,10 @@ GOOGLE_API_KEY=your_key_here
 - **Report Agent** – Compiles child’s activity report in PDF.  
 - **Progress Tracker** – Visualizes child’s progress via streaks and badges.  
 - **Parent Dashboard** – Parents get detailed insights on child’s activities, moods, and learning.  
-- **Email Notifications** – Sends summaries, streak updates, and reports via email.  
+- **Email Notifications** – Sends OTP, Credential, and Confirmation.  
 
 ---
 
-## License
-MIT License
+
+
 
