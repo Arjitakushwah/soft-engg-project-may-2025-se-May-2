@@ -272,12 +272,13 @@ The backend includes email-based communication for account security and updates.
 ## Feature Walkthrough
 
 1. **Authentication**
-- Navigate to http://localhost:8080/
-- Login as Parent with "parent1" and "Parent@123" as username and password respectively.
-- Login as Child with "child1" and "Child@123" as username and password respectively.
-- Register with new credentials or use Google OAuth SignIn as parent role then add child to get child credential.
+   
+   - Navigate to http://localhost:8080/
+   - Login as Parent with "parent1" and "Parent@123" as username and password respectively.
+   - Login as Child with "child1" and "Child@123" as username and password respectively.
+   - Register with new credentials or use Google OAuth SignIn as parent role then add child to get child credential.
 
-2. **Child Dashboard**
+3. **Child Dashboard**
    
    When logged in as a Child, the dashboard displays:
     Statistics:
@@ -294,7 +295,7 @@ The backend includes email-based communication for account security and updates.
  4. **To-Do Task Manager Rules**
 
     Creating Tasks:
-      A child can create a task with a specific date and time.
+      - A child can create a task with a specific date and time.
     
     Updating Task Status:
       Not allowed:
@@ -302,7 +303,7 @@ The backend includes email-based communication for account security and updates.
        - Mark as complete a task scheduled for a future day.
 
       Allowed:
-        - Mark as complete only within 15 minutes before the scheduled time up to 1 hour after the scheduled time.
+       - Mark as complete only within 15 minutes before the scheduled time up to 1 hour after the scheduled time.
 
     Deleting Tasks:
       Not allowed:
@@ -373,7 +374,7 @@ The backend includes email-based communication for account security and updates.
 ---
 ### Some important component
 
-- **Mood Classification**Detects child’s emotional state from journal entries or activities.  
+- **Mood Classification** - Detects child’s emotional state from journal entries or activities.  
 - **News Agent** – Fetches curated child-friendly news.  
 - **Story Agent** – Generates personalized bedtime or educational stories.  
 - **Report Agent** – Compiles child’s activity report in PDF.  
@@ -382,6 +383,7 @@ The backend includes email-based communication for account security and updates.
 - **Email Notifications** – Sends OTP, Credential, and Confirmation.  
 
 ---
+
 
 
 
