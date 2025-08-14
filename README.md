@@ -1,7 +1,7 @@
 # soft-engg-project-may-2025-se-May-2
 
 ## Project Overview
-A comprehensive **AI-powered child and parent engagement platform** built with a **Python backend** (Flask/FastAPI) and a **Vue.js frontend** .  
+A comprehensive AI-powered child and parent engagement platform built with a Python backend (Flask/FastAPI) and a Vue.js frontend .  
 The system offers mood classification, news curation, storytelling, analytics, streak and badge tracking, email notifications, and an AI-driven analytics Report for children.
 
 ## Project Team
@@ -383,6 +383,7 @@ The backend includes email-based communication for account security and updates.
 - **Email Notifications** – Sends OTP, Credential, and Confirmation.  
 
 ---
+
 
 
 
