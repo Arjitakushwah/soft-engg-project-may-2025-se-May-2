@@ -278,6 +278,7 @@ The backend includes email-based communication for account security and updates.
 - Register with new credentials or use Google OAuth SignIn as parent role then add child to get child credential.
 
 2. **Child Dashboard**
+   
    When logged in as a Child, the dashboard displays:
     Statistics:
     - Longest streak
@@ -290,28 +291,89 @@ The backend includes email-based communication for account security and updates.
     - Story
     - Journaling
     - Infotainment
- 3. **To-Do Task Manager Rules**
+ 4. **To-Do Task Manager Rules**
 
     Creating Tasks:
       A child can create a task with a specific date and time.
-    Updating Task Status:
     
-       Not allowed:
-         - Update past date/time tasks.
-         - Mark as complete a task scheduled for a future day.
+    Updating Task Status:
+      Not allowed:
+       - Update past date/time tasks.
+       - Mark as complete a task scheduled for a future day.
 
-       Allowed:
-         - Mark as complete only within 15 minutes before the scheduled time up to 1 hour after the scheduled time.
+      Allowed:
+        - Mark as complete only within 15 minutes before the scheduled time up to 1 hour after the scheduled time.
 
     Deleting Tasks:
+      Not allowed:
+      - Delete completed tasks.
+      - Delete any past-date tasks (whether completed or not).
+    
+ 6. **Story Reading**
 
-Not allowed:
+    Generate a Story:
+     - Child provides a prompt (topic or idea) for the story.
+     - System generates a unique, AI-powered story based on the given prompt.
 
-Delete completed tasks.
+    Start a Quiz:
+      - After reading, child can take a quiz related to the story content.
+      - Options are shuffled after every wrong answer.
 
-Delete any past-date tasks (whether completed or not).
+ 7. **Journaling**
 
-**Mood Classification**Detects child’s emotional state from journal entries or activities.  
+    Write Journal Entries:
+      - Child can write short statements or reflections multiple times throughout the day.
+      - Entries can express how they are feeling, what happened, or any personal thoughts.
+
+    Mood Classification:
+      - System uses a mood classifier to analyze the journal text.
+      - Determines the child’s emotional state (e.g., happy, sad, Anaxious, excited).
+
+    Parent Visibility:
+      - Classified moods and journal summaries are visible to the parent account.
+      - Helps parents track emotional well-being over time.
+   
+  8. **Infotainment**
+
+     Topic Selection:
+       - Child can choose from topics like Science, History, and more.
+
+     Child-Friendly News Generation:
+       - System generates a news article tailored for children simple language, age-appropriate, and engaging.
+
+     Reading & Marking as Read:
+       - Child reads the generated article.
+       - "Mark as Read" button becomes available only after 3 minutes to encourage proper reading time.
+  9. **Calendar Report**
+
+     Availability:
+       - Accessible in both Child Dashboard and Parent Dashboard.
+
+     Purpose:
+       - Allows both child and parent to view tasks for any selected date.
+     Features:
+       - Displays all tasks for that date with clear status indicators Completed or Not Completed.
+
+  10. **Parent Dashboard**
+
+      Child Management:
+        - View all added children’s profiles and details.
+        - Add new child accounts with credentials.
+
+      Calendar Report:
+        - Same as in the child dashboard, lets parent view tasks done/not done for any selected date.
+
+      Reports:
+        - Download Weekly AI-Generated Report for a particular child.
+
+      Statistics & Insights:
+        - View all performance stats of the child.
+        - Access a real-time data graph showing all tasks completed by the child.
+
+---
+### Some important component
+
+- **Mood Classification**Detects child’s emotional state from journal entries or activities.  
 - **News Agent** – Fetches curated child-friendly news.  
 - **Story Agent** – Generates personalized bedtime or educational stories.  
 - **Report Agent** – Compiles child’s activity report in PDF.  
@@ -320,6 +382,7 @@ Delete any past-date tasks (whether completed or not).
 - **Email Notifications** – Sends OTP, Credential, and Confirmation.  
 
 ---
+
 
 
 
