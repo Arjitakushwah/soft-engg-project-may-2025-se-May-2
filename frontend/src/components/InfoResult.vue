@@ -1,6 +1,5 @@
 <template>
   <div class="result-page">
-    <!-- Back Button -->
     <button class="back-btn" @click="goBack">
       ← Back to Infotainment
     </button>
@@ -10,9 +9,8 @@
       <span v-else-if="searchQuery">Search Results for "{{ searchQuery }}"</span>
     </h1>
 
-    <div v-if="loading" class="loading">Loading news...</div>
+    <Loader v-if="loading" />
 
-    <!-- Articles -->
     <div 
       v-else-if="articles.length > 0" 
       :class="showMarkButton ? 'articles-list' : 'articles-grid'"
@@ -23,15 +21,17 @@
         </div>
         <h3 class="news-title">{{ article.title || 'Untitled' }}</h3>
         <p class="news-summary">{{ article.summary || article.content }}</p>
-        <a v-if="article.read_more" :href="article.read_more" target="_blank" class="read-more">
-          Read More →
-        </a>
       </div>
     </div>
 
     <div v-else class="error">No news available.</div>
 
-    <!-- Single Mark as Read Button -->
+    <div v-if="message" class="message-wrapper">
+      <p :class="['message-display', messageType === 'success' ? 'success-message' : 'error-message']">
+        {{ message }}
+      </p>
+    </div>
+
     <div v-if="showMarkButton" class="mark-btn-wrapper">
       <button
         class="mark-btn"
@@ -49,6 +49,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import Loader from './Loader.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -61,8 +62,22 @@ const logId = ref(null);
 const markCompleted = ref(false);
 const markLoading = ref(false);
 
+// New reactive variables for displaying messages
+const message = ref("");
+const messageType = ref(""); // 'success' or 'error'
+
 function goBack() {
   router.push({ name: "ChildInfotainment" });
+}
+
+// Function to set and automatically clear the message
+function showMessage(text, type, duration = 4000) {
+  message.value = text;
+  messageType.value = type;
+  setTimeout(() => {
+    message.value = "";
+    messageType.value = "";
+  }, duration);
 }
 
 async function markAsRead() {
@@ -77,13 +92,16 @@ async function markAsRead() {
     const data = await res.json();
     if (res.ok) {
       markCompleted.value = true;
-      alert("Marked as read successfully!");
+      // Show success message instead of alert
+      showMessage("Marked as read successfully!", "success");
     } else {
-      alert(data.error || "Could not mark as read.");
+      // Show error message instead of alert
+      showMessage(data.error || "Could not mark as read.", "error");
     }
   } catch (err) {
     console.error("Error marking as read:", err);
-    alert("Something went wrong.");
+    // Show generic error message instead of alert
+    showMessage("Something went wrong.", "error");
   } finally {
     markLoading.value = false;
   }
@@ -108,7 +126,7 @@ onMounted(async () => {
         const parsed = JSON.parse(data.content);
         articles.value = parsed;
         logId.value = data.log_id;
-        showMarkButton.value = true; // Only show button for new generated content
+        showMarkButton.value = true;
       }
     } else if (searchQuery.value) {
       // Past news search
@@ -132,7 +150,7 @@ onMounted(async () => {
           }
         });
         articles.value = parsedArticles;
-        showMarkButton.value = false; // No mark button for past search results
+        showMarkButton.value = false;
       }
     }
   } catch (err) {
@@ -210,5 +228,33 @@ onMounted(async () => {
 .mark-btn:disabled {
   background-color: #c7a4d6;
   cursor: not-allowed;
+}
+
+/* New styles for the message display */
+.message-wrapper {
+  text-align: center;
+  margin-top: 1.5rem;
+  margin-bottom: -1rem; /* Pull the button up slightly */
+  height: 40px; /* Reserve space to prevent layout shift */
+}
+
+.message-display {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: inline-block;
+  border: 1px solid transparent;
+}
+
+.success-message {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.error-message {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
 }
 </style>

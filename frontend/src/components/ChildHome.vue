@@ -3,8 +3,8 @@
     <h3>Daily Motivation</h3>
     <blockquote>{{ quote }}</blockquote>
   </section>
-
-  <section>
+  <Loader v-if="loading" />
+  <section class="cards-container">
     <div class="cards-grid">
       <div class="card name-card">
         <h3>Profile</h3>
@@ -17,39 +17,33 @@
           <span class="star">★</span>
         </div>
       </div>
-      <div class="card number-card">
+
+      <div class="card number-card streak-card">
         <h3>Streak</h3>
         <p class="number">{{ currentStreak }}</p>
       </div>
-      <!-- <div class="card badge-card">
-        <h3>Badges Earned</h3>
-        <div class="stars">
-          <span class="star filled">★</span>
-          <span class="star filled">★</span>
-          <span class="star filled">★</span>
-          <span class="star">★</span>
-          <span class="star">★</span>
-        </div>
-      </div> -->
 
-      <!-- Total Journals -->
-      <div class="card journal-count-card">
+      <div class="card number-card journal-count-card">
         <h3>Journals Written</h3>
         <p class="number">{{ totalJournals }}</p>
       </div>
-    </div>
-    <!-- Badges Earned -->
-    <div class="card badge-card">
-      <h3>🏅 Badges Earned</h3>
-      <div class="badge-list">
-        <div class="badge" v-for="badge in badges" :key="badge.id">
-          <span class="emoji">{{ badge.icon }}</span>
-          <span class="label">{{ badge.name }}</span>
+      
+      <div class="card number-card story-reads-card">
+        <h3>Stories Read</h3>
+        <p class="number">{{ totalStories }}</p>
+      </div>
+
+      <div class="card badge-card">
+        <h3>🏅 Badges Earned</h3>
+        <div class="badge-list">
+          <div class="badge" v-for="badge in badges" :key="badge.id">
+            <span class="badge-icon" v-html="getBadgeSvg(badge.name)"></span>
+            <span class="label">{{ badge.name }}</span>
+          </div>
+          <div v-if="badges.length === 0" class="no-badges">
+            No badges yet. Start your first quest!
+          </div>
         </div>
-        <div v-if="badges.length === 0" class="no-badges">
-          No badges yet. Start your first quest!
-        </div>
-        
       </div>
     </div>
   </section>
@@ -57,10 +51,12 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
+import Loader from './Loader.vue';
+import { badgeSvgMap, defaultBadgeSvg } from '/src/assets/badges.js';
 
 const childName = ref("Child");
 const quote = ref("");
-
+const loading = ref(true);
 const currentStreak = ref(0);
 const longestStreak = ref(0);
 const badges = ref([]);
@@ -68,6 +64,11 @@ const totalBadges = ref(0);
 const totalJournals = ref(0);
 const totalStories = ref(0);
 const totalInfotainment = ref(0);
+
+
+const getBadgeSvg = (badgeName) => {
+  return badgeSvgMap[badgeName] || defaultBadgeSvg;
+};
 
 const fetchStreakAndBadges = async () => {
   try {
@@ -89,6 +90,8 @@ const fetchStreakAndBadges = async () => {
     totalInfotainment.value = data.total_infotainment_read || 0;
   } catch (err) {
     console.error("Error fetching streak & badges:", err.message);
+  }finally {
+    loading.value = false;
   }
 };
 
@@ -104,6 +107,21 @@ onMounted(() => {
     "Great things take time. Stay curious!",
     "A little progress each day adds up to big results.",
     "Be the reason someone smiles today!",
+    "Your imagination is your superpower.",
+    "Kindness makes everything better.",
+    "Ask questions. Discover new things.",
+    "You are capable of amazing things.",
+    "Today is a brand new adventure.",
+    "Let your creativity shine bright.",
+    "Every pro was once a beginner.",
+    "Do your best today!",
+    "Your smile is a gift to the world.",
+    "A book is an adventure waiting to be opened.",
+    "Small steps lead to big journeys.",
+    "Be curious. Be kind. Be you.",
+    "The more you learn, the more you grow.",
+    "Challenges are chances to be awesome.",
+    "It's a great day to have a great day!"
   ];
 
   quote.value = quotes[Math.floor(Math.random() * quotes.length)];
@@ -117,107 +135,152 @@ onMounted(() => {
 <style scoped>
 .daily-quote {
   width: 100%;
-  padding: 2rem 1rem;
-  background: #e0f2fe;
+  padding: 1.5rem;
+  background: #f0f9ff;
   text-align: center;
   font-family: "Comic Neue", cursive;
   box-sizing: border-box;
   border-radius: 1rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e0f2fe;
 }
 
 .daily-quote h3 {
-  color: #3b82f6;
-  font-size: 1.6rem;
-  margin-bottom: 0.79rem;
+  color: #0c4a6e;
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
 }
 
 .daily-quote blockquote {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-style: italic;
-  color: #333;
-  background: #f0f8ff;
-
+  color: #334155;
+  background: #ffffff;
   padding: 1rem 1.5rem;
   border-radius: 8px;
   display: inline-block;
   max-width: 100%;
   margin: 0 auto;
+  border-left: 5px solid #3b82f6;
 }
 
 /* Cards Grid Section */
+.cards-container {
+  padding: 0 1rem;
+}
+
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 1.5rem;
-  padding: 2rem 1rem;
 }
 
 .card {
-  background-color: #f5f5f5;
+  background-color: #f6ffe565;
   border-radius: 1rem;
   padding: 1.5rem;
   text-align: center;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.07);
 }
 
-.name-card h3,
-.number-card h3,
-.badge-card h3 {
-  margin-bottom: 0.8rem;
-  color: #333;
+.card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #1e293b;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.name-card p {
+  font-size: 1.1rem;
+  color: #475569;
 }
 
 .number {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: bold;
-  color: #0077ff;
+  line-height: 1;
 }
+
+.streak-card .number { color: #f59e0b; }
+.journal-count-card .number { color: #8b5cf6; }
+.story-reads-card .number { color: #10b981; }
 
 .stars {
   font-size: 1.8rem;
-  color: #f5c518;
+  margin-top: 0.5rem;
 }
 
 .star {
-  color: #ccc;
+  color: #d1d5db;
 }
 
 .star.filled {
-  color: #ffc107;
+  color: #facc15;
+}
+
+/* Badge Card Specific Styles */
+.badge-card {
+  grid-column: 1 / -1;
 }
 
 .badge-list {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
   margin-top: 1rem;
 }
 
 .badge {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: #fff8f0;
-  padding: 6px 12px;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 12px 10px;
   border-radius: 12px;
-  font-size: 0.95rem;
-  color: #444;
-  border: 1px solid #ffd1a9;
-  font-weight: 500;
+  font-size: 1rem;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+  min-width: 200px;
 }
 
-.emoji {
-  font-size: 1.2rem;
+/* ✨ ADDED: Styling for the SVG icon container */
+.badge-icon {
+  width: 50px;
+  height: 50px;
+  /* flex-shrink: 1; */
 }
 
 .no-badges {
-  color: #aaa;
-  font-size: 0.9rem;
+  color: #94a3b8;
+  font-size: 1rem;
   margin-top: 0.5rem;
+  width: 100%;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 576px) {
+  .cards-grid {
+    grid-template-columns: 1fr;
+  }
+  .badge-card {
+    grid-column: auto;
+  }
 }
 </style>

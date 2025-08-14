@@ -17,19 +17,18 @@
         </router-link>
       </div>
 
-      <!-- Welcome Text -->
-      <span class="me-3 welcome-text d-none d-md-inline">
-        Welcome, {{ username }}!
-      </span>
+
 
       <!-- Action Buttons -->
       <div class="d-flex">
         <template v-if="userRole === 'parent'">
           <button @click="goToDashboard" class="btn btn-outline-success me-2">Dashboard</button>
+          <button class="btn btn-primary me-2" @click="navigateToPage('ParentEditProfile')">Edit Profile</button>
           <button @click="logout" class="btn btn-danger">Logout</button>
         </template>
         <template v-else-if="userRole === 'child'">
           <button @click="goToDashboard" class="btn btn-outline-success me-2">My Dashboard</button>
+          <button class="btn btn-primary me-2" @click="navigateToPage('ChildEditProfile')">Edit Profile</button>
           <button @click="logout" class="btn btn-danger">Logout</button>
         </template>
       </div>
@@ -64,11 +63,17 @@ const logout = () => {
   localStorage.clear()
   router.push({ path: '/' })
 }
+
+const navigateToPage = (page) => {
+  console.log('Navigating to:', page)
+  router.push({ name: page })
+}
+
 </script>
 
 <style scoped>
 .navbar {
-  background-color: #be6dbe !important;
+  background-color: #E6E6FA !important;
 }
 
 .app-title {

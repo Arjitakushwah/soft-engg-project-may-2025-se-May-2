@@ -34,7 +34,7 @@ import { ref, computed } from 'vue';
       const isCollapsed = ref(false);
   
       const parentNavItems = [
-        { name: 'Home', route: 'ParentDashboard', icon: 'bi bi-house-door' },
+        { name: 'Home', route: 'ParentHome', icon: 'bi bi-house-door' },
         {name: 'Add Child', route: 'AddChild', icon: 'bi bi-person-plus'},
         { name: 'Calendar', route: 'ParentCalendar', icon: 'bi bi-calendar3' },
         { name: 'Activity Insights', route: 'ParentActivityInsight', icon: 'bi bi-graph-up' },
@@ -42,7 +42,7 @@ import { ref, computed } from 'vue';
       ];
   
       const childNavItems = [
-      { name: 'Home', route: 'ChildDashboard', icon: 'bi bi-house-door' },
+      { name: 'Home', route: 'ChildHome', icon: 'bi bi-house-door' },
         { name: 'Calendar', route: 'ChildCalender', icon: 'bi bi-calendar3' },
         { name: 'To Do List', route: 'ChildToDoList', icon: 'bi bi-list-check' },
         { name: 'Story', route: 'ChildStory', icon: 'bi bi-book' },
@@ -78,17 +78,17 @@ import { ref, computed } from 'vue';
 
 <style scoped>
 .sidebar {
-  width: 160px;
+  min-width: 160px;
   transition: width 0.3s ease;
-  background:  #be6dbe;
+  background:  #756bdb;
   font-family: 'Comic Neue', cursive;
   height: 100vh;
   padding: 10px;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .sidebar.collapsed {
-  width: 70px;
+  min-width: 70px;
 }
 
 .collapse-toggle {
@@ -97,7 +97,7 @@ import { ref, computed } from 'vue';
   font-size: 1.5rem;
   margin-bottom: 10px;
   cursor: pointer;
-  color: #1e293b;
+  color: white;
   display: flex;
   justify-content: flex-end;
   width: 100%;
@@ -110,7 +110,8 @@ import { ref, computed } from 'vue';
   padding: 10px;
   border: none;
   background-color: transparent;
-  color: #1e293b;
+  color: white;
+  font-weight: bold;
   display: flex;
   align-items: center;
   border-radius: 8px;
@@ -118,13 +119,14 @@ import { ref, computed } from 'vue';
 }
 
 .nav-btn:hover {
-  background-color: #ff4870;
-  color: #fff;
+  background-color: #F7D96f;
+  color: #4A4A4A;
+  font-weight: bold;
 }
 
 .nav-btn.active {
-  background-color: #ff4870;
-    color: #fff;
+  background-color: #F7D96f;
+    color: #4A4A4A;
   font-weight: bold;
 }
 

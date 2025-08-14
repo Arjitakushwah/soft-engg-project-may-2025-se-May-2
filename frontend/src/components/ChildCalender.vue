@@ -155,7 +155,7 @@ onMounted(() => {
 
 .calendar-container h2 {
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
   text-align: center;
   margin-bottom: 1.5rem;
 }
@@ -167,7 +167,7 @@ onMounted(() => {
 .fc .fc-toolbar-title {
   font-size: 1.2rem;
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
 }
 
 .fc-daygrid-day-number {
@@ -192,7 +192,7 @@ onMounted(() => {
   transform: translate(-50%, -50%);
   width: 280px;
   background: #fff8f9;
-  border: 1px solid #ff6a88;
+  border: 1px solid #5A4FCF;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
@@ -209,7 +209,7 @@ onMounted(() => {
 
 .task-header h3 {
   font-size: 1.1rem;
-  color: #ff6a88;
+  color: #5A4FCF;
   font-family: 'Fredoka One', cursive;
   margin: 0;
 }
@@ -217,7 +217,7 @@ onMounted(() => {
 .close-btn {
   font-size: 1.2rem;
   cursor: pointer;
-  color: #ff6a88;
+  color: #5A4FCF;
 }
 
 .task-box ul {
