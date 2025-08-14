@@ -20,17 +20,8 @@
           <router-view />
         </main>
 
-        <footer class="dashboard-footer">
-          <div class="footer-content-padded">
-            <span class="footer-copyright">&copy; 2025 Your Company Name.</span>
-            <nav>
-              <a href="#" class="footer-link">Privacy</a>
-              <span aria-hidden="true">|</span>
-              <a href="#" class="footer-link">Terms</a>
-              <span aria-hidden="true">|</span>
-              <a href="#" class="footer-link">Contact</a>
-            </nav>
-          </div>
+        <footer class="footer">
+          <p>&copy; 2025 Skill Explorers. Let's make learning fun!</p>
         </footer>
       </div>
     </div>
@@ -70,7 +61,7 @@ onMounted(() => {
   flex-direction: column;
   height: 100vh;
   font-family: 'Comic Neue', sans-serif;
-  background-color: #f8fafc;
+  background-color: #e9e9e6;
 }
 
 .layout-body {
@@ -122,6 +113,16 @@ onMounted(() => {
 
 .sidebar-overlay {
   display: none; /* Hidden on desktop */
+}
+
+/* === FOOTER === */
+.footer {
+    padding: 2px;
+    background-color: #333;
+    color: white;
+    text-align: center;
+    margin-top: 30px;
+    font-family: 'Fredoka One', cursive;
 }
 
 /* --- Responsive Styles for Mobile & Tablet --- */

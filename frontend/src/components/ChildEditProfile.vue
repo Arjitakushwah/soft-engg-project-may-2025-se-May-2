@@ -203,7 +203,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   min-height: 80vh;
-  background-color: #f9fafb;
+  background-color: #e9e9e6;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -222,14 +222,14 @@ onMounted(() => {
   text-align: center;
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1f2937;
+  color: #5A4FCF;
   margin-bottom: 1.5rem;
 }
 
 .section-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #3b82f6;
+    color: #5A4FCF;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
     border-bottom: 2px solid #e5e7eb;
@@ -258,14 +258,14 @@ input, select {
 
 input:focus, select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: #5A4FCF;
+  
 }
 
 button {
   width: 100%;
-  background-color: #3b82f6;
-  color: white;
+  background-color: #5A4FCF;
+  color: #f9d34a;
   border: none;
   padding: 0.85rem;
   border-radius: 8px;
@@ -276,7 +276,7 @@ button {
 }
 
 button:hover {
-  background-color: #2563eb;
+  background-color: #493dcc;
 }
 
 button:disabled {

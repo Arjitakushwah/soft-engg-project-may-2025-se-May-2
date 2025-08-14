@@ -20,18 +20,19 @@
 
 
       <!-- Action Buttons -->
-      <div class="d-flex">
-        <template v-if="userRole === 'parent'">
-          <button @click="goToDashboard" class="btn btn-outline-success me-2">Dashboard</button>
-          <button class="btn btn-primary me-2" @click="navigateToPage('ParentEditProfile')">Edit Profile</button>
-          <button @click="logout" class="btn btn-danger">Logout</button>
-        </template>
-        <template v-else-if="userRole === 'child'">
-          <button @click="goToDashboard" class="btn btn-outline-success me-2">My Dashboard</button>
-          <button class="btn btn-primary me-2" @click="navigateToPage('ChildEditProfile')">Edit Profile</button>
-          <button @click="logout" class="btn btn-danger">Logout</button>
-        </template>
-      </div>
+      <div class="navbar-links">
+  <template v-if="userRole === 'parent'">
+    <button @click="goToDashboard" class="navbar-link">Dashboard</button>
+    <button @click="navigateToPage('ParentEditProfile')" class="navbar-link">Edit Profile</button>
+    <button @click="logout" class="navbar-link">Logout</button>
+  </template>
+  <template v-else-if="userRole === 'child'">
+    <button @click="goToDashboard" class="navbar-link">My Dashboard</button>
+    <button @click="navigateToPage('ChildEditProfile')" class="navbar-link">Edit Profile</button>
+    <button @click="logout" class="navbar-link">Logout</button>
+  </template>
+</div>
+
     </div>
   </nav>
 </template>
@@ -128,4 +129,27 @@ const navigateToPage = (page) => {
   background-color: #dc2626;
   border-color: #dc2626;
 }
+
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.navbar-link {
+  background: none;
+  border: none;
+  color: #4e41df;
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.1rem;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.navbar-link:hover {
+  font-weight: bold;
+  color: #4e40eb;
+}
+
 </style>

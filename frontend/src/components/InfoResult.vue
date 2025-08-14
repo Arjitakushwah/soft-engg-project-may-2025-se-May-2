@@ -174,21 +174,21 @@ onMounted(async () => {
   display: inline-block;
   margin-bottom: 1.5rem;
   padding: 10px 18px;
-  background-color: #3498db;
-  color: white;
+  background-color: #756bdb;
+  color: #F7D96f;
   font-weight: 600;
   border: none;
   border-radius: 10px;
   cursor: pointer;
 }
-.back-btn:hover { background-color: #2980b9; }
+.back-btn:hover { background-color: #5b50da; }
 
 .result-title {
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 2rem;
-  color: #2c3e50;
+  color: #5b50da;
 }
 
 .articles-grid {
