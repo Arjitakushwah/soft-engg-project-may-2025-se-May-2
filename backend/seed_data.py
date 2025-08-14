@@ -25,7 +25,7 @@ with app.app_context():
     # Parent table entry
     parent = Parent(
         id=parent_user.id,
-        name="John Doe"
+        name="Suresh S."
     )
     db.session.add(parent)
 
