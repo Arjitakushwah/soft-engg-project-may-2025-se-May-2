@@ -1,0 +1,3 @@
+apis:
+  backend/api.yaml:
+    alias: skill-explorers-life-skills-app
