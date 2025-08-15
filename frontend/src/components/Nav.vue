@@ -149,7 +149,7 @@ const navigateToPage = (page) => {
 
 .navbar-link:hover {
   font-weight: bold;
-  color: #4e40eb;
+  color: #383736;
 }
 
 </style>

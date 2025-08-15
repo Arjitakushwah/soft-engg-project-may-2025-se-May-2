@@ -137,7 +137,7 @@ onMounted(() => {
 .daily-quote {
   width: 100%;
   padding: 1.5rem;
-  background: #e9e9e6;
+  background: #f0f9ff;
   text-align: center;
   font-family: "Comic Neue", cursive;
   box-sizing: border-box;
@@ -158,7 +158,7 @@ onMounted(() => {
 }
 
 .daily-quote blockquote {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-style: italic;
   color: #334155;
   background: #ffffff;
@@ -167,6 +167,7 @@ onMounted(() => {
   display: inline-block;
   max-width: 100%;
   margin: 0 auto;
+  font-weight: lighter;
   border-left: 5px solid #5A4FCF;
 }
 
@@ -182,7 +183,7 @@ onMounted(() => {
 }
 
 .card {
-  background-color: #898dd9f1;
+  background-color: #E6E6FA;
   border-radius: 1rem;
   padding: 1.5rem;
   text-align: center;
@@ -194,7 +195,7 @@ onMounted(() => {
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.07);
-  border: 3px solid #655adb; /* blue border on hover */
+  border: 3px solid #a29cdf; /* blue border on hover */
 }
 
 .card h3 {
@@ -216,9 +217,9 @@ onMounted(() => {
   line-height: 1;
 }
 
-.streak-card .number { color: #f9d34a; }
-.journal-count-card .number { color: #f9d34a; }
-.story-reads-card .number { color: #f9d34a; }
+.streak-card .number { color: #f59e0b; }
+.journal-count-card .number { color: #f65c7d; }
+.story-reads-card .number { color: #10b981; }
 
 .stars {
   font-size: 1.8rem;

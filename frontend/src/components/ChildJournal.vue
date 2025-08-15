@@ -274,7 +274,7 @@ const submitJournal = async () => {
   width: 90%;
   max-width: 1000px;
   margin: 1.5rem auto;
-  background: #e9e9e6;
+  background: #F8F8FF;
   border-radius: 12px;
 }
 

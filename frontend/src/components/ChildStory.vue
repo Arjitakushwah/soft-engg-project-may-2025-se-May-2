@@ -343,7 +343,7 @@ onMounted(async () => {
 <style scoped>
 .dashboard-container {
   font-family: 'Comic Neue', cursive;
-  background-color: #e9e9e6;
+  background: #F8F8FF;
   display: flex;
   justify-content: center;
   padding: 2rem 1rem;
@@ -381,7 +381,7 @@ onMounted(async () => {
 .dual-action-bar {
   display: flex;
   gap: 1.5rem;
-  background: #e9e9e6;
+  background-color: #F0F8FF;
   border-radius: 16px;
   margin-bottom: 2rem;
   align-items: center;

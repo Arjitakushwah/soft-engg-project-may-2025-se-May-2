@@ -61,7 +61,7 @@ onMounted(() => {
   flex-direction: column;
   height: 100vh;
   font-family: 'Comic Neue', sans-serif;
-  background-color: #e9e9e6;
+  background: #F8F8FF;
 }
 
 .layout-body {
@@ -117,7 +117,11 @@ onMounted(() => {
 
 /* === FOOTER === */
 .footer {
-    padding: 2px;
+  padding: 1rem 2rem;
+
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0; /* Prevent footer from shrinking */
+
     background-color: #333;
     color: white;
     text-align: center;

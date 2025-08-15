@@ -203,7 +203,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   min-height: 80vh;
-  background-color: #e9e9e6;
+  background: #F8F8FF;
   font-family: 'Poppins', sans-serif;
 }
 
@@ -265,7 +265,7 @@ input:focus, select:focus {
 button {
   width: 100%;
   background-color: #5A4FCF;
-  color: #f9d34a;
+  color: #ffffff;
   border: none;
   padding: 0.85rem;
   border-radius: 8px;

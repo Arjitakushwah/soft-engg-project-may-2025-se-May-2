@@ -462,11 +462,11 @@ onMounted(() => {
 
 .todo-app { 
   /* ✅ CHANGED: Increased max-width for a wider layout on large screens */
-  max-width: 940px; 
+  max-width: 1000px; 
   margin: 0 auto; 
   padding: 1.5rem; 
   font-family: 'Comic Neue', cursive; 
-  background-color: #e9e9e6; 
+  background-color: #f9f9f9; 
   min-height: 100vh; 
   border-radius: 20px;
 
@@ -547,7 +547,7 @@ onMounted(() => {
 } 
 
 .nav-button { 
-  background-color: #F7D96f; 
+  background-color: #fcfcfc; 
   color: white; 
   border: none; 
   border-radius: 8px; 
@@ -576,7 +576,7 @@ onMounted(() => {
   gap: 0.5rem; 
   font-family: 'Fredoka One', cursive; 
   font-size: 1.2rem; 
-  color: #F7D96f; 
+  color: #f9f9f9; 
 } 
 
 .date-icon { 
@@ -669,7 +669,7 @@ onMounted(() => {
   width: 100%; 
   padding: 0.75rem; 
   background-color: #756bdb; 
-  color: #F7D96f; 
+  color: #fafafa; 
   border: none; 
   border-radius: 12px; 
   font-family: 'Fredoka One', cursive; 

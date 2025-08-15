@@ -151,8 +151,8 @@ onMounted(() => {
 }
 
 .calendar-container {
-  background: #e9e9e6;
-  padding: .5rem;
+  background: #fff;
+  padding: 2rem;
   width: 100%;
   border-radius: 20px;
   border-radius: 20px;

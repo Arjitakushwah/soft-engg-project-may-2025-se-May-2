@@ -98,6 +98,7 @@ function goToTopic(topic) {
   margin: 2rem auto;
   padding: 1rem;
   font-family: 'Poppins', sans-serif;
+  background: #F8F8FF;
 }
 
 .app-header { 
@@ -138,7 +139,7 @@ function goToTopic(topic) {
 .search-btn {
   padding: 0.75rem 1.25rem;
   background: #756bdb;
-  color: #F7D96f;
+  color: #ffffff;
   border: none;
   border-radius: 8px;
   cursor: pointer;
