@@ -226,7 +226,7 @@ onMounted(() => {
 }
 
 .task-header h3 {
-  font-size: 1.1rem;
+  font-size: 2rem;
   color: #5A4FCF;
   font-family: 'Fredoka One', cursive;
   margin: 0;

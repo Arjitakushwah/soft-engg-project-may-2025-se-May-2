@@ -202,12 +202,12 @@ onMounted(() => {
   margin-top: 0;
   margin-bottom: 1rem;
   color: #1e293b;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   font-weight: 600;
 }
 
 .name-card p {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   color: #475569;
 }
 
@@ -269,7 +269,7 @@ onMounted(() => {
 
 .no-badges {
   color: #94a3b8;
-  font-size: 1rem;
+  font-size: 1.5rem;
   margin-top: 0.5rem;
   width: 100%;
 }

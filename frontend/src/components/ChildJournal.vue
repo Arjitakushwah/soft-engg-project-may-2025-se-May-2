@@ -370,7 +370,7 @@ const submitJournal = async () => {
 .label-icon { width: 20px; height: 20px; stroke: #756bdb; stroke-width: 2; fill: none; }
 textarea { width: 100%; min-height: 150px; padding: 0.75rem; font-size: 0.95rem; border: 2px solid #e0e7ff; border-radius: 8px; resize: vertical; background-color: white; transition: all 0.3s ease; }
 textarea:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2); }
-.submit-btn { background-color: #756bdb; color: #F7D96f; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; margin-top: 1rem; width: 100%; justify-content: center; }
+.submit-btn { background-color: #756bdb; color: #ffffff; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; margin-top: 1rem; width: 100%; justify-content: center; }
 .submit-btn:hover { background-color: #756bdb; transform: translateY(-2px); }
 .spinner { width: 20px; height: 20px; stroke: white; stroke-width: 2; fill: none; animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
