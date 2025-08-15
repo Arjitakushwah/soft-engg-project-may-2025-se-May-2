@@ -79,7 +79,7 @@ onMounted(() => {
 
 .main-content {
   padding: 2rem; /* Consistent padding */
-  flex-grow: 1; /* Ensure it takes up available space before the footer */
+  flex-grow: 1; 
 }
 
 .dashboard-footer {

@@ -175,7 +175,7 @@ onMounted(() => {
 .cal-icon {
   width: 40px;
   height: 100px;
-  fill: #756bdb; /* Match theme color */
+  fill: #756bdb; 
 }
 
 .fc {

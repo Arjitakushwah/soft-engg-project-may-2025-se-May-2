@@ -76,10 +76,10 @@ const submitNewPassword = async () => {
     message.value = 'Password reset successfully!'
     error.value = ''
 
-    // ✅ Redirect to /login after short delay
+    
     setTimeout(() => {
       router.push('/login')
-    }, 1500) // 1.5s delay so user can see success message
+    }, 1500) 
 
   } catch (err) {
     error.value = err.message || 'Something went wrong.'

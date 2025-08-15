@@ -148,7 +148,7 @@ const storyPrompt = ref('');
 const searchQuery = ref('');
 const searchBy = ref('theme');
 
-// ✨ ADDED: A new ref to hold the correct answer text
+
 const correctAnswer = ref('');
 
 function formatDate(dateString) {
@@ -246,11 +246,11 @@ async function generateStory() {
   }
 }
 
-// ✨ MODIFIED: Now stores the correct answer before shuffling
+
 function goToQuiz() {
   try {
     const quizData = JSON.parse(selectedQuestion.value);
-    // Assuming the quiz object from your backend has a key like "answer"
+    
     if (!quizData.answer) {
         throw new Error("Quiz data is missing the correct answer.");
     }
@@ -265,7 +265,7 @@ function goToQuiz() {
   }
 }
 
-// ✨ MODIFIED: Checks answer on the frontend before notifying the backend
+
 async function submitAnswer(selectedOption) {
   loading.value = true;
   
@@ -375,7 +375,7 @@ onMounted(async () => {
   letter-spacing: 1px;
   color: #756bdb;
   text-align: center;
-  margin-top: 19px; /* to match your calendar title spacing */
+  margin-top: 19px; 
 }
 
 .dual-action-bar {

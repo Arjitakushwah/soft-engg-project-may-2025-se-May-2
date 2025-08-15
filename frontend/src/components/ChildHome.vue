@@ -137,7 +137,7 @@ onMounted(() => {
 .daily-quote {
   width: 100%;
   padding: 1.5rem;
-  background: #f0f9ff;
+  background: #e1fffe;
   text-align: center;
   font-family: "Comic Neue", cursive;
   box-sizing: border-box;
@@ -260,7 +260,7 @@ onMounted(() => {
   min-width: 200px;
 }
 
-/* ✨ ADDED: Styling for the SVG icon container */
+
 .badge-icon {
   width: 50px;
   height: 50px;

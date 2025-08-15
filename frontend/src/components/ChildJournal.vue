@@ -200,7 +200,7 @@ const formatDate = (dateString) => {
 
 const formatTime = (timeString) => {
   if (!timeString) return ''
-  // Assuming timeString is in 'HH:MM:SS' format
+  
   const [hours, minutes] = timeString.split(':');
   const date = new Date();
   date.setHours(hours, minutes);
@@ -292,7 +292,7 @@ const submitJournal = async () => {
   letter-spacing: 1px;
   color: #756bdb;
   text-align: center;
-  margin-top: 19px; /* to match your calendar title spacing */
+  margin-top: 19px; 
 }
 
 .journal-icon {

@@ -92,7 +92,7 @@ const isLoading = ref(false)
 
 onMounted(() => {
   const role = localStorage.getItem('userRole')
-  // Assuming parent info is stored upon login
+  
   const parentInfo = localStorage.getItem('parent');
   
   if (role !== 'parent' || !parentInfo) {

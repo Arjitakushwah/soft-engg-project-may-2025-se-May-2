@@ -29,7 +29,7 @@
       localStorage.setItem('parent', JSON.stringify({
         username: username,
         name: username
-         // Assuming name is same as username for now
+         
       }))
     } 
       console.log(`User ${username} logged in as ${role}`);
@@ -58,7 +58,7 @@
   }
   
   .spinner-border.text-purple {
-      /* Match the theme color from your other pages */
+      
               color: #756bdb !important;
   }
   </style>

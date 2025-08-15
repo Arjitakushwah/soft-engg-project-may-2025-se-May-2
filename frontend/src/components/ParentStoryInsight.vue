@@ -148,7 +148,7 @@ export default {
           datasets: [{
             label: 'Stories Read',
             data: values,
-            backgroundColor: '#5A4FCF', // Changed to purple to match the theme
+            backgroundColor: '#5A4FCF', 
             borderRadius: 8
           }]
         };
@@ -191,7 +191,7 @@ export default {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-/* New card styling for the table */
+
 .card {
   border-radius: 14px;
   background: #ffffff;
@@ -219,9 +219,9 @@ export default {
   background: #fff;
 }
 
-/* Updated table header and striped rows */
+
 .table th {
-  background: #4FCFDE; /* Light blue color from your image */
+  background: #4FCFDE; 
   color: #333;
   text-align: center;
   font-weight: 500;
@@ -243,10 +243,10 @@ export default {
 }
 
 .table tbody tr:nth-of-type(even) {
-  background-color: #F7D96F; /* Light yellow color from your image */
+  background-color: #F7D96F; 
 }
 
-/* Updated status text with bold font-weight */
+
 .table .text-success,
 .table .text-warning {
   font-weight: bold;

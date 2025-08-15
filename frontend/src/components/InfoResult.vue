@@ -230,7 +230,7 @@ onMounted(async () => {
   cursor: not-allowed;
 }
 
-/* New styles for the message display */
+
 .message-wrapper {
   text-align: center;
   margin-top: 1.5rem;

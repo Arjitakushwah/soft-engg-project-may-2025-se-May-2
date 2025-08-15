@@ -120,7 +120,7 @@
           <p>No tasks for today! Add one above!</p> 
         </div> 
         
-        <!-- ✅ NEW: Added a grid container for the tasks -->
+        
         <div v-else class="task-grid">
             <div v-for="(task) in sortedTasks" :key="task.id" class="task-card" :class="{ completed: task.is_done }"> 
               <div class="task-content"> 
@@ -461,7 +461,7 @@ onMounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka+One&display=swap'); 
 
 .todo-app { 
-  /* ✅ CHANGED: Increased max-width for a wider layout on large screens */
+  
   max-width: 1000px; 
   margin: 0 auto; 
   padding: 1.5rem; 
@@ -755,10 +755,10 @@ onMounted(() => {
   margin-bottom: 1rem; 
 } 
 
-/* ✅ NEW: Styles for the responsive task grid */
+
 .task-grid {
   display: grid;
-  grid-template-columns: 1fr; /* Default to 1 column on mobile */
+  grid-template-columns: 1fr; 
   gap: 1rem;
 }
 
@@ -767,7 +767,7 @@ onMounted(() => {
   border-left: 4px solid #5A4FCF; 
   border-radius: 12px; 
   padding: 1rem; 
-  /* ✅ REMOVED: margin-bottom is now handled by the grid gap */
+  
   transition: transform 0.2s; 
 } 
 
@@ -789,7 +789,7 @@ onMounted(() => {
 
 .task-text { 
   flex: 1; 
-  /* ✅ NEW: Added for better text wrapping */
+  
   min-width: 0; 
 } 
 
@@ -798,7 +798,7 @@ onMounted(() => {
   display: block; 
   margin-bottom: 0.25rem; 
   color: #1e293b; 
-  /* ✅ NEW: Added for better text wrapping */
+  
   word-wrap: break-word;
 } 
 
@@ -998,7 +998,7 @@ onMounted(() => {
   fill: currentColor; 
 } 
 
-/* ✅ CHANGED: Updated responsive styles */
+
 @media (max-width: 767px) { 
   .app-header h1 { 
     font-size: 1.5rem; 
@@ -1020,7 +1020,7 @@ onMounted(() => {
   } 
 } 
 
-/* ✅ NEW: Media query for the 2-column grid on wider screens */
+
 @media (min-width: 768px) {
   .task-grid {
     grid-template-columns: repeat(2, 1fr);
