@@ -5,6 +5,7 @@ import time
 from dotenv import load_dotenv
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from models import User, Child
 
 load_dotenv("prod.env")
 
@@ -151,3 +152,70 @@ def send_child_credentials_email(username, password, child_name, email):
         print(f"Child credentials email sent to {email}")
     except Exception as e:
         print(f"Failed to send child credentials email: {e}")
+
+
+otp_store_username = {}
+verified_usernames = set()
+
+def send_child_otp_email(receiver_email, child_name, otp):
+    subject = f"Your OTP for {child_name} account verification"
+    body = f"Your child {child_name} account otp: {otp}"
+
+    msg = MIMEMultipart()
+    msg['From'] = SMTP_EMAIL
+    msg['To'] = receiver_email
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        server.sendmail(SMTP_EMAIL, receiver_email, msg.as_string())
+        server.quit()
+        return True
+    except Exception as e:
+        print("Failed to send email:", e)
+        return False
+    
+def store_child_otp(username):
+    otp = generate_otp()
+    timestamp = time.time()
+    otp_store_username[username] = (otp, timestamp)
+    user = User.query.filter_by(username=username, role="child").first()
+    if not user:
+        return False
+    email = user.email
+    child = Child.query.filter_by(user_id=user.id).first()
+    sent = send_child_otp_email(email, child.name, otp)
+    return sent
+
+def verify_otp_username(username, input_otp):
+    if username not in otp_store_username:
+        return False, "OTP not requested for this username."  
+    stored_otp, timestamp = otp_store_username[username]
+    current_time = time.time()
+    if current_time - timestamp > 90:
+        del otp_store_username[username]
+        return False, "OTP has expired."
+    if str(input_otp) == str(stored_otp):
+        del otp_store_username[username]
+        verified_usernames.add(username)
+        return True, "OTP verified successfully."
+    return False, "Incorrect OTP."
+
+# Resend OTP for email verification
+def resend_otp(email):
+    if email in otp_store:
+        del otp_store[email] 
+    return store_otp(email)
+
+# Resend OTP for child account verification
+def resend_child_otp(username):
+    if username in otp_store_username:
+        del otp_store_username[username]   
+    return store_child_otp(username)
+# Resend OTP for parent register account verification
+
+
+

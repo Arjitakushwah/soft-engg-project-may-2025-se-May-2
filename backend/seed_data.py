@@ -25,7 +25,7 @@ with app.app_context():
     # Parent table entry
     parent = Parent(
         id=parent_user.id,
-        name="John Doe"
+        name="Suresh S."
     )
     db.session.add(parent)
 
@@ -43,7 +43,7 @@ with app.app_context():
     # Child table entry
     child = Child(
         id=child_user.id,
-        name="Alice",
+        name="Aditya",
         age=10,
         gender=1, 
         parent_id=parent.id
@@ -52,4 +52,4 @@ with app.app_context():
 
     # Commit all changes
     db.session.commit()
-    print("Seed data inserted successfully with IST timestamps!")
+    print("Seed data inserted successfully")
