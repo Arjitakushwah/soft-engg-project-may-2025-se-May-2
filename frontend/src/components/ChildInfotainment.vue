@@ -1,367 +1,197 @@
 <template>
   <div class="page-wrapper">
-    <h1 class="main-title">Child's News Corner</h1>
-
-    <div class="news-hub">
-      <div class="hub-section create-section">
-        <input type="text" v-model="promptText" placeholder="Enter a topic to create news" />
-        <button @click="generateNews" class="hub-btn create-btn">
-          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10.362 3.292a1.5 1.5 0 00-2.724 0L6.22 6.22l-2.928.42a1.5 1.5 0 00-.832 2.56l2.118 2.064-.5 2.918a1.5 1.5 0 002.176 1.581L10 14.25l2.622 1.379a1.5 1.5 0 002.176-1.581l-.5-2.918 2.118-2.064a1.5 1.5 0 00-.832-2.56l-2.928-.42-1.418-2.928z" />
-          </svg>
-          Create
-        </button>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="hub-section search-section">
-        <input type="text" v-model="searchQuery" placeholder="Search your past news..." />
-        <button @click="searchNews" class="hub-btn search-btn">
-          <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" />
-          </svg>
-          Search
-        </button>
-      </div>
+    <div class="app-header"> 
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="70" fill="#756bdb" class="bi bi-tv" viewBox="0 0 16 16">
+        <path fill-rule="evenodd" d="M2.5 13.5A.5.5 0 0 1 3 13h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zM13.991 3H2c-.325 0-.502.078-.602.145a.758.758 0 0 0-.254.302A1.46 1.46 0 0 0 1 4.01V10c0 .325.078.502.145.602.07.105.17.188.302.254a1.464 1.464 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.758.758 0 0 0 .254-.302 1.464 1.464 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.757.757 0 0 0-.302-.254A1.46 1.46 0 0 0 13.99 3zM14 2H2C0 2 0 4 0 4v6c0 2 2 2 2 2h12c2 0 2-2 2-2V4c0-2-2-2-2-2z"/>
+      </svg>
+      <h1>Buzz of Knowledge</h1>
+    </div> 
+    
+    
+    <!-- Search Past News -->
+    <div class="search-bar">
+      <input class="search" type="text" v-model="searchQuery" placeholder="Search your past news..." />
+      <button @click="searchNews" class="search-btn">Search</button>
     </div>
 
-    <div class="results-container">
-      <div v-if="displayMode === 'welcome'" class="welcome-message">
-        <svg class="welcome-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.82h4.82a4.5 4.5 0 00-1.95-1.95l4.3-4.3a1.5 1.5 0 00-2.12-2.12l-4.3 4.3a4.5 4.5 0 00-1.95-1.95v-4.82a6 6 0 017.38-5.84l-2.43 2.43a1.5 1.5 0 002.12 2.12l2.43-2.43zM3.41 2.41a1.5 1.5 0 00-2.12 2.12l5.59 5.59a6.002 6.002 0 01-3.63 7.19v4.82h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-4.82a4.5 4.5 0 001.95-1.95l5.59 5.59a1.5 1.5 0 102.12-2.12L3.41 2.41z" />
-        </svg>
-        <h2 class="welcome-title">Let's Start a New Adventure!</h2>
-        <p class="welcome-subtitle">Create a new article or search your past news</p>
-      </div>
-
-      <div v-if="displayMode === 'generated' && generatedCards.length > 0">
-        <div class="news-card generated-news" v-for="(news, index) in generatedCards" :key="`gen-${index}`">
-          <div class="news-content" v-html="news"></div>
-        </div>
-        <div class="mark-btn-wrapper">
-          <button :disabled="markLoading || markCompleted || waiting" @click="markAsRead" class="mark-btn">
-            <span v-if="markCompleted">Completed!</span>
-            <span v-else-if="waiting">Wait {{ waitSeconds }}s</span>
-            <span v-else-if="markLoading">Marking...</span>
-            <span v-else>Mark as Read</span>
-          </button>
-        </div>
-      </div>
-
-      <div v-if="displayMode === 'search' && searchResults.length > 0">
-        <div v-for="result in searchResults" :key="`search-${result.id}`" class="news-card found-news">
-          <div class="news-meta">
-            <strong>{{ new Date(result.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) }}</strong>
-          </div>
-          <div class="news-content" v-html="result.content"></div>
-          <div class="news-status">
-            <span v-if="result.is_done" class="status-badge completed">Read</span>
-            <span v-else class="status-badge not-done">Not Read Yet</span>
-          </div>
+    <!-- Predefined Topics -->
+    <div class="predefined-topics">
+      <h2 class="section-title">Explore Topics</h2>
+      <div class="topics-grid">
+        <div 
+          v-for="topic in dailyTopics" 
+          :key="topic.name" 
+          class="topic-card"
+          @click="goToTopic(topic.name)"
+        >
+          <i :class="topic.icon" class="topic-icon"></i>
+          <div class="topic-name">{{ topic.name }}</div>
         </div>
       </div>
     </div>
 
     <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue'; // Import 'computed'
+import { useRouter } from 'vue-router';
 
-// --- STATE MANAGEMENT ---
-const promptText = ref('');
+const router = useRouter();
 const searchQuery = ref('');
-const displayMode = ref('welcome'); // Start with the welcome message
 const errorMessage = ref('');
-const generatedCards = ref([]);
-const searchResults = ref([]);
-const logId = ref(null);
-const markCompleted = ref(false);
-const markLoading = ref(false);
-const waitSeconds = ref(0);
-const waiting = ref(false);
 
-// --- LOGIC FUNCTIONS ---
-function splitIntoCards(content) {
-  return content.split(/\n\n(?=# )|(?=^### )/gm).filter(Boolean);
+// 1. Create a master list with all your topics (current + new ones).
+const allTopics = [
+  { name: 'Science', icon: 'bi bi-lightbulb' },
+  { name: 'Technology', icon: 'bi bi-cpu' },
+  { name: 'Sports', icon: 'bi bi-trophy' },
+  { name: 'Health', icon: 'bi bi-heart-pulse' },
+  { name: 'Education', icon: 'bi bi-book' },
+  { name: 'Environment', icon: 'bi bi-tree' },
+  { name: 'History', icon: 'bi bi-hourglass-split' },
+  { name: 'Entertainment', icon: 'bi bi-film' },
+  { name: 'Space', icon: 'bi bi-stars' },
+  { name: 'Animals', icon: 'bi bi-bug-fill' },
+  { name: 'Art', icon: 'bi bi-palette' },
+  { name: 'Music', icon: 'bi bi-music-note-beamed' },
+  { name: 'Geography', icon: 'bi bi-globe-americas' },
+  { name: 'Inventions', icon: 'bi bi-tools' },
+  { name: 'Mythology', icon: 'bi bi-shield-shaded' },
+  { name: 'Cooking', icon: 'bi bi-egg-fried' },
+];
+
+// 2. Create a computed property to get the daily topics.
+const dailyTopics = computed(() => {
+  const topicsToShow = 15; // How many topics to show at once.
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const diff = now - startOfYear;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = Math.floor(diff / oneDay); // A number from 1 to 365.
+
+  // Calculate the starting index based on the day of the year.
+  // The '%' (modulo) operator ensures the index wraps around.
+  const startIndex = dayOfYear % allTopics.length;
+
+  // Create an array that's double the master list to easily handle wrapping.
+  const rotatedTopics = [...allTopics, ...allTopics];
+
+  // Slice the required number of topics from the calculated start index.
+  return rotatedTopics.slice(startIndex, startIndex + topicsToShow);
+});
+
+function searchNews() {
+  if (!searchQuery.value.trim()) return;
+  router.push({ name: "infoResult", query: { search: searchQuery.value.trim() } });
 }
 
-async function generateNews() {
-  if (!promptText.value.trim()) {
-    errorMessage.value = 'Please enter a topic to create news.';
-    return;
-  }
-  displayMode.value = 'generated';
-  searchResults.value = [];
-  errorMessage.value = '';
-  generatedCards.value = [];
-  markCompleted.value = false;
-  waiting.value = false;
-  try {
-    const token = localStorage.getItem('access_token');
-    const res = await fetch('http://localhost:5000/infotainment/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ prompt: promptText.value })
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      errorMessage.value = data.error || 'Failed to generate news.';
-      return;
-    }
-    logId.value = data.log_id;
-    generatedCards.value = splitIntoCards(data.content);
-  } catch (err) {
-    errorMessage.value = 'Something went wrong.';
-    console.error(err);
-  }
-}
-
-async function searchNews() {
-  if (!searchQuery.value.trim()) {
-    errorMessage.value = 'Please enter a search query.';
-    return;
-  }
-  displayMode.value = 'search';
-  generatedCards.value = [];
-  errorMessage.value = '';
-  searchResults.value = [];
-  try {
-    const token = localStorage.getItem('access_token');
-    const query = searchQuery.value.trim();
-    const isDate = /^\d{4}-\d{2}-\d{2}$/.test(query);
-    const url = isDate
-      ? `http://localhost:5000/infotainment/search?date=${encodeURIComponent(query)}`
-      : `http://localhost:5000/infotainment/search?q=${encodeURIComponent(query)}`;
-    const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
-    const data = await res.json();
-    searchResults.value = data.logs || [];
-     if(searchResults.value.length === 0){
-      errorMessage.value = "No news found for that search."
-    }
-  } catch (err) {
-    errorMessage.value = 'Search failed.';
-    console.error(err);
-  }
-}
-
-async function markAsRead() {
-  if (!logId.value) return;
-  markLoading.value = true;
-  try {
-    const token = localStorage.getItem('access_token');
-    const res = await fetch(`http://localhost:5000/infotainment/mark-read/${logId.value}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (res.status === 403 && data.wait_seconds) {
-      waiting.value = true;
-      waitSeconds.value = data.wait_seconds;
-      startWaitTimer();
-    } else if (res.ok) {
-      markCompleted.value = true;
-      alert('Marked as read successfully!');
-    } else {
-      errorMessage.value = data.error || 'Could not mark as read.';
-    }
-  } catch (err) {
-    errorMessage.value = 'Something went wrong.';
-    console.error(err);
-  } finally {
-    markLoading.value = false;
-  }
-}
-
-function startWaitTimer() {
-  const interval = setInterval(() => {
-    waitSeconds.value--;
-    if (waitSeconds.value <= 0) {
-      waiting.value = false;
-      clearInterval(interval);
-    }
-  }, 1000);
+function goToTopic(topic) {
+  router.push({ name: 'infoResult', query: { topic } });
 }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
-
 .page-wrapper {
-  max-width: 1100px;
+  max-width: 950px;
   margin: 2rem auto;
   padding: 1rem;
   font-family: 'Poppins', sans-serif;
-  background-color: #f0f7ff;
+  background: #F8F8FF;
 }
 
-.main-title {
-  text-align: center;
-  font-size: 2.5rem;
-  font-weight: 600;
-  color: #2c3e50;
+.app-header { 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 1rem; 
+  margin-bottom: 2rem; 
+  color: #756bdb; 
+} 
+
+.app-header h1 { 
+  font-family: 'Fredoka One', cursive; 
+  font-size: 2rem; 
+  margin: 0; 
+} 
+
+
+.search-bar {
+  display: flex;
+  gap: 0.5rem;
   margin-bottom: 2rem;
 }
 
-.news-hub {
-  display: flex;
-  align-items: center;
-  background: #ffffff;
-  padding: 1rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(41, 128, 185, 0.1);
-}
-
-.hub-section {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 1.5rem;
-}
-
-.divider {
-  width: 2px;
-  height: 40px;
-  background-color: #e0e6ed;
-}
-
-.hub-section input[type='text'] {
-  width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #dde4ee;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-family: 'Poppins', sans-serif;
-  background-color: #f8fafc;
-  transition: all 0.2s ease;
-}
-
-.hub-section input[type='text']:focus {
-  border-color: #3498db;
+.search:focus {
+  border: 2px solid;
   outline: none;
-  background-color: #fff;
+  border-color: #756bdb;
 }
 
-.hub-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 12px 20px;
+.search-bar input {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.search-btn {
+  padding: 0.75rem 1.25rem;
+  background: #756bdb;
+  color: #ffffff;
   border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: white;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.hub-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
 
-.btn-icon {
-  width: 1.1rem;
-  height: 1.1rem;
+.predefined-topics {
+  margin-bottom: 2rem;
 }
-
-.create-btn { background-color: #ff6b81; }
-.search-btn { background-color: #3498db; }
-
-/* --- Results --- */
-.results-container {
-  margin-top: 2rem;
-}
-
-.welcome-message {
-  text-align: center;
-  padding: 3rem 2rem;
-  background-color: #fff;
-  border: 2px dotted #dce9f5;
-  border-radius: 20px;
-}
-.welcome-icon {
-  color: #ff6b81;
-  width: 3.5rem;
-  height: 3.5rem;
+.section-title {
+  font-size: 1.5rem;
   margin-bottom: 1rem;
+  color: #34495e;
 }
-.welcome-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 0.5rem 0;
+.topics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
 }
-.welcome-subtitle {
-  font-size: 1rem;
-  color: #7f8c8d;
-  margin: 0;
-}
-
-
-.news-card {
+.topic-card {
+  background: #fff;
   padding: 1.5rem;
-  margin-top: 1rem;
-  border-radius: 16px;
-  background-color: #fff;
-  border: 1px solid #e0e6ed;
-}
-
-.found-news { background-color: #eaf5fc; border-color: #aed6f1; }
-.generated-news { background-color: #fff0f1; border-color: #ffcad0; }
-
-.news-meta, .news-status {
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-  color: #52616b;
-}
-
-.news-content {
-  white-space: pre-wrap;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: #2c3e50;
-}
-
-.mark-btn-wrapper { margin-top: 1.5rem; }
-.mark-btn {
-  width: 100%;
-  padding: 12px;
-  background-color: #9b59b6;
-  color: white;
-  border: none;
   border-radius: 12px;
-  font-weight: 600;
+  text-align: center;
   cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
-.mark-btn:disabled { background-color: #c7a4d6; cursor: not-allowed;}
-
+.topic-card:hover {
+  background: #f0f9ff;
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(0, 123, 255, 0.25);
+}
+.topic-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+  color: #756bdb;
+}
+.topic-name {
+  font-size: 1rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
 .error-message {
   text-align: center;
-  padding: 1rem;
-  margin-top: 1.5rem;
-  background-color: #fbebee;
-  color: #c0392b;
-  border-radius: 12px;
-  font-weight: 500;
-}
-
-
-/* Responsive */
-@media (max-width: 850px) {
-  .news-hub {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  .divider {
-    width: 100%;
-    height: 2px;
-  }
+  color: red;
+  font-weight: bold;
+  margin-top: 1rem;
 }
 </style>

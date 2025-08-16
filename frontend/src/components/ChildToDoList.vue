@@ -1,9 +1,9 @@
 <template> 
   <div class="todo-app"> 
     <div class="app-header"> 
-      <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> 
-        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/> 
-      </svg> 
+      <svg xmlns="http://www.w3.org/2000/svg" width="50" height="70" fill="#756bdb" class="bi bi-list-check" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5m0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5M3.854 2.146a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 3.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 1 1 .708-.708L2 7.293l1.146-1.147a.5.5 0 0 1 .708 0m0 4a.5.5 0 0 1 0 .708l-1.5 1.5a.5.5 0 0 1-.708 0l-.5-.5a.5.5 0 0 1 .708-.708l.146.147 1.146-1.147a.5.5 0 0 1 .708 0"/>
+      </svg>
       <h1>My Awesome To-Do List</h1> 
     </div> 
 
@@ -26,9 +26,9 @@
 
     <div class="date-navigation"> 
       <button @click="goToPreviousDay" class="nav-button"> 
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> 
-          <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/> 
-        </svg> 
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M15.41 7.41 14 6 8 12l6 6 1.41-1.41L10.83 12z"/>
+        </svg>
       </button> 
       <div class="current-date"> 
         <svg class="date-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> 
@@ -37,9 +37,9 @@
         <span>{{ formattedDate }}</span> 
       </div> 
       <button @click="goToNextDay" class="nav-button"> 
-        <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> 
-          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/> 
-        </svg> 
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <path d="M8.59 16.59 10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+        </svg>
       </button> 
     </div> 
 
@@ -120,7 +120,7 @@
           <p>No tasks for today! Add one above!</p> 
         </div> 
         
-        <!-- ✅ NEW: Added a grid container for the tasks -->
+        
         <div v-else class="task-grid">
             <div v-for="(task) in sortedTasks" :key="task.id" class="task-card" :class="{ completed: task.is_done }"> 
               <div class="task-content"> 
@@ -461,13 +461,15 @@ onMounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka+One&display=swap'); 
 
 .todo-app { 
-  /* ✅ CHANGED: Increased max-width for a wider layout on large screens */
-  max-width: 960px; 
+  
+  max-width: 1000px; 
   margin: 0 auto; 
   padding: 1.5rem; 
   font-family: 'Comic Neue', cursive; 
   background-color: #f9f9f9; 
   min-height: 100vh; 
+  border-radius: 20px;
+
 } 
 
 .app-header { 
@@ -476,7 +478,7 @@ onMounted(() => {
   justify-content: center; 
   gap: 1rem; 
   margin-bottom: 2rem; 
-  color: #4f46e5; 
+  color: #756bdb; 
 } 
 
 .app-header h1 { 
@@ -539,13 +541,13 @@ onMounted(() => {
   align-items: center; 
   justify-content: space-between; 
   margin-bottom: 1.5rem; 
-  background-color: #e0e7ff; 
+  background-color: #756bdb; 
   padding: 0.75rem; 
   border-radius: 12px; 
 } 
 
 .nav-button { 
-  background-color: #4f46e5; 
+  background-color: #fcfcfc; 
   color: white; 
   border: none; 
   border-radius: 8px; 
@@ -574,7 +576,7 @@ onMounted(() => {
   gap: 0.5rem; 
   font-family: 'Fredoka One', cursive; 
   font-size: 1.2rem; 
-  color: #4f46e5; 
+  color: #f9f9f9; 
 } 
 
 .date-icon { 
@@ -584,10 +586,9 @@ onMounted(() => {
 } 
 
 .task-creator { 
-  background-color: white; 
-  padding: 1.5rem; 
+  margin-top: 30px;
+  background-color: e9e9e6; 
   border-radius: 16px; 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); 
   margin-bottom: 2rem; 
 } 
 
@@ -603,7 +604,7 @@ onMounted(() => {
   transform: translateY(-50%); 
   width: 20px; 
   height: 20px; 
-  fill: #64748b; 
+  fill: #756bdb; 
 } 
 
 .task-input { 
@@ -618,13 +619,13 @@ onMounted(() => {
 
 .task-input:focus { 
   outline: none; 
-  border-color: #4f46e5; 
+  border-color: #756bdb; 
 } 
 
 .time-selectors { 
   display: flex; 
   gap: 1rem; 
-  margin-bottom: 1rem; 
+  margin-bottom: 1rem;
 } 
 
 .time-input, .date-input { 
@@ -640,7 +641,7 @@ onMounted(() => {
   transform: translateY(-50%); 
   width: 20px; 
   height: 20px; 
-  fill: #64748b; 
+  fill: #756bdb; 
   pointer-events: none; 
 } 
 
@@ -648,16 +649,27 @@ onMounted(() => {
   width: 100%; 
   padding: 0.75rem 1rem 0.75rem 40px; 
   border: 2px solid #e0e7ff; 
-  border-radius: 12px; 
+  border-top-right-radius: 12px;   
+  border-bottom-right-radius: 12px; 
   font-size: 1rem; 
   font-family: 'Comic Neue', cursive; 
+} 
+
+.time-field:focus { 
+  outline: none; 
+  border-color: #756bdb; 
+} 
+
+.date-field:focus { 
+  outline: none; 
+  border-color: #756bdb; 
 } 
 
 .add-button { 
   width: 100%; 
   padding: 0.75rem; 
-  background-color: #4f46e5; 
-  color: white; 
+  background-color: #756bdb; 
+  color: #fafafa; 
   border: none; 
   border-radius: 12px; 
   font-family: 'Fredoka One', cursive; 
@@ -695,7 +707,7 @@ onMounted(() => {
 
 .section-title { 
   font-family: 'Fredoka One', cursive; 
-  color: #4f46e5; 
+  color: #756bdb; 
   display: flex; 
   align-items: center; 
   gap: 0.5rem; 
@@ -721,7 +733,7 @@ onMounted(() => {
 .spinner { 
   width: 24px; 
   height: 24px; 
-  fill: #4f46e5; 
+  fill: #5A4FCF; 
   animation: spin 1s linear infinite; 
 } 
 
@@ -743,19 +755,19 @@ onMounted(() => {
   margin-bottom: 1rem; 
 } 
 
-/* ✅ NEW: Styles for the responsive task grid */
+
 .task-grid {
   display: grid;
-  grid-template-columns: 1fr; /* Default to 1 column on mobile */
+  grid-template-columns: 1fr; 
   gap: 1rem;
 }
 
 .task-card { 
   background-color: #f8fafc; 
-  border-left: 4px solid #4f46e5; 
+  border-left: 4px solid #5A4FCF; 
   border-radius: 12px; 
   padding: 1rem; 
-  /* ✅ REMOVED: margin-bottom is now handled by the grid gap */
+  
   transition: transform 0.2s; 
 } 
 
@@ -777,7 +789,7 @@ onMounted(() => {
 
 .task-text { 
   flex: 1; 
-  /* ✅ NEW: Added for better text wrapping */
+  
   min-width: 0; 
 } 
 
@@ -786,7 +798,7 @@ onMounted(() => {
   display: block; 
   margin-bottom: 0.25rem; 
   color: #1e293b; 
-  /* ✅ NEW: Added for better text wrapping */
+  
   word-wrap: break-word;
 } 
 
@@ -986,7 +998,7 @@ onMounted(() => {
   fill: currentColor; 
 } 
 
-/* ✅ CHANGED: Updated responsive styles */
+
 @media (max-width: 767px) { 
   .app-header h1 { 
     font-size: 1.5rem; 
@@ -1008,7 +1020,7 @@ onMounted(() => {
   } 
 } 
 
-/* ✅ NEW: Media query for the 2-column grid on wider screens */
+
 @media (min-width: 768px) {
   .task-grid {
     grid-template-columns: repeat(2, 1fr);

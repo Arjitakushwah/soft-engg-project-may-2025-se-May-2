@@ -1,9 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm px-4">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-      <!-- App Title -->
       <div class="d-flex align-items-center gap-3">
-        <!-- Hamburger for mobile -->
         <button
           class="btn d-md-none"
           @click="$emit('toggle-sidebar')"
@@ -17,20 +15,16 @@
         </router-link>
       </div>
 
-      <!-- Welcome Text -->
-      <span class="me-3 welcome-text d-none d-md-inline">
-        Welcome, {{ username }}!
-      </span>
-
-      <!-- Action Buttons -->
-      <div class="d-flex">
+      <div class="navbar-links">
         <template v-if="userRole === 'parent'">
-          <button @click="goToDashboard" class="btn btn-outline-success me-2">Dashboard</button>
-          <button @click="logout" class="btn btn-danger">Logout</button>
+          <button @click="goToDashboard" class="nav-btn-secondary">Dashboard</button>
+          <button @click="navigateToPage('ParentEditProfile')" class="nav-btn-secondary">Edit Profile</button>
+          <button @click="logout" class="nav-btn-primary">Logout</button>
         </template>
         <template v-else-if="userRole === 'child'">
-          <button @click="goToDashboard" class="btn btn-outline-success me-2">My Dashboard</button>
-          <button @click="logout" class="btn btn-danger">Logout</button>
+          <button @click="goToDashboard" class="nav-btn-secondary">My Dashboard</button>
+          <button @click="navigateToPage('ChildEditProfile')" class="nav-btn-secondary">Edit Profile</button>
+          <button @click="logout" class="nav-btn-primary">Logout</button>
         </template>
       </div>
     </div>
@@ -64,17 +58,24 @@ const logout = () => {
   localStorage.clear()
   router.push({ path: '/' })
 }
+
+const navigateToPage = (page) => {
+  console.log('Navigating to:', page)
+  router.push({ name: page })
+}
+
 </script>
 
 <style scoped>
+
 .navbar {
-  background-color: #f0eae9 !important;
+  background-color: #E6E6FA !important;
 }
 
 .app-title {
   font-family: 'Fredoka One', cursive;
   font-size: 1.6rem;
-  color: #1e3a8a !important;
+  color: #4e41df !important;
   text-decoration: none;
 }
 
@@ -82,7 +83,7 @@ const logout = () => {
   font-family: 'Comic Neue', cursive;
   font-size: 2rem;
   font-weight: bold;
-  color: #1e3a8a;
+  color: #4e41df;
 }
 
 .btn-outline-primary {
@@ -105,12 +106,12 @@ const logout = () => {
 
 .btn-outline-success {
   background: white;
-  border-color: #1e3a8a;
-  color: #1e3a8a;
+  border-color: #4e41df;
+  color: #4e41df;
 }
 
 .btn-outline-success:hover {
-  background-color: #1e3a8a;
+  background-color: #4e41df;
   color: white;
 }
 
@@ -122,5 +123,53 @@ const logout = () => {
 .btn-danger:hover {
   background-color: #dc2626;
   border-color: #dc2626;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+
+
+.nav-btn-secondary, .nav-btn-primary {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.1rem;
+  padding: 10px 24px;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.nav-btn-secondary {
+  background: transparent;
+  border: 2px solid #5A4FCF;
+  color: #5A4FCF;
+}
+
+.nav-btn-secondary:hover {
+  background-color: #5A4FCF;
+  color: white;
+  transform: translateY(-2px);
+}
+
+.nav-btn-primary {
+  background-color: #5A4FCF;
+  color: white;
+  border: 2px solid #5A4FCF;
+}
+
+.nav-btn-primary:hover {
+  background-color: #F7D96F;
+  border-color: #F7D96F;
+  color: #4A4A4A;
+  transform: translateY(-2px);
+}
+
+.navbar-link {
+  display: none; 
 }
 </style>

@@ -1,8 +1,27 @@
 <template>
   <div class="child-calendar-bg">
     <main class="main-content">
-      <div class="calendar-container">
-        <div class="child-select" v-if="children.length > 0">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="text-center py-5">
+        <div class="spinner-border text-purple" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Loading calendar data...</p>
+      </div>
+
+      <!-- No Children Found State -->
+      <div v-else-if="noChildrenFound" class="text-center bg-light p-4 p-md-5 rounded-3">
+        <i class="bi bi-person-plus-fill display-4 text-primary mb-3"></i>
+        <h4 class="fw-semibold">No Child Profile Found</h4>
+        <p class="text-muted">Please add a child profile first to view their calendar report.</p>
+        <router-link to="/parent/add_child" class="btn btn-primary-custom mt-2">
+            <i class="bi bi-plus-circle me-2"></i>Add Child Profile
+        </router-link>
+      </div>
+      
+      <!-- Main Content State -->
+      <div v-else class="calendar-container">
+        <div class="child-select">
           <label for="child">Select Child:</label>
           <select id="child" v-model="selectedChild">
             <option v-for="child in children" :key="child.id" :value="child.id">
@@ -10,10 +29,6 @@
             </option>
           </select>
         </div>
-
-        <p v-else style="margin-top: 1rem; color: #e11d48; font-weight: bold;">
-          No children added to your account.
-        </p>
 
         <h2 v-if="selectedChild">
           {{ getChildName(selectedChild) }}'s Calendar Report
@@ -74,6 +89,8 @@ const selectedTasks = ref([])
 const today = new Date().toISOString().split('T')[0]
 const calendarOptions = ref(null)
 const accessToken = localStorage.getItem('access_token')
+const isLoading = ref(true)
+const noChildrenFound = ref(false)
 
 function getChildName(id) {
   const child = children.value.find(c => c.id === id)
@@ -86,20 +103,34 @@ function closeModal() {
 }
 
 const fetchChildren = async () => {
+  isLoading.value = true
   try {
     const response = await fetch('http://localhost:5000/parent/children', {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
     })
+    if (!response.ok) throw new Error('Failed to fetch children.')
+    
     const data = await response.json()
-    if (!response.ok) throw new Error(data.error || 'Failed to fetch children.')
-    children.value = data.children
-    if (children.value.length > 0) {
-      selectedChild.value = children.value[0].id
+    const childList = data.children || data;
+    
+    if (Array.isArray(childList) && childList.length > 0) {
+        children.value = childList;
+        selectedChild.value = childList[0].id;
+        noChildrenFound.value = false;
+    } else {
+        noChildrenFound.value = true;
     }
   } catch (err) {
-    alert(err.message)
+    console.error(err.message);
+    noChildrenFound.value = true;
+  } finally {
+      // Only stop loading if there are no children. 
+      // If there are children, loading will stop after calendar data is fetched.
+      if (noChildrenFound.value) {
+          isLoading.value = false;
+      }
   }
 }
 
@@ -155,17 +186,23 @@ const fetchCalendarReport = async (childId) => {
     }
   } catch (err) {
     alert(err.message)
+  } finally {
+      isLoading.value = false; // Stop loading after calendar data is fetched
   }
 }
 
 watch(selectedChild, (newVal) => {
-  if (newVal) fetchCalendarReport(newVal)
+  if (newVal) {
+      isLoading.value = true; // Show loader when switching children
+      fetchCalendarReport(newVal);
+  }
 })
 
 onMounted(() => {
   if (!accessToken) {
     alert('Please log in as a parent.')
     router.push('/login')
+    return;
   }
   fetchChildren()
 })
@@ -173,6 +210,7 @@ onMounted(() => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');
+@import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
 .child-calendar-bg {
   font-family: 'Comic Neue', cursive;
@@ -201,7 +239,7 @@ onMounted(() => {
 
 .calendar-container h2 {
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
   text-align: center;
   margin-bottom: 1.5rem;
 }
@@ -223,7 +261,7 @@ onMounted(() => {
 .fc .fc-toolbar-title {
   font-size: 1.2rem;
   font-family: 'Fredoka One', cursive;
-  color: #ff6a88;
+  color: #5A4FCF;
 }
 
 .fc-daygrid-day-number {
@@ -249,12 +287,10 @@ onMounted(() => {
   color: #333 !important;
 }
 
-/* Today cell highlight */
 .fc-day-today {
   background-color: #ffe3ec !important;
 }
 
-/* Day cell hover effect */
 .fc-daygrid-day:hover {
   background-color: #fff5f7 !important;
   cursor: pointer;
@@ -334,4 +370,37 @@ onMounted(() => {
   border-radius: 3px;
   border: 1px solid #ddd;
 }
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.rounded-3 {
+    border-radius: 1rem !important;
+}
+
+.text-primary {
+    color: #ff6a88 !important;
+}
+
+.text-purple {
+    color: #756bdb !important;
+}
+
+.btn-primary-custom {
+    background-color: #ff6a88;
+    color: white;
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary-custom:hover {
+    background-color: #e65c7a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 106, 136, 0.3);
+}
+
 </style>

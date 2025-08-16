@@ -32,8 +32,10 @@ def check_if_token_revoked(jwt_header, jwt_payload):
 def home():
     return 'Hello Everyone'
 #------------------------------------------------- Google Auth Setup -------------------------------------------------
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-REDIRECT_URI = "http://127.0.0.1:5000/auth/google/callback" 
+REDIRECT_URI = "http://localhost:5000/auth/google/callback" 
 
 # Required for local development to use HTTP instead of HTTPS
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -45,6 +47,7 @@ def login_with_google():
         scopes=['https://www.googleapis.com/auth/userinfo.email', 'openid'],
         redirect_uri=url_for('handle_callback', _external=True)
     )
+    print("Redirect URI:", url_for('handle_callback', _external=True))
     auth_url, _ = flow.authorization_url(prompt='consent')
     return redirect(auth_url)
 
@@ -81,12 +84,11 @@ def handle_callback():
         identity=str(user.id),
         additional_claims={"role": user.role}
     )
-    return jsonify({
-        "message": "Login successful",
-        "access_token": access_token,
-        "role": user.role,
-        "redirect_to": "/parent/dashboard"
-    }), 200
+    frontend_callback_url = (
+    f"http://localhost:5173/auth/google/callback"  # Use your Vue app's address
+    f"?token={access_token}&role={user.role}&username={user.username}"
+)
+    return redirect(frontend_callback_url)
 
 #--------------------------------------------Check Username----------------------------------------------------
 
@@ -208,7 +210,7 @@ def forgot_username():
         return jsonify({"status": "error", "message": "Email is required"}), 400
     user = User.query.filter_by(email=email).first()
     if user:
-        send_mail_username(email, user.username)
+        send_mail_username(email, user.username)    
         return jsonify({
             "status": "success",
             "username": user.username
@@ -224,6 +226,7 @@ def forgot_username():
 def send_otp():
     data = request.get_json()
     email = data.get("email")
+    print(email)
 
     if store_otp(email):
         return jsonify({"message": "OTP sent to email"}), 200
@@ -356,10 +359,14 @@ def get_child_info(current_user_id, current_user_role):
     child = Child.query.get(current_user_id)
     if not child:
         return jsonify({'error': 'Child not found'}), 404
-    user = User.query.get(current_user_id) 
+
+    user = User.query.get(current_user_id)  # get username from User table
+
     return jsonify({
         'name': child.name,
-        'username': user.username,  
+        'username': user.username, 
+        'age': child.age,
+        'gender' :child.gender,
     })
 
 #----------------------------------- Update Child Profile------------------------------------------------
@@ -374,11 +381,11 @@ def update_child_profile(current_user_id, current_user_role):
         age = data.get('age')
         gender = data.get('gender')
         child = Child.query.filter_by(id=current_user_id).first()
-        if not child:
-            return jsonify({'error': 'Child not found'}), 404
         user = User.query.filter_by(id=current_user_id).first()
         if not user:
             return jsonify({'error': 'User record not found'}), 404
+        if not child:
+            return jsonify({'error': 'Child not found'}), 404
         if name is not None:
             child.name = name
         if age is not None:
