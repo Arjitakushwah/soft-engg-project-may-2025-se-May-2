@@ -146,7 +146,7 @@ export default {
 .activity-insight-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
+ 
   font-family: 'Comic Neue', cursive;
   /* background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); */
   background:white;
@@ -155,8 +155,7 @@ export default {
 
 .header-section {
   text-align: center;
-  margin-bottom: 3rem;
-  padding: 2rem 0;
+  padding: 1rem 0;
 }
 
 

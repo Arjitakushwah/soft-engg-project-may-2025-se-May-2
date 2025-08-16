@@ -48,21 +48,42 @@
           <div v-if="showModal" class="modal-backdrop" @click.self="showModal = false">
             <div class="modal-content">
               <span class="modal-close" @click="showModal = false">×</span>
-              <h4 class="modal-title">{{ profile.name }}'s Profile</h4>
-              <p><strong>Age:</strong> {{ profile.age }}</p>
-              <p><strong>Gender:</strong> {{ profile.gender }}</p>
-              <p><strong>Streak:</strong> {{ profile.streak }}</p>
-              <p><strong>Longest Streak:</strong> {{ profile.longest_streak }}</p>
-              <p><strong>Badges:</strong> {{ profile.badges }}</p>
-              <button class="btn btn-success mt-3" @click="downloadChildReport(profile.id)" :disabled="isDownloading">
-                <span v-if="isDownloading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <span v-else>Download Weekly Report</span>
-              </button>
+              <h4 class="modal-title">{{ profile.name }}'s Dashboard</h4>
+              
+              <!-- Profile details are now loaded instantly -->
+              <div>
+                <div class="profile-stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Current Streak</span>
+                        <span class="stat-value streak">{{ profile.current_streak ?? 'N/A' }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Journals Written</span>
+                        <span class="stat-value journals">{{ profile.total_journals_written ?? 'N/A' }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Stories Read</span>
+                        <span class="stat-value stories">{{ profile.total_stories_read ?? 'N/A' }}</span>
+                    </div>
+                </div>
+
+                <div class="badges-section">
+                    <h5 class="badges-title">Badges Earned</h5>
+                    <div v-if="profile.badges && profile.badges.length > 0" class="badge-list">
+                        <span v-for="badge in profile.badges" :key="badge.name" class="badge-pill">{{ badge.name }}</span>
+                    </div>
+                    <p v-else class="text-muted small text-center">No badges earned yet.</p>
+                </div>
+
+                <button class="btn btn-success mt-4 w-100" @click="downloadChildReport(profile.id)" :disabled="isDownloading">
+                    <span v-if="isDownloading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <span v-else><i class="bi bi-download me-2"></i>Download Weekly Report</span>
+                </button>
+              </div>
+
             </div>
           </div>
         </transition>
-
-        
 
         <!-- Forgot Credentials Modal -->
         <transition name="modal-fade">
@@ -155,9 +176,6 @@ const isDownloading = ref(false)
 
 // State for modals
 const showModal = ref(false)
-const showEditModal = ref(false)
-const editingChild = ref(null)
-const isUpdating = ref(false)
 
 // State for Forgot Credentials
 const showForgotCredentialsModal = ref(false)
@@ -171,66 +189,76 @@ const otp = ref('')
 const newPassword = ref('')
 const confirmNewPassword = ref('')
 
-const fetchChildrenData = async () => {
+// --- API Request Utility ---
+const apiRequest = async (url, options) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        router.push('/login');
+        throw new Error('No authentication token found.');
+    }
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers,
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred' }));
+        throw new Error(errorData.error || `Request failed with status ${response.status}`);
+    }
+    if (response.headers.get('Content-Type')?.includes('application/pdf')) {
+        return response.blob();
+    }
+    return response.json();
+};
+
+
+const fetchDashboardData = async () => {
     isLoading.value = true;
     noChildrenFound.value = false;
     try {
-        const token = localStorage.getItem('access_token')
-        if (!token) {
-            router.push('/login');
-            return;
-        };
+        const [parentData, childrenData] = await Promise.all([
+            apiRequest('http://localhost:5000/parent_dashboard', { method: 'GET' }),
+            apiRequest('http://localhost:5000/parent/children', { method: 'GET' })
+        ]);
 
-        const res = await fetch('http://localhost:5000/parent/children', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        if (parentData?.name) {
+            parentName.value = parentData.name;
+        }
 
-        if (res.ok) {
-            const data = await res.json();
-            const childList = data.children || data;
-            if (Array.isArray(childList) && childList.length > 0) {
-                children.value = childList;
-            } else {
-                noChildrenFound.value = true;
-            }
+        const childList = childrenData.children || [];
+        if (Array.isArray(childList) && childList.length > 0) {
+            children.value = childList;
         } else {
-            console.error("Failed to fetch children:", await res.text());
             noChildrenFound.value = true;
         }
+
     } catch (error) {
-        console.error("Error fetching children:", error);
-        noChildrenFound.value = true;
+        console.error("Error fetching dashboard data:", error);
+        // Handle cases where the API might return a 404 for no children
+        if (error.message.includes('No children found')) {
+             noChildrenFound.value = true;
+        } else {
+            // Handle other potential errors
+            alert('Could not load dashboard data. Please try again later.');
+        }
     } finally {
         isLoading.value = false;
     }
-
-    try {
-        const parentData = JSON.parse(localStorage.getItem('parent'));
-        if (parentData?.name) parentName.value = parentData.name;
-    } catch (e) {
-        console.error("Could not parse parent data from localStorage", e);
-    }
 };
 
-onMounted(fetchChildrenData);
+onMounted(fetchDashboardData);
 
 const viewChildProfile = (childId) => {
   const selectedChild = children.value.find(child => child.id === childId);
-  if (selectedChild) {
-    profile.value = {
-      ...selectedChild,
-      badges: selectedChild.badges || 'N/A'
-    };
-    showModal.value = true;
-  } else {
-    console.error('Child not found in the list.');
-    alert('Error: Could not display child profile.');
+  if (!selectedChild) {
+      alert('Error: Could not find child details.');
+      return;
   }
-};
-
-const openEditModal = (child) => {
-    editingChild.value = { ...child };
-    showEditModal.value = true;
+  
+  // All data is already present, so just set the profile and show the modal
+  profile.value = selectedChild;
+  showModal.value = true;
 };
 
 const openForgotCredentialsModal = (child) => {
@@ -259,14 +287,11 @@ const sendResetOtp = async () => {
     isResettingPassword.value = true;
     resetErrorMessage.value = '';
     try {
-        const res = await fetch('http://localhost:5000/forgot-password', {
+        await apiRequest('http://localhost:5000/forgot-password', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: parentEmail.value })
         });
-        const result = await res.json();
-        if (!res.ok) throw new Error(result.error || 'Failed to send OTP.');
-        credentialStep.value = 3; // Move to OTP verification
+        credentialStep.value = 3;
     } catch (err) {
         resetErrorMessage.value = err.message;
     } finally {
@@ -282,14 +307,11 @@ const verifyResetOtp = async () => {
     isResettingPassword.value = true;
     resetErrorMessage.value = '';
     try {
-        const res = await fetch('http://localhost:5000/verify-otp', {
+        await apiRequest('http://localhost:5000/verify-otp', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: parentEmail.value, otp: otp.value })
         });
-        const result = await res.json();
-        if (!res.ok || !result.success) throw new Error(result.message || 'Invalid OTP.');
-        credentialStep.value = 4; // Move to new password form
+        credentialStep.value = 4;
     } catch (err) {
         resetErrorMessage.value = err.message;
     } finally {
@@ -309,27 +331,16 @@ const resetChildPassword = async (childId) => {
     }
 
     isResettingPassword.value = true;
-    const token = localStorage.getItem('access_token');
     try {
-        // IMPORTANT: This API needs to be created on your backend.
-        // It should reset the CHILD's password using the PARENT's verified OTP session.
-        const res = await fetch(`http://localhost:5000/parent/child/${childId}/set-password-from-otp`, {
+        const data = await apiRequest(`http://localhost:5000/parent/child/${childId}/set-password-from-otp`, {
             method: 'POST',
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ 
                 new_password: newPassword.value,
-                parent_email: parentEmail.value // Send parent email for verification on backend
+                parent_email: parentEmail.value
             })
         });
-        const data = await res.json();
-        if (!res.ok) {
-            throw new Error(data.error || 'Failed to reset password.');
-        }
         resetSuccessMessage.value = data.message;
-        credentialStep.value = 5; // Move to success step
+        credentialStep.value = 5;
     } catch (err) {
         console.error('Password reset error:', err);
         resetErrorMessage.value = err.message || 'Could not reset password.';
@@ -338,57 +349,13 @@ const resetChildPassword = async (childId) => {
     }
 };
 
-const updateChildProfile = async () => {
-    if (!editingChild.value) return;
-    isUpdating.value = true;
-    const token = localStorage.getItem('access_token');
-    try {
-        const res = await fetch(`http://localhost:5000/child/profile/update`, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                name: editingChild.value.name,
-                age: editingChild.value.age,
-                gender: editingChild.value.gender
-            })
-        });
-        const data = await res.json();
-        if (!res.ok) {
-            throw new Error(data.error || 'Failed to update profile');
-        }
-        showEditModal.value = false;
-        await fetchChildrenData();
-        alert('Profile updated successfully!');
-    } catch (err) {
-        console.error('Update error:', err);
-        alert(err.message || 'Could not update profile.');
-    } finally {
-        isUpdating.value = false;
-    }
-};
-
 const downloadChildReport = async (childId) => {
   isDownloading.value = true;
-  const token = localStorage.getItem('access_token');
   const summaryRange = 'weekly';
-
   try {
     const url = `http://localhost:5000/parent/child-analysis?child_id=${childId}&summary_range=${summaryRange}`;
+    const blob = await apiRequest(url, { method: 'POST' });
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Error: ${response.status} - ${errText}`);
-    }
-
-    const blob = await response.blob();
     const fileUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = fileUrl;
@@ -548,7 +515,7 @@ const downloadChildReport = async (childId) => {
   padding: 2rem;
   border-radius: 14px;
   width: 90%;
-  max-width: 400px;
+  max-width: 450px;
   text-align: left;
   font-family: 'Comic Neue', cursive;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
@@ -558,7 +525,8 @@ const downloadChildReport = async (childId) => {
 .modal-title {
   font-size: 1.4rem;
   color: #ff6a88;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
 }
 
 .modal-content .form-group {
@@ -570,6 +538,59 @@ const downloadChildReport = async (childId) => {
     padding: 0.5rem;
     border-radius: 6px;
     border: 1px solid #ccc;
+}
+
+/* Profile Modal Specific Styles */
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.stat-item {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+}
+.stat-label {
+    display: block;
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+.stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1;
+}
+.stat-value.streak { color: #f59e0b; }
+.stat-value.journals { color: #f65c7d; }
+.stat-value.stories { color: #10b981; }
+
+.badges-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+.badges-title {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #495057;
+    margin-bottom: 1rem;
+}
+.badge-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+.badge-pill {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
 }
 
 
@@ -599,7 +620,7 @@ const downloadChildReport = async (childId) => {
   background-color: #28a745;
   border: none;
   color: white;
-  padding: 8px 16px;
+  padding: 10px 16px;
   font-size: 0.95rem;
   border-radius: 6px;
   cursor: pointer;

@@ -55,7 +55,7 @@ def verify_otp(email, input_otp):
     if current_time - timestamp > 90:
         del otp_store[email]
         return False, "OTP has expired."
-    if input_otp == int(stored_otp):
+    if input_otp == (stored_otp):
         del otp_store[email]
         verified_emails.add(email)
         return True, "OTP verified successfully."
@@ -120,7 +120,7 @@ def send_mail_username(email, username):
         print(f"Failed to send email: {e}")
 
 
-def send_child_credentials_email(email, username, password, child_name):
+def send_child_credentials_email(username, password, child_name, email):
     subject = f"Account Details for Your Child - {child_name}"
     msg = MIMEMultipart()
     msg['From'] = SMTP_EMAIL
