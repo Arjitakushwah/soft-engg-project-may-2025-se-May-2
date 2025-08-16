@@ -455,7 +455,7 @@ const downloadChildReport = async (childId) => {
 }
 
 .text-primary {
-    color: #ff6a88 !important;
+    color: #756bdb !important;
 }
 
 .text-purple {
@@ -463,7 +463,7 @@ const downloadChildReport = async (childId) => {
 }
 
 .btn-primary-custom {
-    background-color: #ff6a88;
+    background-color: #756bdb;
     color: white;
     border-radius: 25px;
     padding: 10px 25px;
@@ -474,7 +474,7 @@ const downloadChildReport = async (childId) => {
 }
 
 .btn-primary-custom:hover {
-    background-color: #e65c7a;
+    background-color: #5145ce;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 106, 136, 0.3);
 }
@@ -572,7 +572,7 @@ const downloadChildReport = async (childId) => {
 
 .modal-title {
   font-size: 1.4rem;
-  color: #ff6a88;
+  color: #756bdb;
   margin-bottom: 1.5rem;
   text-align: center;
 }
@@ -691,6 +691,6 @@ const downloadChildReport = async (childId) => {
 }
 
 .modal-close:hover {
-  color: #ff6a88;
+  color: #756bdb;
 }
 </style>
