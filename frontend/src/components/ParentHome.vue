@@ -33,7 +33,10 @@
               <!-- Action Buttons -->
               <div class="btn-group mt-2">
                 <button class="btn btn-info btn-sm" @click="viewChildProfile(child.id)">
-                  View Profile
+                  View
+                </button>
+                <button class="btn btn-primary btn-sm" @click="openEditModal(child)">
+                  Update
                 </button>
                 <button class="btn btn-warning btn-sm" @click="openForgotCredentialsModal(child)">
                   Credentials
@@ -50,7 +53,6 @@
               <span class="modal-close" @click="showModal = false">×</span>
               <h4 class="modal-title">{{ profile.name }}'s Dashboard</h4>
               
-              <!-- Profile details are now loaded instantly -->
               <div>
                 <div class="profile-stats-grid">
                     <div class="stat-item">
@@ -85,6 +87,39 @@
           </div>
         </transition>
 
+        <!-- Edit Child Profile Modal -->
+        <transition name="modal-fade">
+            <div v-if="showEditModal" class="modal-backdrop" @click.self="showEditModal = false">
+                <div class="modal-content">
+                    <span class="modal-close" @click="showEditModal = false">×</span>
+                    <h4 class="modal-title">Update {{ editingChild.name }}'s Profile</h4>
+                    <form @submit.prevent="updateChildProfile" class="mt-3">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input v-model="editingChild.name" type="text" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input v-model="editingChild.age" type="number" class="form-control" required min="1" />
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select v-model="editingChild.gender" class="form-control" required>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <p v-if="editErrorMessage" class="text-danger mt-2 small">{{ editErrorMessage }}</p>
+                        <button type="submit" class="btn btn-primary-custom mt-3 w-100" :disabled="isUpdating">
+                            <span v-if="isUpdating" class="spinner-border spinner-border-sm"></span>
+                            <span v-else>Save Changes</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </transition>
+
         <!-- Forgot Credentials Modal -->
         <transition name="modal-fade">
             <div v-if="showForgotCredentialsModal" class="modal-backdrop" @click.self="closeForgotCredentialsModal">
@@ -92,35 +127,20 @@
                     <span class="modal-close" @click="closeForgotCredentialsModal">×</span>
                     <h4 class="modal-title">{{ selectedChildForCredentials.name }}'s Credentials</h4>
                     
-                    <!-- Step 1: Show username and reset button -->
                     <div v-if="credentialStep === 1">
                         <div class="alert alert-light mt-3">
                             <p class="mb-1"><strong>Username:</strong></p>
                             <p class="h5">{{ selectedChildForCredentials.username }}</p>
                         </div>
-                        <p class="text-muted small mt-3">To reset the password, click the button below.</p>
-                        <button class="btn btn-danger mt-2" @click="credentialStep = 2">
-                            Reset Child's Password
+                        <p class="text-muted small mt-3">Click below to send a password reset OTP to your registered email.</p>
+                        <button class="btn btn-danger mt-2 w-100" @click="sendChildResetOtp" :disabled="isResettingPassword">
+                           <span v-if="isResettingPassword" class="spinner-border spinner-border-sm"></span>
+                           <span v-else>Send Reset OTP</span>
                         </button>
                     </div>
 
-                    <!-- Step 2: Parent Email Input -->
-                    <form v-if="credentialStep === 2" @submit.prevent="sendResetOtp" class="text-start mt-3">
-                        <p class="text-muted text-center small">Enter your parent email address to receive a verification code.</p>
-                        <div class="form-group">
-                            <label>Your Email</label>
-                            <input v-model="parentEmail" type="email" class="form-control" required />
-                        </div>
-                        <p v-if="resetErrorMessage" class="text-danger mt-2 small">{{ resetErrorMessage }}</p>
-                        <button type="submit" class="btn btn-primary-custom mt-3 w-100" :disabled="isResettingPassword">
-                            <span v-if="isResettingPassword" class="spinner-border spinner-border-sm"></span>
-                            <span v-else>Send OTP</span>
-                        </button>
-                    </form>
-
-                    <!-- Step 3: OTP Verification -->
-                    <form v-if="credentialStep === 3" @submit.prevent="verifyResetOtp" class="text-start mt-3">
-                         <p class="text-muted text-center small">An OTP has been sent to <strong>{{ parentEmail }}</strong>.</p>
+                    <form v-if="credentialStep === 2" @submit.prevent="verifyChildResetOtp" class="text-start mt-3">
+                         <p class="text-muted text-center small">An OTP has been sent to your parent email.</p>
                         <div class="form-group">
                             <label>OTP Code</label>
                             <input v-model="otp" type="text" class="form-control" required maxlength="6" />
@@ -132,8 +152,7 @@
                         </button>
                     </form>
 
-                    <!-- Step 4: Password reset form -->
-                    <form v-if="credentialStep === 4" @submit.prevent="resetChildPassword(selectedChildForCredentials.id)" class="text-start mt-3">
+                    <form v-if="credentialStep === 3" @submit.prevent="resetChildPassword" class="text-start mt-3">
                         <p class="text-success text-center small">✓ OTP Verified! Set a new password for your child.</p>
                         <div class="form-group">
                             <label>New Password</label>
@@ -150,8 +169,7 @@
                         </button>
                     </form>
 
-                    <!-- Step 5: Success Message -->
-                    <div v-if="credentialStep === 5" class="alert alert-success mt-3">
+                    <div v-if="credentialStep === 4" class="alert alert-success mt-3">
                         <i class="bi bi-check-circle-fill h4"></i>
                         <p class="mt-2 mb-0">{{ resetSuccessMessage }}</p>
                     </div>
@@ -176,6 +194,11 @@ const isDownloading = ref(false)
 
 // State for modals
 const showModal = ref(false)
+const showEditModal = ref(false)
+const editingChild = ref(null)
+const isUpdating = ref(false)
+const editErrorMessage = ref('')
+
 
 // State for Forgot Credentials
 const showForgotCredentialsModal = ref(false)
@@ -183,8 +206,7 @@ const selectedChildForCredentials = ref(null)
 const isResettingPassword = ref(false)
 const resetSuccessMessage = ref('')
 const resetErrorMessage = ref('')
-const credentialStep = ref(1) // 1: Info, 2: Email, 3: OTP, 4: New Password, 5: Success
-const parentEmail = ref('')
+const credentialStep = ref(1) // 1: Info, 2: OTP, 3: New Password, 4: Success
 const otp = ref('')
 const newPassword = ref('')
 const confirmNewPassword = ref('')
@@ -235,11 +257,9 @@ const fetchDashboardData = async () => {
 
     } catch (error) {
         console.error("Error fetching dashboard data:", error);
-        // Handle cases where the API might return a 404 for no children
         if (error.message.includes('No children found')) {
              noChildrenFound.value = true;
         } else {
-            // Handle other potential errors
             alert('Could not load dashboard data. Please try again later.');
         }
     } finally {
@@ -256,9 +276,39 @@ const viewChildProfile = (childId) => {
       return;
   }
   
-  // All data is already present, so just set the profile and show the modal
   profile.value = selectedChild;
   showModal.value = true;
+};
+
+const openEditModal = (child) => {
+    // Create a copy of the child object to avoid modifying the original list directly
+    editingChild.value = { ...child };
+    showEditModal.value = true;
+};
+
+const updateChildProfile = async () => {
+    if (!editingChild.value) return;
+    isUpdating.value = true;
+    editErrorMessage.value = '';
+    try {
+        const payload = {
+            child_id: editingChild.value.id,
+            name: editingChild.value.name,
+            age: parseInt(editingChild.value.age, 10),
+            gender: editingChild.value.gender
+        };
+        await apiRequest('http://localhost:5000/parent/child/profile/update', {
+            method: 'PUT',
+            body: JSON.stringify(payload)
+        });
+        showEditModal.value = false;
+        await fetchDashboardData(); // Refresh the children list
+        alert('Profile updated successfully!');
+    } catch (err) {
+        editErrorMessage.value = err.message;
+    } finally {
+        isUpdating.value = false;
+    }
 };
 
 const openForgotCredentialsModal = (child) => {
@@ -272,26 +322,21 @@ const closeForgotCredentialsModal = () => {
         credentialStep.value = 1;
         resetSuccessMessage.value = '';
         resetErrorMessage.value = '';
-        parentEmail.value = '';
         otp.value = '';
         newPassword.value = '';
         confirmNewPassword.value = '';
     }, 500);
 };
 
-const sendResetOtp = async () => {
-    if (!parentEmail.value) {
-        resetErrorMessage.value = "Please enter your email address.";
-        return;
-    }
+const sendChildResetOtp = async () => {
     isResettingPassword.value = true;
     resetErrorMessage.value = '';
     try {
-        await apiRequest('http://localhost:5000/forgot-password', {
+        await apiRequest('http://localhost:5000/forgot-password-child', {
             method: 'POST',
-            body: JSON.stringify({ email: parentEmail.value })
+            body: JSON.stringify({ username: selectedChildForCredentials.value.username })
         });
-        credentialStep.value = 3;
+        credentialStep.value = 2; // Move to OTP verification
     } catch (err) {
         resetErrorMessage.value = err.message;
     } finally {
@@ -299,7 +344,7 @@ const sendResetOtp = async () => {
     }
 };
 
-const verifyResetOtp = async () => {
+const verifyChildResetOtp = async () => {
     if (!otp.value) {
         resetErrorMessage.value = "Please enter the OTP.";
         return;
@@ -307,11 +352,14 @@ const verifyResetOtp = async () => {
     isResettingPassword.value = true;
     resetErrorMessage.value = '';
     try {
-        await apiRequest('http://localhost:5000/verify-otp', {
+        await apiRequest('http://localhost:5000/verify-otp-child', {
             method: 'POST',
-            body: JSON.stringify({ email: parentEmail.value, otp: otp.value })
+            body: JSON.stringify({ 
+                username: selectedChildForCredentials.value.username, 
+                otp: otp.value 
+            })
         });
-        credentialStep.value = 4;
+        credentialStep.value = 3; // Move to new password form
     } catch (err) {
         resetErrorMessage.value = err.message;
     } finally {
@@ -319,28 +367,28 @@ const verifyResetOtp = async () => {
     }
 };
 
-const resetChildPassword = async (childId) => {
+const resetChildPassword = async () => {
     resetErrorMessage.value = '';
     if (newPassword.value !== confirmNewPassword.value) {
         resetErrorMessage.value = "Passwords do not match.";
         return;
     }
-    if (newPassword.value.length < 8) {
-        resetErrorMessage.value = "Password must be at least 8 characters.";
+    if (newPassword.value.length < 6) { // Assuming a minimum length
+        resetErrorMessage.value = "Password must be at least 6 characters.";
         return;
     }
 
     isResettingPassword.value = true;
     try {
-        const data = await apiRequest(`http://localhost:5000/parent/child/${childId}/set-password-from-otp`, {
+        const data = await apiRequest(`http://localhost:5000/set-password-child`, {
             method: 'POST',
             body: JSON.stringify({ 
                 new_password: newPassword.value,
-                parent_email: parentEmail.value
+                username: selectedChildForCredentials.value.username
             })
         });
         resetSuccessMessage.value = data.message;
-        credentialStep.value = 5;
+        credentialStep.value = 4; // Move to success step
     } catch (err) {
         console.error('Password reset error:', err);
         resetErrorMessage.value = err.message || 'Could not reset password.';

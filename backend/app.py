@@ -6,7 +6,7 @@ from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
 from flask_cors import CORS
-from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username, send_child_credentials_email, store_otp_username, verify_otp_username, verified_usernames, resend_otp, resend_child_otp
+from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username, send_child_credentials_email, verify_otp_username, verified_usernames, resend_otp, resend_child_otp, store_child_otp
 import os
 from google_auth_oauthlib.flow import Flow
 import requests
@@ -406,9 +406,9 @@ def update_child_profile(current_user_id, current_user_role):
         print("Profile Update Error:", e)
         return jsonify({'error': 'Failed to update profile'}), 500
 
-@app.route('/child/profile/update', methods=['PUT'])
+@app.route('/parent/child/profile/update', methods=['PUT'])
 @jwt_required(required_role='parent')
-def update_child_profile(current_user_id, current_user_role):
+def parent_update_child_profile(current_user_id, current_user_role):
     try:
         data = request.get_json()
         if not data:
@@ -452,7 +452,7 @@ def send_otp_child():
     username = data.get("username")
     if not username:
         return jsonify({"error": "Username required"}), 400
-    sent = store_otp_username(username) 
+    sent = store_child_otp(username) 
     if sent:
         return jsonify({
             "message": "OTP sent to registered parent email for child"

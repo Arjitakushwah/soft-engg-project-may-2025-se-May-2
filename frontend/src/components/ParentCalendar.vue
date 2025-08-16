@@ -303,7 +303,7 @@ onMounted(() => {
   transform: translate(-50%, -50%);
   width: 280px;
   background: #fff8f9;
-  border: 1px solid #ff6a88;
+  border: 1px solid #756bdb;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
@@ -320,7 +320,7 @@ onMounted(() => {
 
 .task-header h3 {
   font-size: 1.1rem;
-  color: #ff6a88;
+  color: #756bdb;
   font-family: 'Fredoka One', cursive;
   margin: 0;
 }
@@ -328,7 +328,7 @@ onMounted(() => {
 .close-btn {
   font-size: 1.2rem;
   cursor: pointer;
-  color: #ff6a88;
+  color: #756bdb;
 }
 
 .task-box ul {
@@ -380,7 +380,7 @@ onMounted(() => {
 }
 
 .text-primary {
-    color: #ff6a88 !important;
+    color: #756bdb !important;
 }
 
 .text-purple {
@@ -388,7 +388,7 @@ onMounted(() => {
 }
 
 .btn-primary-custom {
-    background-color: #ff6a88;
+    background-color: #756bdb;
     color: white;
     border-radius: 25px;
     padding: 10px 25px;
@@ -398,7 +398,7 @@ onMounted(() => {
 }
 
 .btn-primary-custom:hover {
-    background-color: #e65c7a;
+    background-color: #756bdb;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 106, 136, 0.3);
 }

@@ -31,22 +31,6 @@
           </select>
         </div>
 
-        <hr class="my-4">
-
-        <!-- Section 2: Change Password (Optional) -->
-        <h3 class="section-title">Change Your Password</h3>
-        <p class="text-muted small">Leave these fields blank if you don't want to change your password.</p>
-        <div class="form-group">
-          <label for="password">New Password</label>
-          <input id="password" v-model="passwordForm.password" type="password" placeholder="Enter new password" />
-           <div v-if="errors.password" class="invalid-feedback d-block">{{ errors.password }}</div>
-        </div>
-        <div class="form-group">
-          <label for="confirmPassword">Confirm New Password</label>
-          <input id="confirmPassword" v-model="passwordForm.confirmPassword" type="password" placeholder="Confirm new password" />
-           <div v-if="errors.confirmPassword" class="invalid-feedback d-block">{{ errors.confirmPassword }}</div>
-        </div>
-
         <!-- Feedback Message -->
         <div v-if="message" :class="['message', messageType, 'mt-3']">
           {{ message }}
@@ -54,7 +38,7 @@
 
         <!-- Submit Button -->
         <button type="submit" :disabled="isSubmitting" class="mt-4">
-          <span v-if="isSubmitting" class="spinner-border spinner-border-sm text-purple"></span>
+          <span v-if="isSubmitting" class="spinner-border spinner-border-sm"></span>
           <span v-else>Save Changes</span>
         </button>
       </form>
@@ -74,11 +58,6 @@ const form = ref({
   age: '',
   gender: ''
 });
-const passwordForm = ref({
-    password: '',
-    confirmPassword: ''
-});
-const errors = ref({});
 const loading = ref(true);
 const isSubmitting = ref(false);
 const message = ref('');
@@ -92,7 +71,6 @@ async function fetchProfile() {
   message.value = '';
   try {
     const token = localStorage.getItem("access_token");
-    // NOTE: This assumes you have a GET endpoint for the child's own profile
     const res = await fetch('http://localhost:5000/child_dashboard', {
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -115,46 +93,19 @@ async function fetchProfile() {
   }
 }
 
-// 2. Validate form before submission
-function validateForm() {
-    errors.value = {};
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    
-    // Only validate password if user is trying to change it
-    if (passwordForm.value.password || passwordForm.value.confirmPassword) {
-        if (!passwordForm.value.password) {
-            errors.value.password = 'New password is required.';
-        } else if (!passwordRegex.test(passwordForm.value.password)) {
-            errors.value.password = 'Password must be 8+ characters with uppercase, lowercase, and a number.';
-        }
-        if (passwordForm.value.password !== passwordForm.value.confirmPassword) {
-            errors.value.confirmPassword = 'Passwords do not match.';
-        }
-    }
-
-    return Object.keys(errors.value).length === 0;
-}
-
-// 3. Update the profile on form submission
+// 2. Update the profile on form submission
 async function updateProfile() {
-  if (!validateForm()) return;
-
   isSubmitting.value = true;
   message.value = '';
   try {
     const token = localStorage.getItem("access_token");
     
-    // Construct payload with profile details
+    // Construct payload with only the allowed fields
     const payload = {
       name: form.value.name,
       age: parseInt(form.value.age, 10),
       gender: form.value.gender
     };
-
-    // Add password to payload only if it's being changed
-    if (passwordForm.value.password) {
-        payload.password = passwordForm.value.password;
-    }
 
     const res = await fetch('http://localhost:5000/child/profile/update', {
       method: 'PUT',
@@ -174,10 +125,6 @@ async function updateProfile() {
     message.value = 'Profile updated successfully!';
     messageType.value = 'success';
     
-    // Clear password fields after successful update
-    passwordForm.value.password = '';
-    passwordForm.value.confirmPassword = '';
-
     setTimeout(() => {
       router.push('/child/home');
     }, 1500);

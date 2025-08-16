@@ -186,7 +186,7 @@ def store_child_otp(username):
     if not user:
         return False
     email = user.email
-    child = Child.query.filter_by(user_id=user.id).first()
+    child = Child.query.filter_by(id=user.id).first()
     sent = send_child_otp_email(email, child.name, otp)
     return sent
 

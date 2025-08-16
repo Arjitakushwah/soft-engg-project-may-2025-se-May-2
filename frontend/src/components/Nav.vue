@@ -54,9 +54,31 @@ const goToDashboard = () => {
   }
 }
 
-const logout = () => {
-  localStorage.clear()
-  router.push({ path: '/' })
+const logout = async () => {
+  try {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      // Call the backend to invalidate the token
+      const response = await fetch('http://localhost:5000/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Logout failed on the server.');
+      }
+    }
+  } catch (error) {
+    console.error('Logout failed:', error);
+    // Even if server logout fails, proceed to clear local data to log the user out on the client-side.
+  } finally {
+    // Always clear local storage and redirect
+    localStorage.clear()
+    router.push({ path: '/' })
+  }
 }
 
 const navigateToPage = (page) => {
