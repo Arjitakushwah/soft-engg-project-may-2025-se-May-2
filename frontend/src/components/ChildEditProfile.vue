@@ -10,7 +10,6 @@
       </div>
       
       <form v-else @submit.prevent="updateProfile">
-        <!-- Section 1: Profile Details -->
         <h3 class="section-title">Your Details</h3>
         <div class="form-group">
           <label for="name">Name</label>
@@ -31,12 +30,10 @@
           </select>
         </div>
 
-        <!-- Feedback Message -->
         <div v-if="message" :class="['message', messageType, 'mt-3']">
           {{ message }}
         </div>
 
-        <!-- Submit Button -->
         <button type="submit" :disabled="isSubmitting" class="mt-4">
           <span v-if="isSubmitting" class="spinner-border spinner-border-sm"></span>
           <span v-else>Save Changes</span>
@@ -52,7 +49,6 @@ import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
-// --- STATE MANAGEMENT ---
 const form = ref({
   name: '',
   age: '',
@@ -63,9 +59,6 @@ const isSubmitting = ref(false);
 const message = ref('');
 const messageType = ref('');
 
-// --- API & LOGIC ---
-
-// 1. Fetch existing profile data when the component loads
 async function fetchProfile() {
   loading.value = true;
   message.value = '';
@@ -93,14 +86,13 @@ async function fetchProfile() {
   }
 }
 
-// 2. Update the profile on form submission
+
 async function updateProfile() {
   isSubmitting.value = true;
   message.value = '';
   try {
     const token = localStorage.getItem("access_token");
     
-    // Construct payload with only the allowed fields
     const payload = {
       name: form.value.name,
       age: parseInt(form.value.age, 10),
@@ -138,7 +130,6 @@ async function updateProfile() {
   }
 }
 
-// --- LIFECYCLE HOOK ---
 onMounted(() => {
   fetchProfile();
 });

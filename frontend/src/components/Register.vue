@@ -13,7 +13,6 @@
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 500px;">
         <h2 class="text-center mb-4">Register as Parent</h2>
 
-        <!-- Google Sign-In Button -->
         <div class="mb-3">
             <button @click="registerWithGoogle" class="btn btn-google w-100" :disabled="isGoogleLoading">
                 <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm text-purple me-2" role="status" aria-hidden="true"></span>
@@ -31,7 +30,6 @@
             <span>OR</span>
         </div>
         
-        <!-- Step 1: Email Input and Send OTP -->
         <form @submit.prevent="handleSendOtp" v-if="step === 1" novalidate>
           <p class="text-center text-muted small">Register with your email to receive a verification code.</p>
           <div class="mb-3">
@@ -51,7 +49,6 @@
           </button>
         </form>
 
-        <!-- Step 2: OTP Verification -->
         <form @submit.prevent="handleVerifyOtp" v-if="step === 2" novalidate>
             <p class="text-center text-muted">An OTP has been sent to <strong>{{ form.email }}</strong>. Please enter it below.</p>
             <div class="mb-3">
@@ -72,7 +69,6 @@
              <button @click="step = 1; serverError=''" class="btn btn-link w-100 mt-2">Change Email</button>
         </form>
 
-        <!-- Step 3: Full Registration Form -->
         <form @submit.prevent="registerParent" v-if="step === 3" novalidate>
           <p class="text-center text-success">✓ Email Verified!</p>
           <div class="mb-3">
@@ -125,8 +121,6 @@
             />
             <div v-if="errors.passwordConfirm" class="invalid-feedback">{{ errors.passwordConfirm }}</div>
           </div>
-
-          <!-- Terms of Service Checkbox -->
           <div class="mb-3 form-check">
             <input type="checkbox" class="form-check-input" :class="{'is-invalid': errors.terms}" id="termsCheck" v-model="termsAccepted" @change="validateField('terms')">
             <label class="form-check-label" for="termsCheck">
@@ -157,7 +151,6 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 
-// --- STATE MANAGEMENT ---
 const form = ref({
   name: '',
   username: '',
@@ -166,8 +159,8 @@ const form = ref({
   passwordConfirm: '',
 });
 const otp = ref('');
-const termsAccepted = ref(false); // State for the checkbox
-const step = ref(1); // 1: Email, 2: OTP, 3: Details
+const termsAccepted = ref(false);
+const step = ref(1);
 const errors = ref({});
 const serverError = ref('');
 const success = ref('');
@@ -178,8 +171,6 @@ const router = useRouter();
 const route = useRoute();
 
 const debounceTimers = {};
-
-// --- Handle Google Auth Errors on Mount ---
 onMounted(() => {
     const error = route.query.error;
     if (error) {
@@ -193,12 +184,8 @@ onMounted(() => {
     }
 });
 
-
-// --- API CALLS ---
-
 const registerWithGoogle = () => {
     isGoogleLoading.value = true;
-    // Redirect the entire page to the backend endpoint to start the Google OAuth flow
     window.location.href = 'http://localhost:5000/auth/google/login';
 };
 
@@ -221,7 +208,7 @@ const handleSendOtp = async () => {
       throw new Error(result.error || 'Failed to send OTP.');
     }
     success.value = result.message;
-    step.value = 2; // Move to OTP verification step
+    step.value = 2;
   } catch (err) {
     serverError.value = err.message;
   } finally {
@@ -292,9 +279,6 @@ const registerParent = async () => {
   }
 };
 
-
-// --- VALIDATION LOGIC ---
-
 const handleInput = (fieldName) => {
   clearTimeout(debounceTimers[fieldName]);
   debounceTimers[fieldName] = setTimeout(() => {
@@ -304,7 +288,7 @@ const handleInput = (fieldName) => {
 
 const validateField = async (fieldName) => {
   errors.value[fieldName] = '';
-  serverError.value = ''; // Clear server error on new input
+  serverError.value = '';
 
   switch (fieldName) {
     case 'name':
@@ -377,7 +361,7 @@ const validateFormOnSubmit = async () => {
         validateField('username'),
         validateField('password'),
         validateField('passwordConfirm'),
-        validateField('terms') // Validate terms on submit
+        validateField('terms')
     ]);
     return Object.values(errors.value).every(error => !error);
 };

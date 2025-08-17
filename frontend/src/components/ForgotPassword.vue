@@ -29,10 +29,8 @@
                 <label class="form-check-label" for="roleChild">I am a Child</label>
             </div>
         </div>
-        
-        <!-- Parent Logic -->
+
         <div v-if="role === 'parent'">
-            <!-- Step 1: Email Input -->
             <form @submit.prevent="handleSendOtp" v-if="step === 1">
               <p class="text-center text-muted">Enter your registered email to receive a verification code.</p>
               <div class="mb-3">
@@ -51,8 +49,6 @@
                 <span v-else>Send OTP</span>
               </button>
             </form>
-
-            <!-- Step 2: OTP Verification -->
             <form @submit.prevent="handleVerifyOtp" v-if="step === 2">
               <p class="text-center text-muted">An OTP has been sent to <strong>{{ form.email }}</strong>. Please enter it below.</p>
               <div class="mb-3">
@@ -73,8 +69,6 @@
               </button>
               <button @click="step = 1; serverError=''" class="btn btn-link w-100 mt-2">Change Email</button>
             </form>
-
-            <!-- Step 3: Set New Password -->
             <form @submit.prevent="handleSetPassword" v-if="step === 3">
               <p class="text-center text-success">✓ OTP Verified! Set a new password.</p>
               <div class="mb-3">
@@ -105,8 +99,6 @@
               </button>
             </form>
         </div>
-
-        <!-- Child Logic -->
         <div v-else class="text-center alert alert-info">
             <i class="bi bi-info-circle-fill h4"></i>
             <p class="mt-2 mb-0">Child accounts cannot reset passwords directly.</p>
@@ -125,14 +117,14 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
-const role = ref('parent'); // Default role
+const role = ref('parent');
 const form = ref({
   email: '',
   otp: '',
   newPassword: '',
   confirmPassword: '',
 });
-const step = ref(1); // 1: Email, 2: OTP, 3: Set Password
+const step = ref(1);
 const isLoading = ref(false);
 const serverError = ref('');
 const success = ref('');

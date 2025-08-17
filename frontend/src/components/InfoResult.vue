@@ -62,15 +62,13 @@ const logId = ref(null);
 const markCompleted = ref(false);
 const markLoading = ref(false);
 
-// New reactive variables for displaying messages
 const message = ref("");
-const messageType = ref(""); // 'success' or 'error'
+const messageType = ref("");
 
 function goBack() {
   router.push({ name: "ChildInfotainment" });
 }
 
-// Function to set and automatically clear the message
 function showMessage(text, type, duration = 4000) {
   message.value = text;
   messageType.value = type;
@@ -112,7 +110,6 @@ onMounted(async () => {
     const token = localStorage.getItem("access_token");
 
     if (topicTitle.value) {
-      // Predefined topic (new content)
       const res = await fetch(`http://localhost:5000/infotainment/generate`, {
         method: "POST",
         headers: {
@@ -129,7 +126,6 @@ onMounted(async () => {
         showMarkButton.value = true;
       }
     } else if (searchQuery.value) {
-      // Past news search
       const res = await fetch(
         `http://localhost:5000/infotainment/search?q=${encodeURIComponent(searchQuery.value)}`,
         { headers: { "Authorization": `Bearer ${token}` } }
@@ -197,7 +193,7 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 
-.articles-list { /* single column for new content */
+.articles-list {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -234,8 +230,8 @@ onMounted(async () => {
 .message-wrapper {
   text-align: center;
   margin-top: 1.5rem;
-  margin-bottom: -1rem; /* Pull the button up slightly */
-  height: 40px; /* Reserve space to prevent layout shift */
+  margin-bottom: -1rem;
+  height: 40px;
 }
 
 .message-display {

@@ -7,14 +7,11 @@
       <h1>Buzz of Knowledge</h1>
     </div> 
     
-    
-    <!-- Search Past News -->
     <div class="search-bar">
       <input class="search" type="text" v-model="searchQuery" placeholder="Search your past news..." />
       <button @click="searchNews" class="search-btn">Search</button>
     </div>
 
-    <!-- Predefined Topics -->
     <div class="predefined-topics">
       <h2 class="section-title">Explore Topics</h2>
       <div class="topics-grid">
@@ -35,14 +32,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'; // Import 'computed'
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
 const searchQuery = ref('');
 const errorMessage = ref('');
 
-// 1. Create a master list with all your topics (current + new ones).
 const allTopics = [
   { name: 'Science', icon: 'bi bi-lightbulb' },
   { name: 'Technology', icon: 'bi bi-cpu' },
@@ -62,23 +58,17 @@ const allTopics = [
   { name: 'Cooking', icon: 'bi bi-egg-fried' },
 ];
 
-// 2. Create a computed property to get the daily topics.
 const dailyTopics = computed(() => {
-  const topicsToShow = 15; // How many topics to show at once.
+  const topicsToShow = 15;
   const now = new Date();
   const startOfYear = new Date(now.getFullYear(), 0, 0);
   const diff = now - startOfYear;
   const oneDay = 1000 * 60 * 60 * 24;
-  const dayOfYear = Math.floor(diff / oneDay); // A number from 1 to 365.
+  const dayOfYear = Math.floor(diff / oneDay);
 
-  // Calculate the starting index based on the day of the year.
-  // The '%' (modulo) operator ensures the index wraps around.
   const startIndex = dayOfYear % allTopics.length;
-
-  // Create an array that's double the master list to easily handle wrapping.
   const rotatedTopics = [...allTopics, ...allTopics];
 
-  // Slice the required number of topics from the calculated start index.
   return rotatedTopics.slice(startIndex, startIndex + topicsToShow);
 });
 

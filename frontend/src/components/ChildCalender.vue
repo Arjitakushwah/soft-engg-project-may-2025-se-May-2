@@ -80,7 +80,7 @@ const fetchCalendarReport = async () => {
 
     const progress = data.progress
     const events = Object.entries(progress).map(([date, detail]) => ({
-      title: '', // empty title to reduce clutter
+      title: '', 
       date,
       backgroundColor: detail.status,
       borderColor: detail.status,
@@ -109,7 +109,6 @@ const fetchCalendarReport = async () => {
             status: notDone.includes(task) ? 'not_completed' : 'completed'
           }))
           .sort((a, b) => {
-            // not_completed comes before completed
             if (a.status === 'not_completed' && b.status === 'completed') return -1
             if (a.status === 'completed' && b.status === 'not_completed') return 1
             return 0
@@ -131,7 +130,6 @@ onMounted(() => {
   fetchCalendarReport()
 })
 </script>
-
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');

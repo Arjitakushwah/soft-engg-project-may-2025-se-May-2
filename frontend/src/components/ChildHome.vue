@@ -75,7 +75,6 @@ import { ref, onMounted } from "vue";
 import Loader from './Loader.vue';
 import { badgeSvgMap, defaultBadgeSvg } from '/src/assets/badges.js';
 
-// --- Reactive State ---
 const childName = ref("Child");
 const childAge = ref(0);
 const quote = ref("");
@@ -86,16 +85,14 @@ const badges = ref([]);
 const totalJournals = ref(0);
 const totalStories = ref(0);
 
-// --- Badge SVG Helper ---
 const getBadgeSvg = (badgeName) => {
   return badgeSvgMap[badgeName] || defaultBadgeSvg;
 };
 
-// --- API Request Utility ---
 const apiRequest = async (url) => {
     const token = localStorage.getItem("access_token");
     if (!token) {
-        // Handle logout or redirect
+
         console.error("No auth token found");
         return;
     }
@@ -109,23 +106,18 @@ const apiRequest = async (url) => {
     return data;
 };
 
-// --- Data Fetching ---
 const fetchDashboardData = async () => {
     loading.value = true;
     try {
-        // Fetch all necessary data in parallel
         const [profileData, streakData] = await Promise.all([
             apiRequest("http://localhost:5000/child_dashboard"),
             apiRequest("http://localhost:5000/streak-badges")
         ]);
-
-        // Populate profile info
         if (profileData) {
             childName.value = profileData.name || "Child";
             childAge.value = profileData.age || 0;
         }
 
-        // Populate streak and activity info
         if (streakData) {
             currentStreak.value = streakData.current_streak || 0;
             longestStreak.value = streakData.longest_streak || 0;
@@ -141,7 +133,6 @@ const fetchDashboardData = async () => {
     }
 };
 
-// --- Component Lifecycle ---
 onMounted(() => {
   const quotes = [
     "Believe in yourself and all that you are!",
@@ -172,8 +163,6 @@ onMounted(() => {
   fetchDashboardData();
 });
 </script>
-
-
 
 <style scoped>
 @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
@@ -212,7 +201,6 @@ onMounted(() => {
   border-left: 4px solid #fff;
 }
 
-/* Cards Grid Section */
 .cards-container {
   padding: 0 1rem;
 }
@@ -220,7 +208,6 @@ onMounted(() => {
 .cards-grid {
   display: grid;
   gap: 1.5rem;
-  /* Mobile-first: single column */
   grid-template-columns: 1fr;
 }
 
@@ -247,7 +234,6 @@ onMounted(() => {
   font-weight: 600;
 }
 
-/* Profile Card */
 .profile-card {
   background: #fff;
   display: flex;
@@ -307,7 +293,6 @@ onMounted(() => {
 }
 
 
-/* Number Cards */
 .number-card .card-content {
     display: flex;
     flex-direction: column;
@@ -333,10 +318,7 @@ onMounted(() => {
 .journal-count-card .card-icon, .journal-count-card h3 { color: #6f5aa8; }
 .story-reads-card .card-icon, .story-reads-card h3 { color: #386e21; }
 
-
-/* Badge Card Specific Styles */
 .badge-card {
-  /* This will span the full width on multi-column grids */
   grid-column: 1 / -1;
 }
 .badge-card h3 {
@@ -375,17 +357,14 @@ onMounted(() => {
   width: 100%;
 }
 
-/* Responsive Adjustments */
 @media (min-width: 768px) {
     .cards-grid {
-        /* Two columns for tablets */
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (min-width: 1200px) {
     .cards-grid {
-        /* Four columns for large desktops */
         grid-template-columns: repeat(4, 1fr);
     }
 }

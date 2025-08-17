@@ -255,8 +255,8 @@ function goToQuiz() {
         throw new Error("Quiz data is missing the correct answer.");
     }
     quizQuestion.value = quizData.question;
-    correctAnswer.value = quizData.answer; // Store the correct answer
-    quizOptions.value = shuffleArray(quizData.options); // Shuffle options for display
+    correctAnswer.value = quizData.answer;
+    quizOptions.value = shuffleArray(quizData.options);
     quizSubmitted.value = false;
     isCorrect.value = false;
     viewMode.value = 'quiz';
@@ -268,14 +268,8 @@ function goToQuiz() {
 
 async function submitAnswer(selectedOption) {
   loading.value = true;
-  
-  // 1. Check for correctness on the frontend
   isCorrect.value = (selectedOption === correctAnswer.value);
-  
-  // Show the result screen immediately for a better user experience
   quizSubmitted.value = true; 
-
-  // 2. Notify the backend of the result (for logging/scoring)
   try {
     const token = localStorage.getItem('access_token');
     if (!token) throw new Error('Authentication token not found.');
@@ -286,7 +280,7 @@ async function submitAnswer(selectedOption) {
       body: JSON.stringify({
         story_title: displayTitle.value,
         selected_option: selectedOption,
-        is_correct: isCorrect.value // Tell the backend the result
+        is_correct: isCorrect.value
       }),
     });
 
@@ -296,8 +290,6 @@ async function submitAnswer(selectedOption) {
     }
 
   } catch (error) {
-    // If the API fails, the user still sees their result. 
-    // We just show an error that the result might not have been saved.
     showMessage(error.message, 'error');
   } finally {
     loading.value = false;

@@ -1,7 +1,7 @@
 <template>
   <div class="child-calendar-bg">
     <main class="main-content">
-      <!-- Loading State -->
+
       <div v-if="isLoading" class="text-center py-5">
         <div class="spinner-border text-purple" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -9,7 +9,6 @@
         <p class="mt-2 text-muted">Loading calendar data...</p>
       </div>
 
-      <!-- No Children Found State -->
       <div v-else-if="noChildrenFound" class="text-center bg-light p-4 p-md-5 rounded-3">
         <i class="bi bi-person-plus-fill display-4 text-primary mb-3"></i>
         <h4 class="fw-semibold">No Child Profile Found</h4>
@@ -18,8 +17,7 @@
             <i class="bi bi-plus-circle me-2"></i>Add Child Profile
         </router-link>
       </div>
-      
-      <!-- Main Content State -->
+
       <div v-else class="calendar-container">
         <div class="child-select">
           <label for="child">Select Child:</label>
@@ -126,8 +124,7 @@ const fetchChildren = async () => {
     console.error(err.message);
     noChildrenFound.value = true;
   } finally {
-      // Only stop loading if there are no children. 
-      // If there are children, loading will stop after calendar data is fetched.
+
       if (noChildrenFound.value) {
           isLoading.value = false;
       }
@@ -187,13 +184,13 @@ const fetchCalendarReport = async (childId) => {
   } catch (err) {
     alert(err.message)
   } finally {
-      isLoading.value = false; // Stop loading after calendar data is fetched
+      isLoading.value = false;
   }
 }
 
 watch(selectedChild, (newVal) => {
   if (newVal) {
-      isLoading.value = true; // Show loader when switching children
+      isLoading.value = true;
       fetchCalendarReport(newVal);
   }
 })

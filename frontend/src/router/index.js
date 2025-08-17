@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Import your components
 import HomePage from '../components/HomePage.vue'
 import Login from '../components/Login.vue'
 import Register from '../components/Register.vue'
@@ -31,7 +30,6 @@ import ChildEditProfile from '../components/ChildEditProfile.vue'
 import GoogleAuthCallback from '../components/GoogleAuthCallBack.vue'
 
 const routes = [
-  // --- PUBLIC ROUTES ---
   { path: '/', name: 'HomePage', component: HomePage },
   { path: '/login', name: 'Login', component: Login },
   { path: '/register', name: 'Register', component: Register },
@@ -46,12 +44,11 @@ const routes = [
     component: GoogleAuthCallback
   },
 
-  // --- CHILD PROTECTED ROUTES ---
   {
     path: '/child',
     component: ChildDashboard,
     name: 'Child',
-    meta: { requiresAuth: true, role: 'child' }, // Meta field for protection
+    meta: { requiresAuth: true, role: 'child' },
     children: [
       { path: 'home', name: 'ChildHome', component: ChildHome },
       { path: 'calendar', name: 'ChildCalender', component: ChildCalender },
@@ -64,12 +61,11 @@ const routes = [
     ]
   },
 
-  // --- PARENT PROTECTED ROUTES ---
   {
     path: '/parent',
     component: ParentDashboard,
     name: 'Parent',
-    meta: { requiresAuth: true, role: 'parent' }, // Meta field for protection
+    meta: { requiresAuth: true, role: 'parent' },
     children: [
       { path: 'home', name: 'ParentHome', component: ParentHome },
       { path: 'add-child', name: 'AddChild', component: AddChild },
@@ -89,7 +85,6 @@ const routes = [
     ]
   },
 
-  // Catch-all route for 404 errors
   { path: '/:pathMatch(.*)*', redirect: '/error-404' }
 ]
 
@@ -98,7 +93,6 @@ const router = createRouter({
   routes
 })
 
-// --- GLOBAL NAVIGATION GUARD ---
 router.beforeEach((to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const requiredRole = to.meta.role;
@@ -106,28 +100,22 @@ router.beforeEach((to, from, next) => {
   const userRole = localStorage.getItem('userRole');
 
   if (requiresAuth) {
-    // 1. If route requires auth and user is not logged in, redirect to login
     if (!token) {
       next({ name: 'Login' });
     } else {
-      // 2. If user is logged in but does not have the required role, redirect them
       if (requiredRole && userRole !== requiredRole) {
-        // Redirect to their own dashboard based on their actual role
         if (userRole === 'parent') {
           next({ name: 'ParentHome' });
         } else if (userRole === 'child') {
           next({ name: 'ChildHome' });
         } else {
-          // Fallback to login if role is unknown
           next({ name: 'Login' });
         }
       } else {
-        // 3. If user is authenticated and has the correct role, proceed
         next();
       }
     }
   } else {
-    // 4. For public routes, just proceed
     next();
   }
 });

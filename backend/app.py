@@ -264,6 +264,11 @@ def set_new_password():
     return jsonify({'message': 'Password reset successfully'}), 200
 
 #------------------------------------------- Update Parent Profile-------------------------------------------------
+# Make sure you have this import for password hashing if it's not already in your file
+from werkzeug.security import generate_password_hash
+
+# Your other imports like Flask, jsonify, request, db, models (User, Parent), etc.
+
 @app.route('/parent/update-profile', methods=['PUT'])
 @jwt_required(required_role='parent')
 def update_parent_profile(current_user_id, current_user_role):
@@ -271,31 +276,62 @@ def update_parent_profile(current_user_id, current_user_role):
     if not data:
         return jsonify({"error": "Missing JSON body"}), 400
 
-    name = data.get("name")
     user = User.query.get(current_user_id)
     parent = Parent.query.get(current_user_id)
     if not user or not parent:
         return jsonify({"error": "User not found"}), 404
+
+    # --- Start of updated logic ---
+
     try:
-        # Username & password cannot be changed once set
-        if "username" in data or "password" in data:
-            return jsonify({"error": "Username and password cannot be changed after setup"}), 400
+        # Get potential new data from the request
+        name = data.get("name")
+        new_username = data.get("username")
+        new_password = data.get("password")
+
+        # 1. Handle username update
+        if new_username:
+            # Check if a username is already set. If yes, it cannot be changed.
+            if user.username:
+                return jsonify({"error": "Username is already set and cannot be changed."}), 400
+            
+            # If not set, validate that the new username isn't already taken
+            if User.query.filter_by(username=new_username).first():
+                return jsonify({"error": "Username is already taken. Please choose another."}), 409 # 409 Conflict
+            
+            user.username = new_username
+
+        # 2. Handle password update
+        if new_password:
+            # Check if a password hash already exists. If yes, it cannot be changed here.
+            # Assumes your password field is named 'password_hash'. Adjust if it's different (e.g., 'password').
+            if user.password: 
+                return jsonify({"error": "Password is already set and cannot be changed."}), 400
+            
+            # Securely hash the new password before storing it
+            user.password = generate_password_hash(new_password)
+
+        # 3. Handle name update (this logic remains the same)
         if name is not None:
             parent.name = name
 
         db.session.commit()
+        
         return jsonify({
             "message": "Parent profile updated successfully",
             "parent": {
                 "id": parent.id,
-                "name": parent.name
+                "name": parent.name,
+                "username": user.username # Also return the newly set username
             }
         }), 200
+    
+    # --- End of updated logic ---
+    
     except Exception as e:
         db.session.rollback()
-        print("Parent Profile Update Error:", e)
+        print("Parent Profile Update Error:", e) # Using print for logging in development
         return jsonify({"error": "Failed to update profile"}), 500
-
 #------------------------------ Add Child-----------------------------------------------------------------------------
 
 @app.route('/add-child', methods=['POST'])

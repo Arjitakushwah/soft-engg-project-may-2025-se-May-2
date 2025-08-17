@@ -9,7 +9,6 @@
         >
           <i class="bi bi-list fs-3"></i>
         </button>
-
         <router-link to="/" class="navbar-brand app-title">
           Skill Explorers
         </router-link>
@@ -58,7 +57,6 @@ const logout = async () => {
   try {
     const token = localStorage.getItem('access_token');
     if (token) {
-      // Call the backend to invalidate the token
       const response = await fetch('http://localhost:5000/logout', {
         method: 'POST',
         headers: {
@@ -73,9 +71,7 @@ const logout = async () => {
     }
   } catch (error) {
     console.error('Logout failed:', error);
-    // Even if server logout fails, proceed to clear local data to log the user out on the client-side.
   } finally {
-    // Always clear local storage and redirect
     localStorage.clear()
     router.push({ path: '/' })
   }
@@ -85,7 +81,6 @@ const navigateToPage = (page) => {
   console.log('Navigating to:', page)
   router.push({ name: page })
 }
-
 </script>
 
 <style scoped>
@@ -152,8 +147,6 @@ const navigateToPage = (page) => {
   gap: 1.5rem;
   align-items: center;
 }
-
-
 
 .nav-btn-secondary, .nav-btn-primary {
   font-family: 'Fredoka One', cursive;

@@ -251,10 +251,8 @@ const editingTask = ref(null);
 const editTaskText = ref(''); 
 const showCongratulations = ref(false); 
 
-// Helper functions 
 const formatDateKey = (date) => { 
   const d = new Date(date); 
-  // Adjust for timezone offset to prevent the date from changing
   d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
   return d.toISOString().split('T')[0]; 
 }; 
@@ -281,7 +279,6 @@ const isToday = (date) => {
          compareDate.getFullYear() === now.getFullYear(); 
 }; 
 
-// Computed properties 
 const formattedDate = computed(() => formatDisplayDate(currentDate.value)); 
 const isCurrentDateToday = computed(() => isToday(currentDate.value)); 
 const currentTasks = computed(() => { 

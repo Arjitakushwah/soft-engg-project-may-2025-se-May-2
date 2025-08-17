@@ -129,7 +129,7 @@ export default {
     },
     async fetchInfotainmentStats() {
       try {
-        // Weekly chart data
+
         const weeklyRes = await fetch(
           `http://localhost:5000/parent/child/${this.selectedChildId}/infotainment-logs?week=true`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
@@ -163,7 +163,6 @@ export default {
           }]
         };
 
-        // Daily logs data
         const dailyRes = await fetch(
           `http://localhost:5000/parent/child/${this.selectedChildId}/infotainment-logs?date=${this.selectedDate}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
@@ -209,7 +208,6 @@ export default {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-/* Card Styling */
 .card {
   border-radius: 14px;
   background: #ffffff;
@@ -231,7 +229,6 @@ export default {
   font-size: 1.5rem;
 }
 
-/* Table Styling */
 .table {
   border-collapse: separate;
   border-spacing: 0;
@@ -255,13 +252,11 @@ export default {
   vertical-align: middle;
 }
 
-/* Table cell borders */
 .table th,
 .table td {
   border: 0.25px solid #f5f5f5;
 }
 
-/* Table data cells styling */
 .table td {
   vertical-align: middle;
   text-align: center;
@@ -271,7 +266,6 @@ export default {
   transition: background 0.2s ease;
 }
 
-/* Status Text Colors and Icons */
 .table td i {
     margin-right: 6px;
 }
@@ -279,7 +273,7 @@ export default {
 .status-text-done { color: #28a745; font-weight: bold; }
 .status-text-not-done { color: #ffc107; font-weight: bold; }
 
-/* Chart Styling */
+
 .chart-card {
   background: #E6E6FA;
   padding: 24px;
@@ -318,7 +312,7 @@ export default {
   margin-top: 2rem;
 }
 
-/* Responsive */
+
 @media (max-width: 768px) {
   .analysis-container {
     padding: 15px;

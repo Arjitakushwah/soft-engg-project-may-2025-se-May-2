@@ -13,7 +13,6 @@
       <div class="card shadow-lg p-4 mx-auto" style="max-width: 450px;">
         <h2 class="text-center mb-4">Login</h2>
 
-        <!-- Google Sign-In Button (Visible only for parents) -->
         <div v-if="role === 'parent'" class="mb-3">
             <button @click="loginWithGoogle" class="btn btn-google w-100" :disabled="isGoogleLoading">
                 <span v-if="isGoogleLoading" class="spinner-border spinner-border-sm text-purple me-2" role="status" aria-hidden="true"></span>
@@ -27,7 +26,6 @@
             </button>
         </div>
 
-        <!-- Separator (Visible only for parents) -->
         <div v-if="role === 'parent'" class="separator">
             <span>OR</span>
         </div>
@@ -93,7 +91,6 @@ onMounted(() => {
 
 const loginWithGoogle = () => {
     isGoogleLoading.value = true;
-    // Redirect to the backend which handles the Google OAuth flow
     window.location.href = 'http://localhost:5000/auth/google/login';
 };
 
@@ -117,7 +114,7 @@ const login = async () => {
       body: JSON.stringify({
         username: username.value,
         password: password.value,
-        role: role.value // Send the selected role to the backend
+        role: role.value
       })
     })
 
@@ -133,12 +130,11 @@ const login = async () => {
     localStorage.setItem('username', username.value)
 
     success.value = 'Login successful! Redirecting...'
-    
-    // Store parent/child specific info if needed
+ 
     if (result.role === 'parent') {
       localStorage.setItem('parent', JSON.stringify({
         username: username.value,
-        name: username.value // Assuming name is same as username for now
+        name: username.value
       }))
     } else if (result.role === 'child') {
       localStorage.setItem('child', JSON.stringify({

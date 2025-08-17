@@ -8,9 +8,9 @@
         </svg>
         <h1>Footprints of My Day</h1>
     </div>
-    <!-- Search Section -->
+
     <div class="search-container">
-      <!-- Calendar Date Picker -->
+
       <div class="date-picker-wrapper">
         <button @click="showCalendar = !showCalendar" class="date-picker-btn">
           <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="16" y1="2" x2="16" y2="6" stroke="currentColor" stroke-width="2"/><line x1="8" y1="2" x2="8" y2="6" stroke="currentColor" stroke-width="2"/><line x1="3" y1="10" x2="21" y2="10" stroke="currentColor" stroke-width="2"/></svg>
@@ -49,7 +49,6 @@
       </button>
     </div>
 
-    <!-- Journal Form -->
     <form @submit.prevent="submitJournal" class="journal-form">
       <div class="text-container">
         <label for="message">
@@ -71,7 +70,6 @@
       </button>
     </form>
 
-    <!-- Submission Feedback -->
     <div v-if="submitted" class="mood-result" :class="detectedMood">
       <div class="mood-icon-container">
         <svg v-if="detectedMood === 'happy'" class="result-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 14s1.5 2 4 2 4-2 4-2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9 9h.01M15 9h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -84,7 +82,6 @@
       </div>
     </div>
 
-    <!-- Search Results -->
     <div v-if="searchResults.length" class="results-section">
       <h3 class="results-header">
         <svg class="results-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13" stroke="currentColor" stroke-width="2"/><line x1="16" y1="17" x2="8" y2="17" stroke="currentColor" stroke-width="2"/><polyline points="10 9 9 9 8 9"/></svg>
@@ -98,7 +95,6 @@
             <span class="time">{{ formatTime(entry.created_at) }}</span>
           </div>
           <div class="mood-tag" :class="entry.mood">
-            <!-- Mood icons can be added here if desired -->
             <span>{{ entry.mood }}</span>
           </div>
         </div>
@@ -127,7 +123,6 @@ const validMoods = [
     "neutral", "proud", "embarrassed", "nostalgic", "apathetic", "disappointed", "sarcastic"
 ];
 
-// Calendar State
 const showCalendar = ref(false);
 const calendarDate = ref(new Date());
 const selectedDateForSearch = ref('');
@@ -145,10 +140,7 @@ const daysInMonth = computed(() => {
     const days = [];
     
     const todayDate = new Date();
-    // Construct today's date string without timezone conversion
     const todayString = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
-
-    // Add days from previous month for padding
     const startDayOfWeek = firstDay.getDay();
     for (let i = 0; i < startDayOfWeek; i++) {
         const prevMonthDay = new Date(year, month, 0);
@@ -157,7 +149,6 @@ const daysInMonth = computed(() => {
     }
 
     for (let i = 1; i <= lastDay.getDate(); i++) {
-        // Manually construct YYYY-MM-DD string to avoid timezone issues
         const y = year;
         const m = String(month + 1).padStart(2, '0');
         const d = String(i).padStart(2, '0');
@@ -190,8 +181,6 @@ function selectDate(day) {
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
-  // Split the YYYY-MM-DD string and create a new Date object.
-  // This treats the date as local time, avoiding timezone shifts.
   const [year, month, day] = dateString.split('-');
   const date = new Date(year, month - 1, day);
   const options = { year: 'numeric', month: 'short', day: 'numeric' };

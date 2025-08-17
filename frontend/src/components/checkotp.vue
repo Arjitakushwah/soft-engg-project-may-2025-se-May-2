@@ -12,7 +12,6 @@
   <div class="container mt-5">
     <div class="card p-4 shadow-lg mx-auto" style="max-width: 500px; position: relative;">
       
-      <!-- Back Icon -->
       <button @click="goBack" class="back-icon-btn" aria-label="Go Back">
         <i class="bi bi-arrow-left"></i>
       </button>

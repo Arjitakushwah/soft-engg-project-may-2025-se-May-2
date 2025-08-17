@@ -4,7 +4,6 @@
       <h3 class="text-center mb-4">Reset Password</h3>
 
       <form @submit.prevent="submitNewPassword">
-        <!-- New Password Field -->
             <div class="mb-3 position-relative">
             <input
                 :type="showPassword ? 'text' : 'password'"
@@ -18,7 +17,6 @@
             </span>
             </div>
 
-            <!-- Confirm Password Field -->
             <div class="mb-3 position-relative">
             <input
                 :type="showConfirmPassword ? 'text' : 'password'"

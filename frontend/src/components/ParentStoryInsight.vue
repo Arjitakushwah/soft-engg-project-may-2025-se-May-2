@@ -153,7 +153,6 @@ export default {
           }]
         };
 
-        // Fetch daily story logs
         const dailyRes = await fetch(
           `http://localhost:5000/parent/child/${this.selectedChildId}/story-logs?date=${this.selectedDate}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }

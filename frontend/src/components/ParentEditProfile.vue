@@ -210,8 +210,7 @@
   };
   
   onMounted(fetchProfile);
-  
-  // --- Validation Logic ---
+
   const handleInput = (fieldName) => {
       clearTimeout(debounceTimers[fieldName]);
       debounceTimers[fieldName] = setTimeout(() => {
@@ -241,8 +240,7 @@
               } else if (username.toLowerCase() !== originalUsername.value?.toLowerCase()) {
                   isCheckingUsername.value = true;
                   try {
-                      // This check is for initial setup, not for updates.
-                      await apiRequest(`http://localhost:5000/check-username/${username}`, { method: 'GET' });
+                      await apiRequest(`http://localhost:5000/check-username?username=${username}`, { method: 'GET' });
                   } catch (err) {
                       errors.value.username = 'Username is already taken.';
                       hasError = true;
@@ -278,8 +276,7 @@
       }
       return isFormValid;
   };
-  
-  // --- Profile Actions ---
+
   const completeProfile = async () => {
       const isValid = await validateAllFields(['name', 'username', 'new_password', 'confirm_password']);
       if (!isValid) return;
@@ -298,7 +295,7 @@
           });
           message.value = result.message || 'Profile completed successfully!';
           messageType.value = 'success';
-          await fetchProfile(); // Refresh profile state
+          await fetchProfile();
       } catch (err) {
           message.value = err.message;
           messageType.value = 'error';
@@ -314,19 +311,17 @@
       isUpdatingProfile.value = true;
       message.value = '';
       try {
-          // The payload should ONLY contain the name, as per the API logic
           const payload = {
               name: profileForm.value.name,
           };
           
           const result = await apiRequest('http://localhost:5000/parent/update-profile', {
-              method: 'PUT', // Using PUT as per the new API
+              method: 'PUT',
               body: JSON.stringify(payload)
           });
           
           message.value = result.message || 'Profile updated successfully!';
           messageType.value = 'success';
-          // No need to update originalUsername as it cannot be changed
       } catch (err) {
           message.value = err.message;
           messageType.value = 'error';
@@ -334,10 +329,9 @@
           isUpdatingProfile.value = false;
       }
   };
-  
-  // --- Forgot Password Modal Logic ---
+
   const openForgotPasswordModal = () => {
-      passwordForm.value.email = profileForm.value.email; // Pre-fill with current email
+      passwordForm.value.email = profileForm.value.email;
       showForgotPasswordModal.value = true;
   };
   
@@ -348,7 +342,7 @@
           modalMessage.value = '';
           messageType.value = '';
           passwordForm.value = { email: '', otp: '', new_password: '', confirm_password: '' };
-      }, 300); // Wait for fade-out transition
+      }, 300);
   };
   
   const sendResetOtp = async () => {
@@ -453,8 +447,7 @@
       font-size: 0.875em;
   }
   
-  /* Modal Styles */
-  .modal-backdrop {
+.modal-backdrop {
     position: fixed;
     top: 0;
     left: 0;
@@ -467,7 +460,7 @@
     z-index: 1050;
   }
   
-  .modal-content {
+.modal-content {
     position: relative;
     background: #fff;
     padding: 2rem;
