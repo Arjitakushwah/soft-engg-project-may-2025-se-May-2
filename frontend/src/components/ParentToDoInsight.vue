@@ -148,13 +148,13 @@ const fetchWeeklySummary = async () => {
         {
           label: 'Tasks Assigned',
           data: weeklySummary.value.map((d) => d.total_tasks),
-          backgroundColor: '#5A4FCF', // Matches your brand's blue
+          backgroundColor: '#5A4FCF', 
           borderRadius: 8,
         },
         {
           label: 'Tasks Completed',
           data: weeklySummary.value.map((d) => d.completed_tasks),
-          backgroundColor: '#F7D96F', // Matches your brand's yellow
+          backgroundColor: '#F7D96F', 
           borderRadius: 8,
         },
       ],
@@ -320,7 +320,7 @@ const getStatusTextColorClass = (log) => {
 }
 
 .table tbody tr {
-  background-color: white; /* All rows have white background */
+  background-color: white; 
 }
 
 /* Row status highlights */

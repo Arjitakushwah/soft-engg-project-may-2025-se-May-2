@@ -301,7 +301,7 @@ const setNewPassword = async () => {
 </script>
 
 <style scoped>
-/* ... (all existing styles remain the same) ... */
+
 
 .text-purple {
     color: #756bdb !important;

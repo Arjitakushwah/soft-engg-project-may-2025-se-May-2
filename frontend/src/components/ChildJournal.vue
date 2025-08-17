@@ -1,10 +1,13 @@
 <template>
   <div class="journal-container">
-    <h1 class="journal-header">
-      <svg class="header-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 3h18v18H3z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 3v18M15 3v18M3 7h18M3 15h18"/></svg>
-      My Daily Journal
-    </h1>
-
+    <div class="journal-header">
+        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="70" fill="#756bdb" class="bi bi-journal-text" viewBox="0 0 16 16">
+          <path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+          <path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+          <path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+        </svg>
+        <h1>Footprints of My Day</h1>
+    </div>
     <!-- Search Section -->
     <div class="search-container">
       <!-- Calendar Date Picker -->
@@ -197,7 +200,7 @@ const formatDate = (dateString) => {
 
 const formatTime = (timeString) => {
   if (!timeString) return ''
-  // Assuming timeString is in 'HH:MM:SS' format
+  
   const [hours, minutes] = timeString.split(':');
   const date = new Date();
   date.setHours(hours, minutes);
@@ -271,28 +274,46 @@ const submitJournal = async () => {
   width: 90%;
   max-width: 1000px;
   margin: 1.5rem auto;
-  padding: 1.5rem;
-  background: #ffffff;
+  background: #F8F8FF;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .journal-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
-  color: #4f46e5;
-  font-size: 2.2rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  text-align: center;
+  gap: 8px;
 }
 
-.header-icon { width: 32px; height: 32px; stroke: currentColor; stroke-width: 2; fill: none; }
-.search-container { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem; align-items: center; justify-content: center; }
+.journal-header h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #756bdb;
+  text-align: center;
+  margin-top: 19px; 
+}
+
+.journal-icon {
+  width: 40px;
+  height: 40px;
+  fill: #756bdb;
+}
+
+
+.search-container { 
+    margin-top: 20px;
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 1rem; 
+    margin-bottom: 1.5rem; 
+    align-items: center; 
+    justify-content: center; 
+  }
+
 .date-picker-wrapper { position: relative; flex: 1; min-width: 200px; }
-.mood-select { flex: 1; min-width: 200px; position: relative; }
+.mood-select { flex: 1; min-width: 200px; position: relative;}
 
 .date-picker-btn {
     width: 100%;
@@ -306,6 +327,11 @@ const submitJournal = async () => {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.date-picker-btn:focus {
+  outline: none;
+  border-color: #756bdb;
 }
 
 .calendar-modal {
@@ -330,22 +356,22 @@ const submitJournal = async () => {
 .calendar-day.is-other-month { color: #ccc; cursor: default; }
 .calendar-day.is-other-month:hover { background-color: transparent; }
 .calendar-day.is-today { font-weight: bold; background-color: #e0e7ff; }
-.calendar-day.is-selected { background-color: #4f46e5; color: white; }
+.calendar-day.is-selected { background-color: #756bdb; color: white; }
 
 .mood-select select { width: 100%; padding: 10px 15px 10px 40px; border: 2px solid #e0e7ff; border-radius: 8px; font-size: 0.95rem; background-color: #f8fafc; transition: all 0.3s ease; }
-.mood-select select:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2); }
+.mood-select select:focus { outline: none; border-color: #756bdb; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2); }
 .search-icon, .mood-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: #64748b; stroke-width: 2; fill: none; }
-.search-btn { background-color: #4f46e5; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; min-width: 120px; }
-.search-btn:hover { background-color: #4338ca; transform: translateY(-2px); }
+.search-btn { background-color: #756bdb; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; min-width: 120px; }
+.search-btn:hover { background-color: #756bdb; transform: translateY(-2px); }
 .btn-icon { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
 .journal-form { background-color: #f8fafc; padding: 1.25rem; border-radius: 12px; margin-bottom: 1.5rem; border: 2px dashed #e0e7ff; }
-.text-container { margin-bottom: 1.25rem; }
+.text-container { margin-bottom: 1.2rem;}
 .text-container label { display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: bold; color: #334155; margin-bottom: 0.75rem; }
-.label-icon { width: 20px; height: 20px; stroke: #4f46e5; stroke-width: 2; fill: none; }
+.label-icon { width: 20px; height: 20px; stroke: #756bdb; stroke-width: 2; fill: none; }
 textarea { width: 100%; min-height: 150px; padding: 0.75rem; font-size: 0.95rem; border: 2px solid #e0e7ff; border-radius: 8px; resize: vertical; background-color: white; transition: all 0.3s ease; }
 textarea:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2); }
-.submit-btn { background-color: #10b981; color: white; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; margin-top: 1rem; width: 100%; justify-content: center; }
-.submit-btn:hover { background-color: #0d9c6e; transform: translateY(-2px); }
+.submit-btn { background-color: #756bdb; color: #ffffff; padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; margin-top: 1rem; width: 100%; justify-content: center; }
+.submit-btn:hover { background-color: #756bdb; transform: translateY(-2px); }
 .spinner { width: 20px; height: 20px; stroke: white; stroke-width: 2; fill: none; animation: spin 1s linear infinite; }
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 .mood-result { display: flex; align-items: center; gap: 1rem; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 5px solid; }
@@ -361,7 +387,7 @@ textarea:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 0 3px rgb
 .mood-text h3 span { text-transform: capitalize; }
 .mood-text p { margin: 0; color: #64748b; font-size: 0.9rem; }
 .results-section { margin-top: 1.5rem; width: 100%; display: flex; flex-direction: column; align-items: center; }
-.results-header { display: flex; align-items: center; gap: 0.75rem; color: #4f46e5; font-size: 1.25rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e0e7ff; width: 80%; max-width: 800px; }
+.results-header { display: flex; align-items: center; gap: 0.75rem; color: #756bdb; font-size: 1.25rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid #e0e7ff; width: 80%; max-width: 800px; }
 .results-icon { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
 .result-card { background: white; padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); border-left: 4px solid #e0e7ff; transition: all 0.3s ease; width: 80%; max-width: 800px; }
 .result-card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); }

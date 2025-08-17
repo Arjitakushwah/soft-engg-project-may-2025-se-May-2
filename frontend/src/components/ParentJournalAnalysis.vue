@@ -255,7 +255,7 @@ export default {
           datasets: [{
             label: 'Journals Written',
             data: counts,
-            backgroundColor: '#5A4FCF', // Changed to purple to match theme
+            backgroundColor: '#5A4FCF', 
             borderRadius: 8
           }]
         }

@@ -1,6 +1,6 @@
 <template>
   <section class="daily-quote">
-    <h3>Daily Motivation</h3>
+    <h1>Daily Motivation</h1>
     <blockquote>{{ quote }}</blockquote>
   </section>
   <Loader v-if="loading" />
@@ -133,23 +133,28 @@ onMounted(() => {
 
 
 <style scoped>
+
 .daily-quote {
   width: 100%;
   padding: 1.5rem;
-  background: #f0f9ff;
+  background: #e1fffe;
   text-align: center;
   font-family: "Comic Neue", cursive;
   box-sizing: border-box;
   border-radius: 1rem;
   margin-bottom: 2rem;
-  border: 1px solid #e0f2fe;
+  font-family: 'Fredoka One', cursive;
+  color: #5A4FCF;
 }
 
-.daily-quote h3 {
-  color: #0c4a6e;
+.daily-quote {
+  margin-left: 20px;
+  width: 96%;
+  color: #5A4FCF;
   font-size: 1.5rem;
   margin-top: 0;
   margin-bottom: 0.75rem;
+  margin-bottom: 25px;
 }
 
 .daily-quote blockquote {
@@ -162,7 +167,8 @@ onMounted(() => {
   display: inline-block;
   max-width: 100%;
   margin: 0 auto;
-  border-left: 5px solid #3b82f6;
+  font-weight: lighter;
+  border-left: 5px solid #5A4FCF;
 }
 
 /* Cards Grid Section */
@@ -177,7 +183,7 @@ onMounted(() => {
 }
 
 .card {
-  background-color: #f6ffe565;
+  background-color: #E6E6FA;
   border-radius: 1rem;
   padding: 1.5rem;
   text-align: center;
@@ -189,18 +195,19 @@ onMounted(() => {
 .card:hover {
   transform: translateY(-5px);
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.07);
+  border: 3px solid #a29cdf; /* blue border on hover */
 }
 
 .card h3 {
   margin-top: 0;
   margin-bottom: 1rem;
   color: #1e293b;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   font-weight: 600;
 }
 
 .name-card p {
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   color: #475569;
 }
 
@@ -211,7 +218,7 @@ onMounted(() => {
 }
 
 .streak-card .number { color: #f59e0b; }
-.journal-count-card .number { color: #8b5cf6; }
+.journal-count-card .number { color: #f65c7d; }
 .story-reads-card .number { color: #10b981; }
 
 .stars {
@@ -220,11 +227,11 @@ onMounted(() => {
 }
 
 .star {
-  color: #d1d5db;
+  color: #f7f7f7;
 }
 
 .star.filled {
-  color: #facc15;
+  color: #f9d34a;
 }
 
 /* Badge Card Specific Styles */
@@ -244,17 +251,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #f8fafc;
+  background: #c6bbcbf1;
   padding: 12px 10px;
   border-radius: 12px;
   font-size: 1rem;
   color: #334155;
-  border: 1px solid #e2e8f0;
   font-weight: 600;
   min-width: 200px;
 }
 
-/* ✨ ADDED: Styling for the SVG icon container */
+
 .badge-icon {
   width: 50px;
   height: 50px;
@@ -263,7 +269,7 @@ onMounted(() => {
 
 .no-badges {
   color: #94a3b8;
-  font-size: 1rem;
+  font-size: 1.5rem;
   margin-top: 0.5rem;
   width: 100%;
 }

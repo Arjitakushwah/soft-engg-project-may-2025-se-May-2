@@ -158,7 +158,7 @@ export default {
           datasets: [{
             label: 'Topics Read',
             data: values,
-            backgroundColor: '#5A4FCF', // Updated to purple
+            backgroundColor: '#5A4FCF',
             borderRadius: 8
           }]
         };
@@ -240,12 +240,12 @@ export default {
   background: #fff;
 }
 
-/* Explicitly set all table body rows to a white background */
+
 .table tbody tr {
   background-color: white;
 }
 
-/* Table header with the blue color and increased specificity */
+
 .table thead th {
   background-color: #4FCFDE;
   color: #333;

@@ -4,7 +4,12 @@
       <main class="main-content">
 
         <div v-if="viewMode === 'story'">
-          <div class="profile-header">{{ childName }}'s Story Corner</div>
+          <div class="story-header">
+              <svg xmlns="http://www.w3.org/2000/svg" width="50" height="70" fill="#756bdb" class="bi bi-book" viewBox="0 0 16 16">
+                  <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+              </svg>
+            <h1>Once Upon a Corner</h1>
+          </div>
 
           <div v-if="message" :class="['message', messageType === 'error' ? 'message-error' : 'message-success']">
             {{ message }}
@@ -40,7 +45,6 @@
               </select>
               <button class="search-btn" @click="searchStories" :disabled="loading">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <span>Search</span>
               </button>
             </div>
           </div>
@@ -144,7 +148,7 @@ const storyPrompt = ref('');
 const searchQuery = ref('');
 const searchBy = ref('theme');
 
-// ✨ ADDED: A new ref to hold the correct answer text
+
 const correctAnswer = ref('');
 
 function formatDate(dateString) {
@@ -242,11 +246,11 @@ async function generateStory() {
   }
 }
 
-// ✨ MODIFIED: Now stores the correct answer before shuffling
+
 function goToQuiz() {
   try {
     const quizData = JSON.parse(selectedQuestion.value);
-    // Assuming the quiz object from your backend has a key like "answer"
+    
     if (!quizData.answer) {
         throw new Error("Quiz data is missing the correct answer.");
     }
@@ -261,7 +265,7 @@ function goToQuiz() {
   }
 }
 
-// ✨ MODIFIED: Checks answer on the frontend before notifying the backend
+
 async function submitAnswer(selectedOption) {
   loading.value = true;
   
@@ -339,11 +343,12 @@ onMounted(async () => {
 <style scoped>
 .dashboard-container {
   font-family: 'Comic Neue', cursive;
-  background-color: #F0F8FF;
+  background: #F8F8FF;
   display: flex;
   justify-content: center;
   padding: 2rem 1rem;
   min-height: 100vh;
+  border-radius: 20px;
 }
 .dashboard-wrapper { 
   width: 100%; 
@@ -354,20 +359,30 @@ onMounted(async () => {
 .result-text, .prompt-container h3, .action-header, .quiz-header h2 {
   font-family: 'Fredoka One', cursive;
 }
-.profile-header {
-  font-size: 2.2rem;
-  color: #333;
+
+.story-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.story-header h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #756bdb;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-top: 19px; 
 }
 
 .dual-action-bar {
   display: flex;
   gap: 1.5rem;
-  background: #FFFFFF;
-  padding: 1.5rem;
+  background-color: #F0F8FF;
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
   margin-bottom: 2rem;
   align-items: center;
 }
@@ -392,16 +407,19 @@ onMounted(async () => {
   transition: border-color 0.2s;
   min-width: 0;
 }
+
 .action-input:focus {
   outline: none;
-  border-color: #5A4FCF;
+  border-color: #756bdb;
 }
+
 .separator {
   width: 2px;
   height: 50px;
   background-color: #E0E0E0;
 }
 .search-select {
+  height: 57px;
   padding: 14px 10px;
   border-radius: 10px;
   border: 2px solid #E0E0E0;
@@ -412,10 +430,11 @@ onMounted(async () => {
 }
 .search-select:focus { 
   outline: none; 
-  border-color: #5c9ce5;
+  border-color: #756bdb;
 }
 
 .generate-btn, .search-btn, .quiz-btn, .back-btn {
+  height: 55px;
   padding: 14px 16px;
   border-radius: 10px;
   border: none;
@@ -437,12 +456,12 @@ onMounted(async () => {
   stroke-width: 2.5;
 }
 .generate-btn { 
-  background-color: #5A4FCF; 
+  background-color: #756bdb; 
   min-width: 110px;
 }
 .search-btn { 
-  background-color: #5c9ce5; 
-  min-width: 110px;
+  background-color: #756bdb; 
+  min-width: 50px;
 }
 .generate-btn:hover, .search-btn:hover, .quiz-btn:hover, .back-btn:hover {
   transform: translateY(-2px);
@@ -522,7 +541,7 @@ onMounted(async () => {
 .prompt-container .rocket { 
   width: 60px; 
   height: 60px; 
-  color: #5A4FCF; 
+  color: #756bdb; 
   margin-bottom: 1.5rem; 
 }
 .message { 
@@ -561,7 +580,7 @@ onMounted(async () => {
 }
 .loader {
   border: 6px solid #f0f0f0;
-  border-top: 6px solid #5A4FCF;
+  border-top: 6px solid #756bdb;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -623,7 +642,7 @@ onMounted(async () => {
   transition: all 0.2s;
 }
 .option-btn:hover {
-  border-color: #5c9ce5;
+  border-color: #5A4FCF;
   background-color: #f5f9ff;
 }
 .option-letter {

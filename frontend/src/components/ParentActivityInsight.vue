@@ -108,7 +108,7 @@ export default {
             throw new Error('No children found or failed to fetch.');
         }
         const data = await res.json()
-        const childList = data.children || data; // Adjust based on your API response structure
+        const childList = data.children || data; 
         
         if (Array.isArray(childList) && childList.length > 0) {
             children.value = childList;
