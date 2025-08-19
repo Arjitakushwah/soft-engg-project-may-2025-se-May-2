@@ -104,9 +104,9 @@
                 <div class="form-group">
                   <label>Gender</label>
                   <select v-model="editingChild.gender" class="form-control" required>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <p v-if="editErrorMessage" class="text-danger mt-2 small">{{ editErrorMessage }}</p>
@@ -269,18 +269,6 @@
     }
   };
   
-  const deleteChildProfile = async (childId) => {
-    try {
-      await apiRequest(`http://localhost:5000/parent/child/delete/${childId}`, {
-        method: 'DELETE',
-      });
-      alert('Child profile deleted successfully.');
-      await fetchDashboardData();
-    } catch (err) {
-      console.error("Error deleting child profile:", err);
-      alert(`Failed to delete child profile: ${err.message}`);
-    }
-  };
   
   const viewChildProfile = (childId) => {
     const selectedChild = children.value.find(child => child.id === childId);

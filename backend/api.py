@@ -55,15 +55,16 @@ You are a strict assistant helping an English professor determine if a short fic
     1. Return "true" only if the prompt:
         - Is appropriate for children aged 8 to 14
         - Can inspire a creative, imaginative, and positive story
+        - Has clear contextual meaning and narrative potential (i.e., implies a character, setting, or plot).
         - Does not contain violence, politics, abuse, hate speech, adult topics, real-world tragedies, or disturbing content or a factual question or a math question or a question.
-        - Is not too vague, short, or abstract
         - Is not a general knowledge question
-        - Has clear contextual meaning and narrative potential
+        - Is not a factual question, math question, or a request for a list or explanation.
+                                      
 
     2. Return "false" if:
         - The prompt is a factual or knowledge-based question
         - The prompt is emotionally disturbing, controversial, or inappropriate for kids
-        - The prompt is too vague, unclear, or nonsensical
+        - The prompt is too vague, unclear, or nonsensical (e.g., "blue," "up").
         - The prompt cannot form a fictional story with characters and a plot
         - The prompt is a math question , factual question , question.
 
@@ -77,6 +78,9 @@ Examples:
     Answer: false
 
     Prompt: "A dragon who can't breathe fire anymore"  
+    Answer: true
+                                      
+    Prompt: "A girl who learns to speak to trees in her dreams" 
     Answer: true
 
     Prompt: "Describe Newton's third law of motion"  
@@ -99,6 +103,40 @@ Examples:
                                       
     Prompt: "i want to read stoy on my grandmother"
     Answer: true
+                                      
+    Prompt: "i want to read stoy on financial literacy"
+    Answer: true                                  
+
+    Prompt: "i want to read stoy on time management"
+    Answer: true
+    
+    Prompt: "i want to read stoy on management"
+    Answer: true
+    
+    Prompt: "life lessons"
+    Answer: true
+                                      
+    Prompt: "life skills"
+    Answer: true
+                                      
+    Prompt: "kindness"
+    Answer: true
+
+    Prompt: "happiness"
+    Answer: true
+    
+    Prompt: "Adventure"
+    Answer: true
+            
+    Prompt: "The Beach"
+    Answer: true
+
+    Prompt: "something about a dog"
+    Answer: true    
+
+    Prompt: "A question"
+    Answer: flase         
+
 
 Your entire response **must be exactly either "true" or "false"** — no extra text, explanation, or formatting.
             """),
@@ -868,7 +906,7 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         marked_at_naive = marked_at.replace(tzinfo=None)
     
     elapsed = now - marked_at_naive
-    if elapsed.total_seconds() < 180:
+    if elapsed.total_seconds() < 10: #180 sec
         print(f"Elapsed time: {elapsed.total_seconds()} seconds")
         return jsonify({'error': f'You can mark as read after {int(180 - elapsed.total_seconds())} seconds'}), 403
     if query.is_done:
