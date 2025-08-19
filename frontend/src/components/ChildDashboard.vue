@@ -43,7 +43,7 @@ const toggleSidebar = () => {
 }
 
 const navigateToPage = (page) => {
-  isSidebarVisible.value = false // auto-close on mobile after navigation
+  isSidebarVisible.value = false
   router.push({ name: page })
 }
 
@@ -67,18 +67,18 @@ onMounted(() => {
 .layout-body {
   display: flex;
   flex: 1;
-  overflow: hidden; /* Prevent overflow on the main body */
+  overflow: hidden;
 }
 
 .main-wrapper {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  overflow-y: auto; /* The main content area scrolls */
+  overflow-y: auto;
 }
 
 .main-content {
-  padding: 2rem; /* Consistent padding */
+  padding: 2rem; 
   flex-grow: 1; 
 }
 
@@ -87,7 +87,7 @@ onMounted(() => {
   background-color: #ffffff;
   color: #64748b;
   border-top: 1px solid #e2e8f0;
-  flex-shrink: 0; /* Prevent footer from shrinking */
+  flex-shrink: 0;
 }
 
 .footer-content-padded {
@@ -112,15 +112,14 @@ onMounted(() => {
 }
 
 .sidebar-overlay {
-  display: none; /* Hidden on desktop */
+  display: none; 
 }
 
-/* === FOOTER === */
 .footer {
   padding: 1rem 2rem;
 
   border-top: 1px solid #e2e8f0;
-  flex-shrink: 0; /* Prevent footer from shrinking */
+  flex-shrink: 0;
 
     background-color: #333;
     color: white;
@@ -129,9 +128,7 @@ onMounted(() => {
     font-family: 'Fredoka One', cursive;
 }
 
-/* --- Responsive Styles for Mobile & Tablet --- */
 @media (max-width: 768px) {
-  /* On mobile, the sidebar is positioned absolutely to slide over content */
   .sidebar {
     position: fixed;
     left: 0;
@@ -145,8 +142,7 @@ onMounted(() => {
   .sidebar.is-visible {
     transform: translateX(0);
   }
-  
-  /* Show the overlay on mobile when the sidebar is visible */
+
   .sidebar-overlay {
     display: block;
     position: fixed;

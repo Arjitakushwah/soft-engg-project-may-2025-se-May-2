@@ -9,7 +9,6 @@
         >
           <i class="bi bi-list fs-3"></i>
         </button>
-
         <router-link to="/" class="navbar-brand app-title">
           Skill Explorers
         </router-link>
@@ -54,16 +53,34 @@ const goToDashboard = () => {
   }
 }
 
-const logout = () => {
-  localStorage.clear()
-  router.push({ path: '/' })
+const logout = async () => {
+  try {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      const response = await fetch('http://localhost:5000/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Logout failed on the server.');
+      }
+    }
+  } catch (error) {
+    console.error('Logout failed:', error);
+  } finally {
+    localStorage.clear()
+    router.push({ path: '/' })
+  }
 }
 
 const navigateToPage = (page) => {
   console.log('Navigating to:', page)
   router.push({ name: page })
 }
-
 </script>
 
 <style scoped>
@@ -130,8 +147,6 @@ const navigateToPage = (page) => {
   gap: 1.5rem;
   align-items: center;
 }
-
-
 
 .nav-btn-secondary, .nav-btn-primary {
   font-family: 'Fredoka One', cursive;

@@ -11,13 +11,11 @@
       </nav>
     <div class="container mt-5">
     <div class="card p-4 shadow-lg mx-auto position-relative" style="max-width: 500px;">
-      <!-- Back Icon -->
       <button @click="goBack" class="back-icon-btn" aria-label="Go Back">
         <i class="bi bi-arrow-left"></i>
       </button>
       <h3 class="text-center mb-4">Forgot Username</h3>
 
-      <!-- Role Selector -->
       <div class="mb-4 d-flex justify-content-center gap-3">
           <div class="form-check">
               <input class="form-check-input" type="radio" value="parent" v-model="role" id="roleParent" />
@@ -29,11 +27,9 @@
           </div>
       </div>
 
-      <!-- Parent Logic -->
       <div v-if="role === 'parent'">
         <p class="text-center text-muted">Enter your registered email, and we will send your username to your inbox.</p>
-        
-        <!-- Hide form on success and show message and login button instead -->
+
         <form @submit.prevent="submitEmail" v-if="!successMessage">
           <div class="mb-3">
               <input
@@ -60,7 +56,6 @@
         </div>
       </div>
 
-      <!-- Child Logic -->
       <div v-else class="text-center alert alert-info">
           <i class="bi bi-info-circle-fill h4"></i>
           <p class="mt-2 mb-0">Child accounts cannot retrieve usernames directly.</p>
@@ -76,7 +71,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-const role = ref('parent') // Default role
+const role = ref('parent')
 const email = ref('')
 const successMessage = ref('')
 const error = ref('')
@@ -106,18 +101,16 @@ const submitEmail = async () => {
     const result = await res.json()
 
     if (!res.ok) {
-      // Even on failure, show a generic message to prevent email enumeration
+
       throw new Error(result.error || 'Unable to retrieve username')
     }
 
-    // On success, show the generic message.
     successMessage.value = 'If an account with that email exists, your username has been sent to it.';
 
   } catch (err) {
-    // In case of an error (like user not found), we still show a generic success message
-    // to prevent attackers from knowing which emails are registered.
+
     successMessage.value = 'If an account with that email exists, your username has been sent to it.';
-    console.error(err.message); // Log the actual error for debugging
+    console.error(err.message);
   } finally {
       isLoading.value = false;
   }

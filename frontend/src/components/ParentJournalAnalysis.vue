@@ -4,11 +4,9 @@
       <div class="analysis-container">
         <p v-if="!moodData.labels.length" class="no-data-msg">No journal data available for this date.</p>
         <p v-if="!weeklyData.labels.length" class="no-data-msg">No journal data available for the last 7 days.</p>
-
         <div v-if="moodData.labels.length" class="entry-button-wrapper mt-4">
           <button class="view-btn" @click="showEntries = true">View All Entries</button>
         </div>
-
         <div class="mood-graphs-row" v-if="moodData.labels.length">
           <div class="chart-card">
             <h3>Mood Fluctuation (Day)</h3>
@@ -278,8 +276,6 @@ export default {
 }
 </script>
 
-
-
 <style scoped>
 .parent-journal-analysis-bg {
   font-family: 'Comic Neue', cursive;
@@ -322,8 +318,6 @@ export default {
   margin-left: auto;
 }
 
-
-/* HEADER */
 h2 {
   font-size: 1rem;
   color: #222;
@@ -332,7 +326,6 @@ h2 {
   font-family: 'Fredoka One', cursive;
 }
 
-/* BUTTON */
 .view-btn {
   background: #5A4FCF;
   color: white;
@@ -352,7 +345,6 @@ h2 {
   color: #4A4A4A;
 }
 
-/* CHARTS */
 .mood-graphs-row {
   display: flex;
   gap: 24px;
@@ -410,8 +402,6 @@ h2 {
   justify-content: center;
 }
 
-
-/* MODAL */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -455,7 +445,6 @@ h2 {
   font-size: 15px;
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
   .mood-graphs-row {
     flex-direction: column;

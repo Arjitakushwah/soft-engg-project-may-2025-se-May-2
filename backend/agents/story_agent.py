@@ -2,7 +2,6 @@ from crewai import  Agent, Task, Crew
 import json
 
 
-
 def generate_story(prompt  ):
     import os
     from dotenv import load_dotenv

@@ -6,7 +6,7 @@
           <svg class="cal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> 
               <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/> 
           </svg>
-          <h1 style="margin-top: 19px;">{{ childName }}'s Calendar</h1>
+          <h1 style="margin-top: 19px;">My Calendar</h1>
         </div>
         <FullCalendar v-if="calendarOptions" :options="calendarOptions" />
         <div class="legend">
@@ -80,7 +80,7 @@ const fetchCalendarReport = async () => {
 
     const progress = data.progress
     const events = Object.entries(progress).map(([date, detail]) => ({
-      title: '', // empty title to reduce clutter
+      title: '', 
       date,
       backgroundColor: detail.status,
       borderColor: detail.status,
@@ -109,7 +109,6 @@ const fetchCalendarReport = async () => {
             status: notDone.includes(task) ? 'not_completed' : 'completed'
           }))
           .sort((a, b) => {
-            // not_completed comes before completed
             if (a.status === 'not_completed' && b.status === 'completed') return -1
             if (a.status === 'completed' && b.status === 'not_completed') return 1
             return 0
@@ -131,7 +130,6 @@ onMounted(() => {
   fetchCalendarReport()
 })
 </script>
-
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');

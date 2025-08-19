@@ -1,10 +1,6 @@
 <template>
   <div class="dashboard-wrapper">
-    <!-- Top NavBar -->
     <NavBar @toggle-sidebar="toggleSidebar" />
-    
-
-    <!-- Sidebar + Main Content -->
     <div class="layout-body">
       <Sidebar
         :role="role"
@@ -33,7 +29,7 @@ const toggleSidebar = () => {
 }
 
 const navigateToPage = (page) => {
-  isSidebarVisible.value = false // auto-close on mobile after navigation
+  isSidebarVisible.value = false
   router.push({ name: page })
 }
 

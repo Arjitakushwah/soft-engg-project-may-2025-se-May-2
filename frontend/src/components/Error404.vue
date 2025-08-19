@@ -51,7 +51,7 @@
         </div>
       </div>
     </div>
-  </template>
+</template>
   
   <script setup>
   import { useRouter } from 'vue-router';
@@ -161,9 +161,7 @@
     max-width: 900px;
     height: auto;
   }
-  
-  /* Animations */
-  @keyframes cloud-float {
+@keyframes cloud-float {
     0% { transform: translateX(20px); }
     50% { transform: translateX(-20px); }
     100% { transform: translateX(20px); }

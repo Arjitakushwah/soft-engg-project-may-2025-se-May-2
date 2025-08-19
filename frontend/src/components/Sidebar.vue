@@ -1,11 +1,8 @@
 <template>
   <div class="sidebar" :class="{ collapsed: isCollapsed }">
-    <!-- Collapse Toggle Button -->
     <button class="collapse-toggle" @click="toggleCollapse">
       <i :class="isCollapsed ? 'bi bi-arrow-bar-right' : 'bi bi-arrow-bar-left'"></i>
     </button>
-
-    <!-- Navigation Buttons -->
     <div class="nav-section">
       <button
         v-for="item in navItems"
@@ -84,7 +81,6 @@ import { ref, computed } from 'vue';
   font-family: 'Comic Neue', cursive;
   height: 100vh;
   padding: 10px;
-  /* overflow: hidden; */
 }
 
 .sidebar.collapsed {

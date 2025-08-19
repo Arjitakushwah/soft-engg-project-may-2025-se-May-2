@@ -1,6 +1,5 @@
 <template>
   <div class="homepage">
-    <!-- ======================= NAVBAR ======================== -->
     <nav class="navbar">
       <h1 class="logo">Skill Explorers</h1>
       <div class="nav-links">
@@ -8,19 +7,15 @@
         <button @click="$router.push('/login')">Login</button>
       </div>
     </nav>
-
-    <!-- ======================= HERO SECTION ======================== -->
     <header class="hero">
       <h1>Your Adventure in Learning Begins!</h1>
       <p>Unlock new skills, explore your creativity, and have fun every day.</p>
-      <!-- Hero Buttons Added to Match New CSS -->
       <div class="nav-links">
         <button class="btn-primary" @click="$router.push('/register')">Get Started Now</button>
         <button class="btn-secondary" @click="$router.push('/login')">I have an account</button>
       </div>
     </header>
 
-    <!-- ======================= FEATURES SHOWCASE ======================== -->
     <main class="features-showcase">
       <h2>What’s Inside for You?</h2>
       <div class="features-grid">
@@ -54,13 +49,10 @@
         </div>
       </div>
     </main>
-
-    <!-- ======================= 'HOW IT WORKS' SECTION (UPDATED STYLE) ======================== -->
     <section class="how-it-works-vertical">
       <div class="container">
         <h2 class="section-title">Getting Started is Easy</h2>
 
-        <!-- Step 1: Parent Registration -->
         <div class="step-row">
           <div class="step-image">
             <img src="\src\public\opt-verify.png" alt="Parent registration screen showing email input field." onerror="this.onerror=null;this.src='https://placehold.co/600x400';">
@@ -72,7 +64,6 @@
           </div>
         </div>
 
-        <!-- Step 2: Parent Fills Details -->
         <div class="step-row">
           <div class="step-image">
             <img src="\src\public\parent-profile.png" alt="Parent profile details form." onerror="this.onerror=null;this.src='https://placehold.co/600x400';">
@@ -84,7 +75,6 @@
           </div>
         </div>
 
-        <!-- Step 3: Parent Adds Children -->
         <div class="step-row">
           <div class="step-image">
             <img src="\src\public\parent-add-children.png" alt="Parent dashboard with an 'Add Child' button." onerror="this.onerror=null;this.src='https://placehold.co/600x400';">
@@ -96,7 +86,6 @@
           </div>
         </div>
 
-        <!-- Step 4: Child Logs In -->
         <div class="step-row">
           <div class="step-image">
             <img src="\src\public\child-login.png" alt="Child login screen with username and password fields." onerror="this.onerror=null;this.src='https://placehold.co/600x400';">
@@ -110,9 +99,6 @@
 
       </div>
     </section>
-    <!-- ======================== 'HOW IT WORKS' SECTION END ========================= -->
-
-    <!-- ======================= FOOTER ======================== -->
     <footer class="footer">
       <p>&copy; 2025 Skill Explorers. Let's make learning fun!</p>
     </footer>
@@ -126,9 +112,6 @@ export default {
 </script>
 
 <style scoped>
-/* ================================================= */
-/* ==         NEW STYLES YOU PROVIDED             == */
-/* ================================================= */
 @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Fredoka+One&display=swap');
 
 .homepage {
@@ -138,7 +121,6 @@ export default {
   color: #333;
 }
 
-/* === NAVBAR === */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -173,7 +155,6 @@ export default {
   color: #4A4A4A;
 }
 
-/* === HERO === */
 .hero {
   text-align: center;
   background: #756bdb;
@@ -196,16 +177,14 @@ export default {
   margin: 0 auto;
 }
 
-/* === HERO BUTTONS === */
 .hero .nav-links {
-  margin-top: 30px; /* Adds some space above the buttons */
+  margin-top: 30px;
 }
 
-/* Shared styles for both buttons */
 .hero .nav-links button {
   font-family: 'Fredoka One', cursive;
   padding: 12px 30px;
-  border-radius: 50px; /* Creates the pill shape */
+  border-radius: 50px;
   border: 2px solid white;
   font-size: 1.1rem;
   cursor: pointer;
@@ -214,28 +193,22 @@ export default {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Primary Button Style (Register) */
 .hero .nav-links .btn-primary {
   background-color: #F7D96F;
-  color: #4A4A4A; /* Uses the hero background color for text */
+  color: #4A4A4A; 
 }
 
-/* Secondary Button Style (Login) */
 .hero .nav-links .btn-secondary {
   background-color: transparent;
   color: white;
 }
 
-/* --- HOVER EFFECTS --- */
-
-/* Primary button gets slightly darker on hover */
 .hero .nav-links .btn-primary:hover {
-  background-color: #fff0e9; /* A very light pink/orange */
+  background-color: #fff0e9;
   transform: translateY(-3px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Secondary button fills with color on hover */
 .hero .nav-links .btn-secondary:hover {
   background-color: white;
   color: #756bdb;
@@ -243,7 +216,6 @@ export default {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* === FEATURES SECTION === */
 .features-showcase {
   padding: 60px 20px;
   text-align: center;
@@ -298,7 +270,6 @@ export default {
   margin-bottom: 10px;
 }
 
-/* === 'HOW IT WORKS' SECTION (ADAPTED STYLE) === */
 .how-it-works-vertical {
   padding: 80px 20px;
 
@@ -379,7 +350,6 @@ export default {
   color: #4b5563;
 }
 
-/* === FOOTER === */
 .footer {
   padding: 20px;
   background-color: #333;
@@ -389,7 +359,6 @@ export default {
   font-family: 'Fredoka One', cursive;
 }
 
-/* === RESPONSIVE STYLES === */
 @media (max-width: 768px) {
   .hero h1 {
     font-size: 3rem;

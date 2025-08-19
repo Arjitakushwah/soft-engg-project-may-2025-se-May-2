@@ -52,4 +52,4 @@ with app.app_context():
 
     # Commit all changes
     db.session.commit()
-    print("Seed data inserted successfully with IST timestamps!")
+    print("Seed data inserted successfully")

@@ -1,7 +1,7 @@
 <template>
   <div class="child-calendar-bg">
     <main class="main-content">
-      <!-- Loading State -->
+
       <div v-if="isLoading" class="text-center py-5">
         <div class="spinner-border text-purple" role="status">
           <span class="visually-hidden">Loading...</span>
@@ -9,7 +9,6 @@
         <p class="mt-2 text-muted">Loading calendar data...</p>
       </div>
 
-      <!-- No Children Found State -->
       <div v-else-if="noChildrenFound" class="text-center bg-light p-4 p-md-5 rounded-3">
         <i class="bi bi-person-plus-fill display-4 text-primary mb-3"></i>
         <h4 class="fw-semibold">No Child Profile Found</h4>
@@ -18,8 +17,7 @@
             <i class="bi bi-plus-circle me-2"></i>Add Child Profile
         </router-link>
       </div>
-      
-      <!-- Main Content State -->
+
       <div v-else class="calendar-container">
         <div class="child-select">
           <label for="child">Select Child:</label>
@@ -126,8 +124,7 @@ const fetchChildren = async () => {
     console.error(err.message);
     noChildrenFound.value = true;
   } finally {
-      // Only stop loading if there are no children. 
-      // If there are children, loading will stop after calendar data is fetched.
+
       if (noChildrenFound.value) {
           isLoading.value = false;
       }
@@ -187,13 +184,13 @@ const fetchCalendarReport = async (childId) => {
   } catch (err) {
     alert(err.message)
   } finally {
-      isLoading.value = false; // Stop loading after calendar data is fetched
+      isLoading.value = false;
   }
 }
 
 watch(selectedChild, (newVal) => {
   if (newVal) {
-      isLoading.value = true; // Show loader when switching children
+      isLoading.value = true;
       fetchCalendarReport(newVal);
   }
 })
@@ -303,7 +300,7 @@ onMounted(() => {
   transform: translate(-50%, -50%);
   width: 280px;
   background: #fff8f9;
-  border: 1px solid #ff6a88;
+  border: 1px solid #756bdb;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
@@ -320,7 +317,7 @@ onMounted(() => {
 
 .task-header h3 {
   font-size: 1.1rem;
-  color: #ff6a88;
+  color: #756bdb;
   font-family: 'Fredoka One', cursive;
   margin: 0;
 }
@@ -328,7 +325,7 @@ onMounted(() => {
 .close-btn {
   font-size: 1.2rem;
   cursor: pointer;
-  color: #ff6a88;
+  color: #756bdb;
 }
 
 .task-box ul {
@@ -380,7 +377,7 @@ onMounted(() => {
 }
 
 .text-primary {
-    color: #ff6a88 !important;
+    color: #756bdb !important;
 }
 
 .text-purple {
@@ -388,7 +385,7 @@ onMounted(() => {
 }
 
 .btn-primary-custom {
-    background-color: #ff6a88;
+    background-color: #756bdb;
     color: white;
     border-radius: 25px;
     padding: 10px 25px;
@@ -398,7 +395,7 @@ onMounted(() => {
 }
 
 .btn-primary-custom:hover {
-    background-color: #e65c7a;
+    background-color: #756bdb;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(255, 106, 136, 0.3);
 }

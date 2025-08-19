@@ -1,11 +1,9 @@
 // src/setup.js
 export function initializeDummyData() {
-    // Check if data already exists
     const hasParent = localStorage.getItem('parent')
     const hasChildren = localStorage.getItem('childList')
   
     if (!hasParent) {
-      // Add dummy parent
       const dummyParent = {
         username: 'parent001',
         password: 'parentpass',
@@ -20,7 +18,6 @@ export function initializeDummyData() {
     }
   
     if (!hasChildren) {
-      // Add dummy children for the parent
       const dummyChildren = [
         {
           id: 1,

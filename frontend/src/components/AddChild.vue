@@ -182,8 +182,6 @@ const addChild = async () => {
     }
 
     serverMessage.value = 'Child profile added successfully!'
-
-    // Reset form
     form.value = {
       username: '',
       password: '',
@@ -191,8 +189,6 @@ const addChild = async () => {
       age: '',
       gender: ''
     }
-
-    // Redirect after short delay
     setTimeout(() => {
       router.push('/parent/home')
     }, 2000)

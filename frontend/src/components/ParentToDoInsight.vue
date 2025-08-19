@@ -111,7 +111,6 @@ const pieOptions = {
 const BarChart = Bar;
 const PieChart = Pie;
 
-// ---- Fetch Daily Logs ----
 const fetchDailyLogs = async () => {
   if (!props.selectedChildId || !props.selectedDate) return;
   loading.value = true;
@@ -129,7 +128,6 @@ const fetchDailyLogs = async () => {
   }
 };
 
-// ---- Fetch Weekly Summary ----
 const fetchWeeklySummary = async () => {
   if (!props.selectedChildId) return;
   chartLoading.value = true;
@@ -141,7 +139,6 @@ const fetchWeeklySummary = async () => {
     const data = await res.json();
     weeklySummary.value = data.weekly_summary || [];
 
-    // Bar Chart Data
     chartData.value = {
       labels: weeklySummary.value.map((d) => d.date),
       datasets: [
@@ -160,7 +157,6 @@ const fetchWeeklySummary = async () => {
       ],
     };
 
-    // Pie Chart Data (Completion Ratio)
     const totalTasks = weeklySummary.value.reduce((sum, d) => sum + d.total_tasks, 0);
     const completedTasks = weeklySummary.value.reduce((sum, d) => sum + d.completed_tasks, 0);
     const pendingTasks = totalTasks - completedTasks;
@@ -182,7 +178,6 @@ const fetchWeeklySummary = async () => {
   }
 };
 
-// Watch props
 watch(
   () => props.selectedChildId,
   () => {
@@ -194,7 +189,6 @@ watch(
 
 watch(() => props.selectedDate, fetchDailyLogs);
 
-// Helpers
 const formatDateTime = (dt) => {
   const d = new Date(dt);
   return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -323,12 +317,10 @@ const getStatusTextColorClass = (log) => {
   background-color: white; 
 }
 
-/* Row status highlights */
 .table-success-bg { background-color: rgba(40, 167, 69, 0.1) !important; }
 .table-danger-bg { background-color: rgba(220, 53, 69, 0.1) !important; }
 .table-warning-bg { background-color: rgba(255, 193, 7, 0.1) !important; }
 
-/* Status Text Colors and Bolding */
 .status-text-done { color: #28a745; font-weight: bold; }
 .status-text-not-done { color: #F7D96F; font-weight: bold; }
 .status-text-pending { color: #ffc107; font-weight: bold; }
@@ -341,7 +333,6 @@ const getStatusTextColorClass = (log) => {
   margin-right: 6px;
 }
 
-/* Chart.js styles */
 .chart-card h4.chart-title {
   color: #5A4FCF;
   font-family: 'Fredoka One', cursive;
@@ -350,7 +341,6 @@ const getStatusTextColorClass = (log) => {
   font-size: 1.2rem;
 }
 
-/* Responsive Design */
 @media (max-width: 992px) {
   .graphs-container {
     grid-template-columns: 1fr;

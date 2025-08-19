@@ -6,7 +6,7 @@ from models import db, User, Parent, Child
 from flask_migrate import Migrate
 from utils import jwt_required
 from flask_cors import CORS
-from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username ,send_child_credentials_email
+from send_email import verify_otp, store_otp, verified_emails, send_welcome_email, send_mail_username, send_child_credentials_email, verify_otp_username, verified_usernames, resend_otp, resend_child_otp, store_child_otp
 import os
 from google_auth_oauthlib.flow import Flow
 import requests
@@ -120,10 +120,8 @@ def register_verify_otp():
     data = request.get_json()
     email = data.get("email")
     otp = data.get("otp")
-
     if not email or not otp:
         return jsonify({"error": "Email and OTP are required"}), 400
-
     success, message = verify_otp(email, otp)
     if success:
         return jsonify({"message": message}), 200
@@ -240,7 +238,6 @@ def verify_otp_route():
     data = request.get_json()
     email = data.get("email")
     otp = data.get("otp")
-
     success, message = verify_otp(email, otp)
     return jsonify({"success": success, "message": message}), (200 if success else 400)
 
@@ -263,49 +260,78 @@ def set_new_password():
     hashed_password = generate_password_hash(new_password)
     user.password = hashed_password
     db.session.commit()
-
     verified_emails.remove(email)
-
     return jsonify({'message': 'Password reset successfully'}), 200
 
 #------------------------------------------- Update Parent Profile-------------------------------------------------
+# Make sure you have this import for password hashing if it's not already in your file
+from werkzeug.security import generate_password_hash
+
+# Your other imports like Flask, jsonify, request, db, models (User, Parent), etc.
+
 @app.route('/parent/update-profile', methods=['PUT'])
 @jwt_required(required_role='parent')
 def update_parent_profile(current_user_id, current_user_role):
     data = request.json
-    username = data.get("username")
-    password = data.get("password")
-    name = data.get("name")
+    if not data:
+        return jsonify({"error": "Missing JSON body"}), 400
 
     user = User.query.get(current_user_id)
     parent = Parent.query.get(current_user_id)
-
     if not user or not parent:
         return jsonify({"error": "User not found"}), 404
-    if user.username:
-        return jsonify({"error": "Username already set"}), 400
-    if user.password:
-        return jsonify({"error": "Password already set"}), 400
-    if parent.name:
-        return jsonify({"error": "Name already set"}), 400
-    if not username or not password or not name:
-        return jsonify({"error": "All fields (username, password, name) are required"}), 400
-    # Check username available
-    if User.query.filter(User.username == username).first():
-        return jsonify({"error": "Username already taken"}), 409
+
+    # --- Start of updated logic ---
 
     try:
-        user.username = username
-        user.password = generate_password_hash(password)
-        parent.name = name
+        # Get potential new data from the request
+        name = data.get("name")
+        new_username = data.get("username")
+        new_password = data.get("password")
+
+        # 1. Handle username update
+        if new_username:
+            # Check if a username is already set. If yes, it cannot be changed.
+            if user.username:
+                return jsonify({"error": "Username is already set and cannot be changed."}), 400
+            
+            # If not set, validate that the new username isn't already taken
+            if User.query.filter_by(username=new_username).first():
+                return jsonify({"error": "Username is already taken. Please choose another."}), 409 # 409 Conflict
+            
+            user.username = new_username
+
+        # 2. Handle password update
+        if new_password:
+            # Check if a password hash already exists. If yes, it cannot be changed here.
+            # Assumes your password field is named 'password_hash'. Adjust if it's different (e.g., 'password').
+            if user.password: 
+                return jsonify({"error": "Password is already set and cannot be changed."}), 400
+            
+            # Securely hash the new password before storing it
+            user.password = generate_password_hash(new_password)
+
+        # 3. Handle name update (this logic remains the same)
+        if name is not None:
+            parent.name = name
+
         db.session.commit()
-        return jsonify({"message": "Profile updated successfully"}), 200
+        
+        return jsonify({
+            "message": "Parent profile updated successfully",
+            "parent": {
+                "id": parent.id,
+                "name": parent.name,
+                "username": user.username # Also return the newly set username
+            }
+        }), 200
+    
+    # --- End of updated logic ---
+    
     except Exception as e:
         db.session.rollback()
-        print("Error:", e)
+        print("Parent Profile Update Error:", e) # Using print for logging in development
         return jsonify({"error": "Failed to update profile"}), 500
-
-
 #------------------------------ Add Child-----------------------------------------------------------------------------
 
 @app.route('/add-child', methods=['POST'])
@@ -390,7 +416,6 @@ def update_child_profile(current_user_id, current_user_role):
         name = data.get('name')
         age = data.get('age')
         gender = data.get('gender')
-        password = data.get('password') 
         child = Child.query.filter_by(id=current_user_id).first()
         user = User.query.filter_by(id=current_user_id).first()
         if not user:
@@ -403,18 +428,6 @@ def update_child_profile(current_user_id, current_user_role):
             child.age = age
         if gender is not None:
             child.gender = gender
-        if password:
-            hashed_pw = generate_password_hash(password)
-            user.password = hashed_pw
-            parent = User.query.filter_by(id=child.parent_id).first()
-            if parent:
-                send_child_credentials_email(
-                    parent.email,
-                    user.username,
-                    password, 
-                    child.name
-                )
-
         db.session.commit()
         return jsonify({
             'message': 'Profile updated successfully',
@@ -428,7 +441,112 @@ def update_child_profile(current_user_id, current_user_role):
     except Exception as e:
         print("Profile Update Error:", e)
         return jsonify({'error': 'Failed to update profile'}), 500
-    
+
+@app.route('/parent/child/profile/update', methods=['PUT'])
+@jwt_required(required_role='parent')
+def parent_update_child_profile(current_user_id, current_user_role):
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Missing JSON body'}), 400
+        # Parent must specify which child to update
+        child_id = data.get("child_id")  
+        if not child_id:
+            return jsonify({'error': 'Child ID required'}), 400
+        name = data.get('name')
+        age = data.get('age')
+        gender = data.get('gender')
+        child = Child.query.filter_by(id=child_id, parent_id=current_user_id).first()
+        if not child:
+            return jsonify({'error': 'Child not found or does not belong to parent'}), 404
+
+        if name is not None:
+            child.name = name
+        if age is not None:
+            child.age = age
+        if gender is not None:
+            child.gender = gender
+        db.session.commit()
+        return jsonify({
+            'message': 'Child profile updated successfully',
+            'child': {
+                'id': child.id,
+                'name': child.name,
+                'age': child.age,
+                'gender': child.gender
+            }
+        }), 200
+    except Exception as e:
+        print("Profile Update Error:", e)
+        return jsonify({'error': 'Failed to update profile'}), 500
+
+
+#-------------------------- Forgot Child Password ---------------------------------------------------------
+@app.route('/forgot-password-child', methods=['POST'])
+def send_otp_child():
+    data = request.get_json()
+    username = data.get("username")
+    if not username:
+        return jsonify({"error": "Username required"}), 400
+    sent = store_child_otp(username) 
+    if sent:
+        return jsonify({
+            "message": "OTP sent to registered parent email for child"
+        }), 200
+    return jsonify({"error": "Failed to send OTP"}), 500
+
+@app.route('/verify-otp-child', methods=['POST'])
+def verify_otp_child():
+    data = request.get_json()
+    username = data.get("username")
+    otp = data.get("otp")
+    if not username or not otp:
+        return jsonify({"error": "Username and OTP required"}), 400
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    success, message = verify_otp_username(username, otp)
+    return jsonify({"success": success, "message": message}), (200 if success else 400)
+
+@app.route('/set-password-child', methods=['POST'])
+def set_password_child():
+    data = request.get_json()
+    username = data.get('username')
+    new_password = data.get('new_password')
+    if not username or not new_password:
+        return jsonify({'error': 'Username and password required'}), 400
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if username not in verified_usernames:
+        return jsonify({'error': 'OTP verification required'}), 401
+    hashed_password = generate_password_hash(new_password)
+    user.password = hashed_password
+    db.session.commit()
+    verified_usernames.remove(username)
+    return jsonify({'message': f"Password reset successfully for child {username}"}), 200
+
+#---------------------------------------------Resend OTP for child and parent -----------------------------
+@app.route("/resend-otp", methods=["POST"])
+def resend_parent_otp():
+    data = request.json
+    email = data.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    if resend_otp(email):
+        return jsonify({"message": "OTP resent successfully"}), 200
+    return jsonify({"error": "Failed to resend OTP"}), 500
+
+@app.route("/resend-child-otp", methods=["POST"])
+def resend_child_otp_route():
+    data = request.json
+    username = data.get("username")
+    if not username:
+        return jsonify({"error": "Username is required"}), 400
+    if resend_child_otp(username):
+        return jsonify({"message": "Child OTP resent successfully"}), 200
+    return jsonify({"error": "Failed to resend OTP"}), 500
+
 #--------------------------------------------------Logout---------------------------------------------------
 @app.route('/logout', methods=['POST'])
 @jwt_required()
@@ -445,8 +563,7 @@ def logout(current_user_id, current_user_role):
     except Exception as e:
         return jsonify({"error": "Logout failed", "details": str(e)}), 500
 
-
-
+# import all api here to prevent the cicular import
     
 from api import *
 

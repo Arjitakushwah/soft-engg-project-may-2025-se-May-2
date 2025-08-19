@@ -5,7 +5,6 @@
       <p class="page-subtitle">Track and analyze your child's learning activities and progress</p>
     </div>
 
-    <!-- Loading State -->
     <div v-if="isLoading" class="loading-container">
       <div class="spinner-border text-purple" role="status">
         <span class="visually-hidden">Loading...</span>
@@ -13,7 +12,6 @@
       <p class="loading-text">Loading activity data...</p>
     </div>
 
-    <!-- No Children Found State -->
     <div v-else-if="noChildrenFound" class="no-children-container">
         <div class="no-children-card">
           <i class="bi bi-person-plus-fill no-children-icon"></i>
@@ -25,9 +23,7 @@
         </div>
     </div>
 
-    <!-- Main Content State -->
     <div v-else class="main-content">
-      <!-- Selectors Card -->
       <div class="selectors-card">
         <div class="row g-4">
           <div class="col-md-6">
@@ -44,8 +40,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Tabs Navigation -->
       <div class="tabs-container">
         <router-link
           v-for="tab in tabs"
@@ -58,8 +52,6 @@
           {{ tab.name }}
         </router-link>
       </div>
-
-      <!-- Router View for Tab Content -->
       <div class="tab-content-container">
         <router-view :selectedChildId="selectedChildId" :selectedDate="selectedDate" />
       </div>
@@ -104,7 +96,6 @@ export default {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (!res.ok) {
-            // If the response is not OK (e.g., 404), assume no children
             throw new Error('No children found or failed to fetch.');
         }
         const data = await res.json()
@@ -146,17 +137,14 @@ export default {
 .activity-insight-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 2rem;
   font-family: 'Comic Neue', cursive;
-  /* background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%); */
   background:white;
   min-height: 100vh;
 }
 
 .header-section {
   text-align: center;
-  margin-bottom: 3rem;
-  padding: 2rem 0;
+  padding: 1rem 0;
 }
 
 
@@ -174,7 +162,6 @@ export default {
   opacity: 0.8;
 }
 
-/* Loading State */
 .loading-container {
   text-align: center;
   padding: 4rem 2rem;
@@ -191,7 +178,6 @@ export default {
   font-weight: 500;
 }
 
-/* No Children State */
 .no-children-container {
   display: flex;
   justify-content: center;
@@ -231,7 +217,6 @@ export default {
   line-height: 1.6;
 }
 
-/* Main Content */
 .main-content {
   background: white;
   border-radius: 20px;
@@ -239,7 +224,6 @@ export default {
   box-shadow: 0 8px 32px rgba(117, 107, 219, 0.1);
 }
 
-/* Selectors Card */
 .selectors-card {
   background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
   padding: 1.5rem;
@@ -273,7 +257,6 @@ export default {
   outline: none;
 }
 
-/* Tabs Navigation */
 .tabs-container {
   display: flex;
   flex-wrap: wrap;
@@ -316,7 +299,6 @@ export default {
   font-size: 1.1rem;
 }
 
-/* Tab Content */
 .tab-content-container {
   background: #f8f9ff;
   border-radius: 15px;
@@ -324,7 +306,6 @@ export default {
   min-height: 400px;
 }
 
-/* Button Styling */
 .btn-primary-custom {
   background: linear-gradient(135deg, #756bdb 0%, #6155b1 100%);
   color: white;
@@ -348,12 +329,10 @@ export default {
   text-decoration: none;
 }
 
-/* Purple Color Class */
 .text-purple {
   color: #756bdb !important;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .activity-insight-container {
     padding: 1rem;

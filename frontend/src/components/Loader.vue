@@ -18,8 +18,8 @@
   .spinner {
     width: 48px;
     height: 48px;
-    border: 5px solid #f3f3f3; /* Light grey circle */
-    border-top: 5px solid #3498db; /* Blue for the spinning part */
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
     border-radius: 50%;
     animation: spin 1.2s linear infinite;
   }

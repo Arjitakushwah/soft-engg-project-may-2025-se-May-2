@@ -1071,29 +1071,63 @@ Response:
 @app.route('/parent/children', methods=['GET'])
 @jwt_required(required_role='parent')
 def get_all_children(current_user_id, current_user_role):
+    """
+    API: Get All Children for Parent with Full Dashboard Details
+    This API fetches all child profiles added by a parent, using live SQLAlchemy models.
+    """
     try:
-        # Fetch all children which is added by parent
+        # Use SQLAlchemy to query for all children linked to the current parent
         children = Child.query.filter_by(parent_id=current_user_id).all()
 
         if not children:
             return jsonify({'message': 'No children found'}), 404
+        
         result = []
         for child in children:
-            user = User.query.filter_by(id=child.id).first()
+            # The User and Child models share the same ID, so we can get the user directly
+            user = User.query.get(child.id)
+            
+            # --- Fetching detailed stats for each child using relationships ---
+            
+            # Access the related BadgeAward objects directly through the relationship
+            badge_list = [
+                {
+                    'name': badge.badge_name,
+                    'type': badge.badge_type,
+                    'awarded_at': badge.awarded_at.strftime('%Y-%m-%d')
+                } for badge in child.badge_awards # Using the backref from the Child model
+            ]
+            
+            # Perform count queries for efficiency
+            total_stories_read = DailyStory.query.filter_by(child_id=child.id, is_done=True).count()
+            total_journals_written = JournalEntry.query.filter_by(child_id=child.id, is_done=True).count()
+            total_infotainment_read = InfotainmentReadLog.query.filter_by(child_id=child.id, is_done=True).count()
+
             result.append({
                 'id': child.id,
                 'name': child.name,
                 'age': child.age,
-                'username': user.username,
+                'username': user.username if user else None,
                 'gender': child.gender,
-                'streak': child.streak,
-                'longest_streak': child.longest_streak
+                
+                # Detailed Dashboard Info from the Child model
+                'current_streak': child.streak,
+                'longest_streak': child.longest_streak,
+                'badges_count': len(badge_list),
+                'badges': badge_list,
+                'total_stories_read': total_stories_read,
+                'total_journals_written': total_journals_written,
+                'total_infotainment_read': total_infotainment_read
             })
+            
         return jsonify({'children': result}), 200
+        
     except Exception as e:
-        print("Error fetching children:", e)
-        return jsonify({'error': 'Failed to fetch children'}), 500
-    
+        # Log the actual error for debugging purposes
+        print(f"Error fetching children for parent {current_user_id}: {e}")
+        return jsonify({'error': 'An internal error occurred while fetching children data'}), 500
+
+
 #--------------------------------------Get Individual child profile summary-----------------------------------
 """
 API: Get Child Profile Summary
