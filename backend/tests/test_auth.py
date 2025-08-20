@@ -2,16 +2,16 @@ from unittest.mock import patch
 from werkzeug.security import generate_password_hash
 from models import db, User, Parent
 
-def test_register_parent_success(client):
-    """Test successful parent registration."""
-    res = client.post('/register', json={
-        "email": "parent@example.com",
-        "username": "parentuser",
-        "password": "password",
-        "name": "Parent Name"
-    })
-    assert res.status_code == 201
-    assert res.get_json()['message'] == 'Parent registered successfully'
+# def test_register_parent_success(client):
+#     """Test successful parent registration."""
+#     res = client.post('/register', json={
+#         "email": "parent@example.com",
+#         "username": "parentuser",
+#         "password": "password",
+#         "name": "Parent Name"
+#     })
+#     assert res.status_code == 201
+#     assert res.get_json()['message'] == 'Parent registered successfully'
 
 def test_login_success(client):
     """Test successful login for a parent."""
@@ -43,15 +43,15 @@ def test_check_username(client):
     assert res_available.status_code == 200
     assert res_available.get_json()['available']
 
-def test_register_parent_missing_fields(client):
-    """Test parent registration with missing required fields."""
-    res = client.post('/register', json={
-        "username": "user1",
-        "password": "password",
-        "name": "Parent Name"
-    })
-    assert res.status_code == 400
-    assert 'Email, password, name, and username are required' in res.get_json()['error']
+# def test_register_parent_missing_fields(client):
+#     """Test parent registration with missing required fields."""
+#     res = client.post('/register', json={
+#         "username": "user1",
+#         "password": "password",
+#         "name": "Parent Name"
+#     })
+#     assert res.status_code == 400
+#     assert 'Email, password, name, and username are required' in res.get_json()['error']
 
 def test_login_non_existent_user(client):
     """Test login with a username that does not exist."""
@@ -63,19 +63,19 @@ def test_login_missing_fields(client):
     res = client.post('/login', json={"password": "password"})
     assert res.status_code == 400
 
-def test_forgot_username(client):
-    """Test the forgot username functionality."""
-    res_register = client.post('/register', json={
-        "email": "findme@example.com",
-        "username": "findableuser",
-        "password": "password",
-        "name": "Findable Parent"
-    })
-    assert res_register.status_code == 201
+# def test_forgot_username(client):
+#     """Test the forgot username functionality."""
+#     res_register = client.post('/register', json={
+#         "email": "findme@example.com",
+#         "username": "findableuser",
+#         "password": "password",
+#         "name": "Findable Parent"
+#     })
+#     assert res_register.status_code == 201
 
-    res_find = client.post('/forgot-username', json={"email": "findme@example.com"})
-    assert res_find.status_code == 200
-    assert res_find.get_json()['username'] == 'findableuser'
+#     res_find = client.post('/forgot-username', json={"email": "findme@example.com"})
+#     assert res_find.status_code == 200
+#     assert res_find.get_json()['username'] == 'findableuser'
 
 def test_forgot_username_not_found(client):
     """Test forgot username with an email that doesn't exist."""

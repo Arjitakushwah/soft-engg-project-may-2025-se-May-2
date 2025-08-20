@@ -58,6 +58,7 @@ You are a strict assistant helping an English professor determine if a short fic
         - Has clear contextual meaning and narrative potential (i.e., implies a character, setting, or plot).
         - Does not contain violence, politics, abuse, hate speech, adult topics, real-world tragedies, or disturbing content or a factual question or a math question or a question.
         - Is not a general knowledge question
+        - any marvel or superhero character
         - Is not a factual question, math question, or a request for a list or explanation.
                                       
 
@@ -906,7 +907,7 @@ def mark_infotainment_read(log_id, current_user_id, current_user_role):
         marked_at_naive = marked_at.replace(tzinfo=None)
     
     elapsed = now - marked_at_naive
-    if elapsed.total_seconds() < 10: #180 sec
+    if elapsed.total_seconds() < 180: #180 sec
         print(f"Elapsed time: {elapsed.total_seconds()} seconds")
         return jsonify({'error': f'You can mark as read after {int(180 - elapsed.total_seconds())} seconds'}), 403
     if query.is_done:
