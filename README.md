@@ -21,6 +21,7 @@ soft-engg-project-may-2025-se-May-2/
 ├── backend/
 │   ├── agents/                  # AI agents for mood, news, story, and reporting
 │   │   ├── child_analysis_report.md
+│   ├── exaa.env                  # Exa environment variables
 │   │   ├── mood_classifier.py
 │   │   ├── news_agent.py
 │   │   ├── report_agent.py
@@ -37,7 +38,6 @@ soft-engg-project-may-2025-se-May-2/
 │   ├── conftest.py               # Pytest configuration file
 │   ├── models.py                 # SQLAlchemy models
 │   ├── prod.env                  # Production environment variables
-│   ├── exaa.env                  # Example environment variables
 │   ├── progressor.py             # Progress tracking logic
 │   ├── report_pdf.py             # PDF generation logic
 │   ├── requirements.txt          # Python dependencies

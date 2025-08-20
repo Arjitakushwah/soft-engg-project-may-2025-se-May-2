@@ -8,7 +8,7 @@
     </div> 
     
     <div class="search-bar">
-      <input class="search" type="text" v-model="searchQuery" placeholder="Search your past news..." />
+      <input class="search" type="text" v-model="searchQuery" placeholder="Search your past Reads..." />
       <button @click="searchNews" class="search-btn">Search</button>
     </div>
 

@@ -5,7 +5,7 @@
     </button>
 
     <h1 class="result-title">
-      <span v-if="topicTitle">News on "{{ topicTitle }}"</span>
+      <span v-if="topicTitle">"{{ topicTitle }}"</span>
       <span v-else-if="searchQuery">Search Results for "{{ searchQuery }}"</span>
     </h1>
 
@@ -21,10 +21,19 @@
         </div>
         <h3 class="news-title">{{ article.title || 'Untitled' }}</h3>
         <p class="news-summary">{{ article.summary || article.content }}</p>
+        <!-- Read More link -->
+  <a 
+    v-if="article.read_more" 
+    :href="article.read_more" 
+    target="_blank" 
+    class="read-more"
+  >
+    Read More →
+  </a>
       </div>
     </div>
 
-    <div v-else class="error">No news available.</div>
+    <div v-else class="error">No content available.</div>
 
     <div v-if="message" class="message-wrapper">
       <p :class="['message-display', messageType === 'success' ? 'success-message' : 'error-message']">
