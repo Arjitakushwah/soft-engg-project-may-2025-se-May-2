@@ -1,7 +1,7 @@
 # soft-engg-project-may-2025-se-May-2
 
 ## Project Overview
-A comprehensive **AI-powered child and parent engagement platform** built with a **Python backend** (Flask/FastAPI) and a **Vue.js frontend** .  
+A comprehensive AI-powered child and parent engagement platform built with a Python backend (Flask/FastAPI) and a Vue.js frontend .  
 The system offers mood classification, news curation, storytelling, analytics, streak and badge tracking, email notifications, and an AI-driven analytics Report for children.
 
 ## Project Team
@@ -141,7 +141,7 @@ soft-engg-project-may-2025-se-May-2/
    ```
     cp exaa.env prod.env          # Copy and configure environment variables
    ```
-   5. Create Database:
+   5. Create Database and Add initial data:
    ```
     python seed_data.py
    ```
@@ -191,7 +191,7 @@ The backend includes email-based communication for account security and updates.
    ```
  ### Adding EXA API Key
 
-- Sign up for an account at EXA API (or your provider).
+- Sign up for an account at EXA API (https://exa.ai/).
 
 - Generate your API key.
 
@@ -254,7 +254,7 @@ The backend includes email-based communication for account security and updates.
    3. Start the Flask development server::
       
      python app.py
-   Server runs at: [http://localhost:5000]
+   Server runs at: (http://localhost:5000)
 
 **Start Frontend**
    1. Navigate to the Frontend directory:
@@ -265,13 +265,116 @@ The backend includes email-based communication for account security and updates.
       
      npm run dev
   
-   App runs at: [http://localhost:5173]
+   App runs at: (http://localhost:5173)
 
 ---
 
 ## Feature Walkthrough
 
-- **Mood Classification** – Detects child’s emotional state from journal entries or activities.  
+1. **Authentication**
+   
+   - Navigate to http://localhost:8080/
+   - Login as Parent with "parent1" and "Parent@123" as username and password respectively.
+   - Login as Child with "child1" and "Child@123" as username and password respectively.
+   - Register with new credentials or use Google OAuth SignIn as parent role then add child to get child credential.
+
+3. **Child Dashboard**
+   
+   When logged in as a Child, the dashboard displays:
+    Statistics:
+    - Longest streak
+    - Total badges earned
+    - All milestones with corresponding badges
+    
+    Sidebar Features:
+    - Calendar report
+    - To-Do Task Manager
+    - Story
+    - Journaling
+    - Infotainment
+ 4. **To-Do Task Manager Rules**
+
+    Creating Tasks:
+      - A child can create a task with a specific date and time.
+    
+    Updating Task Status:
+      Not allowed:
+       - Update past date/time tasks.
+       - Mark as complete a task scheduled for a future day.
+
+      Allowed:
+       - Mark as complete only within 15 minutes before the scheduled time up to 1 hour after the scheduled time.
+
+    Deleting Tasks:
+      Not allowed:
+      - Delete completed tasks.
+      - Delete any past-date tasks (whether completed or not).
+    
+ 6. **Story Reading**
+
+    Generate a Story:
+     - Child provides a prompt (topic or idea) for the story.
+     - System generates a unique, AI-powered story based on the given prompt.
+
+    Start a Quiz:
+      - After reading, child can take a quiz related to the story content.
+      - Options are shuffled after every wrong answer.
+
+ 7. **Journaling**
+
+    Write Journal Entries:
+      - Child can write short statements or reflections multiple times throughout the day.
+      - Entries can express how they are feeling, what happened, or any personal thoughts.
+
+    Mood Classification:
+      - System uses a mood classifier to analyze the journal text.
+      - Determines the child’s emotional state (e.g., happy, sad, Anaxious, excited).
+
+    Parent Visibility:
+      - Classified moods and journal summaries are visible to the parent account.
+      - Helps parents track emotional well-being over time.
+   
+  8. **Infotainment**
+
+     Topic Selection:
+       - Child can choose from topics like Science, History, and more.
+
+     Child-Friendly News Generation:
+       - System generates a news article tailored for children simple language, age-appropriate, and engaging.
+
+     Reading & Marking as Read:
+       - Child reads the generated article.
+       - "Mark as Read" button becomes available only after 3 minutes to encourage proper reading time.
+  9. **Calendar Report**
+
+     Availability:
+       - Accessible in both Child Dashboard and Parent Dashboard.
+
+     Purpose:
+       - Allows both child and parent to view tasks for any selected date.
+     Features:
+       - Displays all tasks for that date with clear status indicators Completed or Not Completed.
+
+  10. **Parent Dashboard**
+
+      Child Management:
+        - View all added children’s profiles and details.
+        - Add new child accounts with credentials.
+
+      Calendar Report:
+        - Same as in the child dashboard, lets parent view tasks done/not done for any selected date.
+
+      Reports:
+        - Download Weekly AI-Generated Report for a particular child.
+
+      Statistics & Insights:
+        - View all performance stats of the child.
+        - Access a real-time data graph showing all tasks completed by the child.
+
+---
+### Some important component
+
+- **Mood Classification** - Detects child’s emotional state from journal entries or activities.  
 - **News Agent** – Fetches curated child-friendly news.  
 - **Story Agent** – Generates personalized bedtime or educational stories.  
 - **Report Agent** – Compiles child’s activity report in PDF.  
@@ -280,6 +383,10 @@ The backend includes email-based communication for account security and updates.
 - **Email Notifications** – Sends OTP, Credential, and Confirmation.  
 
 ---
+
+
+
+
 
 
 
