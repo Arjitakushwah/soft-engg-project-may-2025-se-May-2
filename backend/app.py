@@ -99,6 +99,16 @@ def check_username():
         return jsonify({'error': 'Username is required'}), 400
     exists = User.query.filter_by(username=username).first() is not None
     return jsonify({'available': not exists})
+#-----------------------------check db--------------------------------------------------------------------------
+
+@app.route('/db-check')
+def db_check():
+    try:
+        # just a test query
+        db.session.execute("SELECT 1")
+        return {"status": "ok", "message": "Database connected!"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 #--------------------------------------------Parent SignUP-------------------------------------------------------
 @app.route('/register/send-otp', methods=['POST'])
