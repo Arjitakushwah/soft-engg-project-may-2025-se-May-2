@@ -35,19 +35,15 @@ def home():
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-REDIRECT_URI = "https://slice-abcd.onrender.com/auth/google/callback" 
-
-# Required for local development to use HTTP instead of HTTPS
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+GOOGLE_REDIRECT_URI = "https://slice-abcd.onrender.com/auth/google/callback"
 
 @app.route('/auth/google/login')
 def login_with_google():
     flow = Flow.from_client_secrets_file(
         'client_secret.json',
         scopes=['https://www.googleapis.com/auth/userinfo.email', 'openid'],
-        redirect_uri=url_for('handle_callback', _external=True)
+        redirect_uri=GOOGLE_REDIRECT_URI
     )
-    print("Redirect URI:", url_for('handle_callback', _external=True))
     auth_url, _ = flow.authorization_url(prompt='consent')
     return redirect(auth_url)
 
@@ -56,7 +52,7 @@ def handle_callback():
     flow = Flow.from_client_secrets_file(
         'client_secret.json',
         scopes=['https://www.googleapis.com/auth/userinfo.email', 'openid'],
-        redirect_uri=url_for('handle_callback', _external=True)
+        redirect_uri=GOOGLE_REDIRECT_URI
     )
     flow.fetch_token(authorization_response=request.url)
 
@@ -65,30 +61,32 @@ def handle_callback():
         'https://www.googleapis.com/oauth2/v3/userinfo',
         headers={'Authorization': f'Bearer {credentials.token}'}
     )
-    if not response.ok:
-        return jsonify({'error': 'Failed to fetch user info from Google'}), 400
     user_info = response.json()
     email = user_info.get('email')
-    if not email:
-        return jsonify({'error': 'Unable to fetch email from Google'}), 400
+
+    # lookup or create user...
     user = User.query.filter_by(email=email).first()
     if not user:
         user = User(email=email, role='parent')
         db.session.add(user)
         db.session.flush()
-        parent=Parent(id=user.id)
+        parent = Parent(id=user.id)
         db.session.add(parent)
         db.session.commit()
         send_welcome_email(email, user.id)
+
     access_token = create_access_token(
         identity=str(user.id),
         additional_claims={"role": user.role}
     )
-    frontend_callback_url = (
-    f"https://soft-engg-project-may-2025-se-may-2-3.onrender.com/auth/google/callback"  # Use your Vue app's address
-    f"?token={access_token}&role={user.role}&username={user.username}"
-)
-    return redirect(frontend_callback_url)
+
+    # redirect to frontend with token and info
+    frontend_url = (
+        "https://soft-engg-project-may-2025-se-may-2-3.onrender.com/auth/google/callback"
+        f"?token={access_token}&role={user.role}&username={user.username}"
+    )
+    return redirect(frontend_url)
+
 
 #--------------------------------------------Check Username----------------------------------------------------
 
