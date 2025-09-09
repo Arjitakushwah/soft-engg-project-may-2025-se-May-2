@@ -92,7 +92,7 @@ async function markAsRead() {
   markLoading.value = true;
   try {
     const token = localStorage.getItem("access_token");
-    const res = await fetch(`http://localhost:5000/infotainment/mark-read/${logId.value}`, {
+    const res = await fetch(`https://slice-abcd.onrender.com/infotainment/mark-read/${logId.value}`, {
       method: "PUT",
       headers: { "Authorization": `Bearer ${token}` }
     });
@@ -119,7 +119,7 @@ onMounted(async () => {
     const token = localStorage.getItem("access_token");
 
     if (topicTitle.value) {
-      const res = await fetch(`http://localhost:5000/infotainment/generate`, {
+      const res = await fetch(`https://slice-abcd.onrender.com/infotainment/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -136,7 +136,7 @@ onMounted(async () => {
       }
     } else if (searchQuery.value) {
       const res = await fetch(
-        `http://localhost:5000/infotainment/search?q=${encodeURIComponent(searchQuery.value)}`,
+        `https://slice-abcd.onrender.com/infotainment/search?q=${encodeURIComponent(searchQuery.value)}`,
         { headers: { "Authorization": `Bearer ${token}` } }
       );
       const data = await res.json();

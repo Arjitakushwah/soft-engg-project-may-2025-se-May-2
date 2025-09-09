@@ -131,7 +131,7 @@ export default {
       try {
 
         const weeklyRes = await fetch(
-          `http://localhost:5000/parent/child/${this.selectedChildId}/infotainment-logs?week=true`,
+          `https://slice-abcd.onrender.com/parent/child/${this.selectedChildId}/infotainment-logs?week=true`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
         );
         const weeklyData = await weeklyRes.json();
@@ -164,7 +164,7 @@ export default {
         };
 
         const dailyRes = await fetch(
-          `http://localhost:5000/parent/child/${this.selectedChildId}/infotainment-logs?date=${this.selectedDate}`,
+          `https://slice-abcd.onrender.com/parent/child/${this.selectedChildId}/infotainment-logs?date=${this.selectedDate}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
         );
         const dailyData = await dailyRes.json();

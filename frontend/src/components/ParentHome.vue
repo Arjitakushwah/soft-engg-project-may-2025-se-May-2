@@ -233,7 +233,7 @@
     isProfileIncomplete.value = false;
   
     try {
-      const parentData = await apiRequest('http://localhost:5000/parent_dashboard', { method: 'GET' });
+      const parentData = await apiRequest('https://slice-abcd.onrender.com/parent_dashboard', { method: 'GET' });
   
       if (!parentData || !parentData.name) {
         console.log("Parent profile is incomplete. Displaying setup message.");
@@ -244,7 +244,7 @@
   
       parentName.value = parentData.name;
   
-      const childrenData = await apiRequest('http://localhost:5000/parent/children', { method: 'GET' });
+      const childrenData = await apiRequest('https://slice-abcd.onrender.com/parent/children', { method: 'GET' });
       const childList = childrenData.children || [];
   
       if (Array.isArray(childList) && childList.length > 0) {
@@ -296,7 +296,7 @@
         age: parseInt(editingChild.value.age, 10),
         gender: editingChild.value.gender
       };
-      await apiRequest('http://localhost:5000/parent/child/profile/update', {
+      await apiRequest('https://slice-abcd.onrender.com/parent/child/profile/update', {
         method: 'PUT',
         body: JSON.stringify(payload)
       });
@@ -331,7 +331,7 @@
     isResettingPassword.value = true;
     resetErrorMessage.value = '';
     try {
-      await apiRequest('http://localhost:5000/forgot-password-child', {
+      await apiRequest('https://slice-abcd.onrender.com/forgot-password-child', {
         method: 'POST',
         body: JSON.stringify({ username: selectedChildForCredentials.value.username })
       });
@@ -351,7 +351,7 @@
     isResettingPassword.value = true;
     resetErrorMessage.value = '';
     try {
-      await apiRequest('http://localhost:5000/verify-otp-child', {
+      await apiRequest('https://slice-abcd.onrender.com/verify-otp-child', {
         method: 'POST',
         body: JSON.stringify({
           username: selectedChildForCredentials.value.username,
@@ -379,7 +379,7 @@
   
     isResettingPassword.value = true;
     try {
-      const data = await apiRequest(`http://localhost:5000/set-password-child`, {
+      const data = await apiRequest(`https://slice-abcd.onrender.com/set-password-child`, {
         method: 'POST',
         body: JSON.stringify({
           new_password: newPassword.value,
@@ -400,7 +400,7 @@
     isDownloading.value = true;
     const summaryRange = 'weekly';
     try {
-      const url = `http://localhost:5000/parent/child-analysis?child_id=${childId}&summary_range=${summaryRange}`;
+      const url = `https://slice-abcd.onrender.com/parent/child-analysis?child_id=${childId}&summary_range=${summaryRange}`;
       const blob = await apiRequest(url, { method: 'POST' });
   
       const fileUrl = window.URL.createObjectURL(blob);

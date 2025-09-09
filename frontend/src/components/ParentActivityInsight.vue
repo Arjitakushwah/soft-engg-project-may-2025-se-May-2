@@ -92,7 +92,7 @@ export default {
       isLoading.value = true;
       try {
         const token = localStorage.getItem('access_token')
-        const res = await fetch('http://localhost:5000/parent/children', {
+        const res = await fetch('https://slice-abcd.onrender.com/parent/children', {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (!res.ok) {

@@ -186,7 +186,7 @@ onMounted(() => {
 
 const registerWithGoogle = () => {
     isGoogleLoading.value = true;
-    window.location.href = 'http://localhost:5000/auth/google/login';
+    window.location.href = 'https://slice-abcd.onrender.com/auth/google/login';
 };
 
 
@@ -198,7 +198,7 @@ const handleSendOtp = async () => {
 
   isLoading.value = true;
   try {
-    const response = await fetch('http://localhost:5000/register/send-otp', {
+    const response = await fetch('https://slice-abcd.onrender.com/register/send-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.value.email })
@@ -224,7 +224,7 @@ const handleVerifyOtp = async () => {
 
   isLoading.value = true;
   try {
-    const response = await fetch('http://localhost:5000/register/verify-otp', {
+    const response = await fetch('https://slice-abcd.onrender.com/register/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.value.email, otp: otp.value })
@@ -252,7 +252,7 @@ const registerParent = async () => {
 
   isLoading.value = true;
   try {
-    const response = await fetch('http://localhost:5000/register', {
+    const response = await fetch('https://slice-abcd.onrender.com/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -315,7 +315,7 @@ const validateField = async (fieldName) => {
       
       isCheckingUsername.value = true;
       try {
-        const response = await fetch(`http://localhost:5000/check-username?username=${form.value.username}`);
+        const response = await fetch(`https://slice-abcd.onrender.com/check-username?username=${form.value.username}`);
         const result = await response.json();
         if (response.ok && !result.available) {
           errors.value.username = 'This username is already taken.';

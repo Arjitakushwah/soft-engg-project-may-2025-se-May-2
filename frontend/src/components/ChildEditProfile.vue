@@ -64,7 +64,7 @@ async function fetchProfile() {
   message.value = '';
   try {
     const token = localStorage.getItem("access_token");
-    const res = await fetch('http://localhost:5000/child_dashboard', {
+    const res = await fetch('https://slice-abcd.onrender.com/child_dashboard', {
       headers: { "Authorization": `Bearer ${token}` }
     });
 
@@ -99,7 +99,7 @@ async function updateProfile() {
       gender: form.value.gender
     };
 
-    const res = await fetch('http://localhost:5000/child/profile/update', {
+    const res = await fetch('https://slice-abcd.onrender.com/child/profile/update', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

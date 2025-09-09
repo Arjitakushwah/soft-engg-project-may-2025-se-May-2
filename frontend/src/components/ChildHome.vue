@@ -110,8 +110,8 @@ const fetchDashboardData = async () => {
     loading.value = true;
     try {
         const [profileData, streakData] = await Promise.all([
-            apiRequest("http://localhost:5000/child_dashboard"),
-            apiRequest("http://localhost:5000/streak-badges")
+            apiRequest("https://slice-abcd.onrender.com/child_dashboard"),
+            apiRequest("https://slice-abcd.onrender.com/streak-badges")
         ]);
         if (profileData) {
             childName.value = profileData.name || "Child";

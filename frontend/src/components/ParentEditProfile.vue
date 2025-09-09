@@ -193,7 +193,7 @@
   const fetchProfile = async () => {
       isLoading.value = true;
       try {
-          const result = await apiRequest('http://localhost:5000/parent_dashboard', { method: 'GET' });
+          const result = await apiRequest('https://slice-abcd.onrender.com/parent_dashboard', { method: 'GET' });
           profileForm.value = {
               name: result.name,
               username: result.username,
@@ -240,7 +240,7 @@
               } else if (username.toLowerCase() !== originalUsername.value?.toLowerCase()) {
                   isCheckingUsername.value = true;
                   try {
-                      await apiRequest(`http://localhost:5000/check-username?username=${username}`, { method: 'GET' });
+                      await apiRequest(`https://slice-abcd.onrender.com/check-username?username=${username}`, { method: 'GET' });
                   } catch (err) {
                       errors.value.username = 'Username is already taken.';
                       hasError = true;
@@ -289,7 +289,7 @@
               username: profileForm.value.username,
               password: passwordForm.value.new_password,
           };
-          const result = await apiRequest('http://localhost:5000/parent/update-profile', {
+          const result = await apiRequest('https://slice-abcd.onrender.com/parent/update-profile', {
               method: 'PUT',
               body: JSON.stringify(payload)
           });
@@ -315,7 +315,7 @@
               name: profileForm.value.name,
           };
           
-          const result = await apiRequest('http://localhost:5000/parent/update-profile', {
+          const result = await apiRequest('https://slice-abcd.onrender.com/parent/update-profile', {
               method: 'PUT',
               body: JSON.stringify(payload)
           });
@@ -354,7 +354,7 @@
       isChangingPassword.value = true;
       modalMessage.value = '';
       try {
-          await apiRequest('http://localhost:5000/forgot-password', {
+          await apiRequest('https://slice-abcd.onrender.com/forgot-password', {
               method: 'POST',
               body: JSON.stringify({ email: passwordForm.value.email })
           });
@@ -373,7 +373,7 @@
       isChangingPassword.value = true;
       modalMessage.value = '';
       try {
-          await apiRequest('http://localhost:5000/verify-otp', {
+          await apiRequest('https://slice-abcd.onrender.com/verify-otp', {
               method: 'POST',
               body: JSON.stringify({ email: passwordForm.value.email, otp: passwordForm.value.otp })
           });
@@ -396,7 +396,7 @@
       isChangingPassword.value = true;
       modalMessage.value = '';
       try {
-          const result = await apiRequest('http://localhost:5000/set-password', {
+          const result = await apiRequest('https://slice-abcd.onrender.com/set-password', {
               method: 'POST',
               body: JSON.stringify({
                   email: passwordForm.value.email,

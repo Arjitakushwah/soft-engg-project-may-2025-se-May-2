@@ -116,7 +116,7 @@ const fetchDailyLogs = async () => {
   loading.value = true;
   try {
     const res = await fetch(
-      `http://localhost:5000/parent/child/${props.selectedChildId}/todo-logs?date=${props.selectedDate}`,
+      `https://slice-abcd.onrender.com/parent/child/${props.selectedChildId}/todo-logs?date=${props.selectedDate}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     const data = await res.json();
@@ -133,7 +133,7 @@ const fetchWeeklySummary = async () => {
   chartLoading.value = true;
   try {
     const res = await fetch(
-      `http://localhost:5000/parent/child/${props.selectedChildId}/todo-logs?week=true`,
+      `https://slice-abcd.onrender.com/parent/child/${props.selectedChildId}/todo-logs?week=true`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     );
     const data = await res.json();

@@ -165,7 +165,7 @@ const addChild = async () => {
 
   try {
     const token = localStorage.getItem('access_token')
-    const response = await fetch('http://localhost:5000/add-child', {
+    const response = await fetch('https://slice-abcd.onrender.com/add-child', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

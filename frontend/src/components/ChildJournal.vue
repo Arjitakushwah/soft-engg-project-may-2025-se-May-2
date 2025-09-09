@@ -206,7 +206,7 @@ const performSearch = async () => {
   if (search_Mood.value) params.append('mood', search_Mood.value)
 
   try {
-    const res = await fetch(`http://localhost:5000/journal/search?${params}`, {
+    const res = await fetch(`https://slice-abcd.onrender.com/journal/search?${params}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -230,7 +230,7 @@ const submitJournal = async () => {
 
   loading.value = true
   try {
-    const res = await fetch('http://localhost:5000/journal', {
+    const res = await fetch('https://slice-abcd.onrender.com/journal', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
