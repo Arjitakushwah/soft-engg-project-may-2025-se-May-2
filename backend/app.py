@@ -35,7 +35,7 @@ def home():
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-REDIRECT_URI = "http://localhost:5000/auth/google/callback" 
+REDIRECT_URI = "https://slice-abcd.onrender.com/auth/google/callback" 
 
 # Required for local development to use HTTP instead of HTTPS
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
