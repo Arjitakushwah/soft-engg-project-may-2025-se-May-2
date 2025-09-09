@@ -85,7 +85,7 @@ def handle_callback():
         additional_claims={"role": user.role}
     )
     frontend_callback_url = (
-    f"http://localhost:5173/auth/google/callback"  # Use your Vue app's address
+    f"https://soft-engg-project-may-2025-se-may-2-3.onrender.com/auth/google/callback"  # Use your Vue app's address
     f"?token={access_token}&role={user.role}&username={user.username}"
 )
     return redirect(frontend_callback_url)
