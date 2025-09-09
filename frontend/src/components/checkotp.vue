@@ -90,7 +90,7 @@ const submitOtp = async () => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/verify-otp', {
+    const res = await fetch('https://slice-abcd.onrender.com/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ otp })

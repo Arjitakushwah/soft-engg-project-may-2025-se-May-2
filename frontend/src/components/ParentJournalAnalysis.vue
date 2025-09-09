@@ -168,7 +168,7 @@ export default {
     async fetchMoodByDate() {
       try {
         const res = await fetch(
-          `http://localhost:5000/parent/child/${this.selectedChildId}/journal-by-date?date=${this.selectedDate}`,
+          `https://slice-abcd.onrender.com/parent/child/${this.selectedChildId}/journal-by-date?date=${this.selectedDate}`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
         )
         const data = await res.json()
@@ -231,7 +231,7 @@ export default {
     async fetchWeeklyStats() {
       try {
         const res = await fetch(
-          `http://localhost:5000/parent/child/${this.selectedChildId}/journal-entries?days=7`,
+          `https://slice-abcd.onrender.com/parent/child/${this.selectedChildId}/journal-entries?days=7`,
           { headers: { Authorization: `Bearer ${localStorage.getItem('access_token')}` } }
         )
         const data = await res.json()

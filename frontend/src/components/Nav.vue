@@ -57,7 +57,7 @@ const logout = async () => {
   try {
     const token = localStorage.getItem('access_token');
     if (token) {
-      const response = await fetch('http://localhost:5000/logout', {
+      const response = await fetch('https://slice-abcd.onrender.com/logout', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

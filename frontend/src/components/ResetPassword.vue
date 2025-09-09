@@ -63,7 +63,7 @@ const submitNewPassword = async () => {
   }
 
   try {
-    const res = await fetch('http://localhost:5000/reset-password', {
+    const res = await fetch('https://slice-abcd.onrender.com/reset-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password: newPassword.value })

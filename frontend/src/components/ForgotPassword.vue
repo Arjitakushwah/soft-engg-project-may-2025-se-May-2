@@ -167,7 +167,7 @@ const handleSendOtp = async () => {
 
   isLoading.value = true;
   try {
-    const res = await fetch('http://localhost:5000/forgot-password', {
+    const res = await fetch('https://slice-abcd.onrender.com/forgot-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.value.email })
@@ -191,7 +191,7 @@ const handleVerifyOtp = async () => {
 
   isLoading.value = true;
   try {
-    const res = await fetch('http://localhost:5000/verify-otp', {
+    const res = await fetch('https://slice-abcd.onrender.com/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: form.value.email, otp: form.value.otp })
@@ -217,7 +217,7 @@ const handleSetPassword = async () => {
 
   isLoading.value = true;
   try {
-    const res = await fetch('http://localhost:5000/set-password', {
+    const res = await fetch('https://slice-abcd.onrender.com/set-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

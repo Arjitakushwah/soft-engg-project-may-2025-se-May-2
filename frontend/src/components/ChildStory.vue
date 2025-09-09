@@ -194,7 +194,7 @@ async function searchStories() {
   try {
     const token = localStorage.getItem('access_token');
     if (!token) throw new Error('You must be logged in to search stories.');
-    const response = await fetch(`http://localhost:5000/stories?by=${searchBy.value}&query=${query}`, {
+    const response = await fetch(`https://slice-abcd.onrender.com/stories?by=${searchBy.value}&query=${query}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await response.json();
@@ -222,7 +222,7 @@ async function generateStory() {
   try {
     const token = localStorage.getItem('access_token');
     if (!token) throw new Error('You are not logged in.');
-    const response = await fetch('http://localhost:5000/generate_story', {
+    const response = await fetch('https://slice-abcd.onrender.com/generate_story', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ child_prompt: prompt }),
@@ -274,7 +274,7 @@ async function submitAnswer(selectedOption) {
     const token = localStorage.getItem('access_token');
     if (!token) throw new Error('Authentication token not found.');
 
-    const response = await fetch('http://localhost:5000/submit_quiz', {
+    const response = await fetch('https://slice-abcd.onrender.com/submit_quiz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
@@ -325,7 +325,7 @@ onMounted(async () => {
   }
   try {
     const token = localStorage.getItem('access_token');
-    const res = await fetch('http://localhost:5000/child/me', { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch('https://slice-abcd.onrender.com/child/me', { headers: { Authorization: `Bearer ${token}` } });
     const data = await res.json();
     if (res.ok) { childName.value = data.username || data.name || 'Child'; }
   } catch (err) { console.error('User info fetch failed:', err); }

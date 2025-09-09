@@ -70,7 +70,7 @@ function closeTasks() {
 // Fetch calendar report and set up calendar
 const fetchCalendarReport = async () => {
   try {
-    const res = await fetch('http://localhost:5000/calendar-report', {
+    const res = await fetch('https://slice-abcd.onrender.com/calendar-report', {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }

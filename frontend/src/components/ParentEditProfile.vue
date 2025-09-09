@@ -193,7 +193,7 @@
   const fetchProfile = async () => {
       isLoading.value = true;
       try {
-          const result = await apiRequest('http://localhost:5000/parent_dashboard', { method: 'GET' });
+          const result = await apiRequest('https://slice-abcd.onrender.com/parent_dashboard', { method: 'GET' });
           profileForm.value = {
               name: result.name,
               username: result.username,
@@ -240,7 +240,7 @@
               } else if (username.toLowerCase() !== originalUsername.value?.toLowerCase()) {
                   isCheckingUsername.value = true;
                   try {
-                      await apiRequest(`http://localhost:5000/check-username?username=${username}`, { method: 'GET' });
+                      await apiRequest(`https://slice-abcd.onrender.com/check-username?username=${username}`, { method: 'GET' });
                   } catch (err) {
                       errors.value.username = 'Username is already taken.';
                       hasError = true;
@@ -289,7 +289,7 @@
               username: profileForm.value.username,
               password: passwordForm.value.new_password,
           };
-          const result = await apiRequest('http://localhost:5000/parent/update-profile', {
+          const result = await apiRequest('https://slice-abcd.onrender.com/parent/update-profile', {
               method: 'PUT',
               body: JSON.stringify(payload)
           });

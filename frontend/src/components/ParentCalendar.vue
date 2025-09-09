@@ -103,7 +103,7 @@ function closeModal() {
 const fetchChildren = async () => {
   isLoading.value = true
   try {
-    const response = await fetch('http://localhost:5000/parent/children', {
+    const response = await fetch('https://slice-abcd.onrender.com/parent/children', {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
@@ -133,7 +133,7 @@ const fetchChildren = async () => {
 
 const fetchCalendarReport = async (childId) => {
   try {
-    const response = await fetch(`http://localhost:5000/parent/child/${childId}/calendar-report`, {
+    const response = await fetch(`https://slice-abcd.onrender.com/parent/child/${childId}/calendar-report`, {
       headers: {
         Authorization: `Bearer ${accessToken}`
       }
