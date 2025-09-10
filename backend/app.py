@@ -82,7 +82,7 @@ def handle_callback():
 
     # redirect to frontend with token and info
     frontend_url = (
-        "https://soft-engg-project-may-2025-se-may-2-3.onrender.com/auth/google/callback"
+        "https://soft-engg-project-may-2025-se-may-2-3.onrender.com/#/auth/google/callback"
         f"?token={access_token}&role={user.role}&username={user.username}"
     )
     return redirect(frontend_url)
