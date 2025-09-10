@@ -85,7 +85,6 @@ const routes = [
     ]
   },
 
-  { path: '/:pathMatch(.*)*', redirect: '/error-404' }
 ]
 
 const router = createRouter({
