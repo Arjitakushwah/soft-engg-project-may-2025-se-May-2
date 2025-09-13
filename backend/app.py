@@ -351,14 +351,26 @@ def add_child(current_user_id, current_user_role):
     name = data.get('name')
     age = data.get('age')
     gender = data.get('gender')
-    if not all([username, password, name, age]):
-        return jsonify({'error': 'All fields (username, password, name, age) are required.'}), 400
+    
+    if not all([username, password, name, age, gender]):
+        return jsonify({'error': 'All fields (username, password, name, age, gender) are required.'}), 400
+
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already taken'}), 409
+
     try:
         parent = User.query.get(current_user_id)
         if not parent:
             return jsonify({'error': 'Parent not found'}), 404
+
+    
+        if gender == "Male":
+            gender_val = 1
+        elif gender == "Female":
+            gender_val = 0
+        else:
+            return jsonify({'error': 'Invalid gender. Use Male or Female'}), 400
+
         hashed_pw = generate_password_hash(password)
         user = User(
             email=parent.email,
@@ -368,23 +380,26 @@ def add_child(current_user_id, current_user_role):
         )
         db.session.add(user)
         db.session.flush()
+
         child = Child(
             id=user.id,
             parent_id=current_user_id,
             name=name,
             age=int(age),
-            gender = gender,
+            gender=gender_val,
             streak=0,
             badges=0
         )
         db.session.add(child)
         db.session.commit()
+
         send_child_credentials_email(username, password, name, parent.email)
         return jsonify({'message': 'Child added successfully'}), 201
+
     except Exception as e:
         db.session.rollback()
         print("Error:", e)
-        return jsonify({'error': 'SOmething wrong'}), 500
+        return jsonify({'error': 'Something went wrong'}), 500
 
 #------------------------------------Get Parent Info---------------------------------------------------------
 @app.route('/parent_dashboard', methods=['GET'])
