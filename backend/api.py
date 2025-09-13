@@ -1886,3 +1886,82 @@ def get_todo_logs(child_id, current_user_id, current_user_role):
     return jsonify({
         'recent_logs': result
     }), 200
+
+
+
+
+
+#------------------------------------ maintain uptime all imp api -----------------------------------------------------
+# Health check for mark infotainment read
+@app.route('/infotainment/mark-read/<int:log_id>/uptime', methods=['GET'])
+def uptime_mark_infotainment_read(log_id):
+    return jsonify({'status': 'up', 'endpoint': f'/infotainment/mark-read/{log_id}'}), 200
+
+# Health check for calendar report
+@app.route('/calendar-report/uptime', methods=['GET'])
+def uptime_calendar_report():
+    return jsonify({'status': 'up', 'endpoint': '/calendar-report'}), 200
+
+# Health check for streak and badges
+@app.route('/streak-badges/uptime', methods=['GET'])
+def uptime_streak_badges():
+    return jsonify({'status': 'up', 'endpoint': '/streak-badges'}), 200
+
+# Health check for trigger badges
+@app.route('/trigger-badges/uptime', methods=['GET'])
+def uptime_trigger_badges():
+    return jsonify({'status': 'up', 'endpoint': '/trigger-badges'}), 200
+# All children
+@app.route('/parent/children/uptime', methods=['GET'])
+def uptime_parent_children():
+    return jsonify({'status': 'up', 'endpoint': '/parent/children'}), 200
+
+# Individual child profile
+@app.route('/parent/child/<int:child_id>/profile/uptime', methods=['GET'])
+def uptime_child_profile(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/profile'}), 200
+
+# Daily performance
+@app.route('/parent/child/<int:child_id>/performance/uptime', methods=['GET'])
+def uptime_child_performance(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/performance'}), 200
+
+# Calendar report
+@app.route('/parent/child/<int:child_id>/calendar-report/uptime', methods=['GET'])
+def uptime_child_calendar(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/calendar-report'}), 200
+
+# Journal entries
+@app.route('/parent/child/<int:child_id>/journal-entries/uptime', methods=['GET'])
+def uptime_child_journal(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/journal-entries'}), 200
+
+# Journal by date
+@app.route('/parent/child/<int:child_id>/journal-by-date/uptime', methods=['GET'])
+def uptime_journal_by_date(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/journal-by-date'}), 200
+
+# Weekly/monthly summary
+@app.route('/parent/child/<int:child_id>/summary/uptime', methods=['GET'])
+def uptime_child_summary(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/summary'}), 200
+
+# Analysis report
+@app.route('/parent/child-analysis/uptime', methods=['GET'])
+def uptime_child_analysis():
+    return jsonify({'status': 'up', 'endpoint': '/parent/child-analysis'}), 200
+
+# Infotainment logs
+@app.route('/parent/child/<int:child_id>/infotainment-logs/uptime', methods=['GET'])
+def uptime_infotainment_logs(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/infotainment-logs'}), 200
+
+# Story logs
+@app.route('/parent/child/<int:child_id>/story-logs/uptime', methods=['GET'])
+def uptime_story_logs(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/story-logs'}), 200
+
+# ToDo logs
+@app.route('/parent/child/<int:child_id>/todo-logs/uptime', methods=['GET'])
+def uptime_todo_logs(child_id):
+    return jsonify({'status': 'up', 'endpoint': f'/parent/child/{child_id}/todo-logs'}), 200
