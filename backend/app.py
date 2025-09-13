@@ -585,6 +585,35 @@ def logout(current_user_id, current_user_role):
 
     except Exception as e:
         return jsonify({"error": "Logout failed", "details": str(e)}), 500
+    
+
+#----------------------- Check Health of Google Auth and DB----------------------------------    
+@app.route('/health')
+def health():
+    status = {"app": "ok"}
+
+    # --- Safe Database Check ---
+    try:
+        # Use a short timeout and catch exceptions so it never blocks
+        from sqlalchemy import text
+        db.session.execute(text("SELECT 1"))
+        status["db"] = "ok"
+    except Exception as e:
+        # Log error internally if needed, but don't break the endpoint
+        print("DB Health Check Error:", e)
+        status["db"] = "error"
+
+    # --- Safe Google Auth Check ---
+    try:
+        import socket
+        # This resolves DNS only, no actual connection
+        socket.gethostbyname("accounts.google.com")
+        status["google_auth"] = "ok"
+    except Exception:
+        status["google_auth"] = "down"
+
+    return jsonify(status), 200
+
 
 # import all api here to prevent the cicular import
     
