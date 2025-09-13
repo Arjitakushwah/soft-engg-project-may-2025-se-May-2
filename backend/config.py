@@ -15,8 +15,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    JWT_SECRET_KEY = os.getenv("SEM20257")   # from prod.env
+    SECRET_KEY = os.getenv("SECRET_KEY", "fallback-flask-secret")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "fallback-jwt-secret")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(days=1)
 
 class DevelopmentConfig(Config):
     DEBUG = True
+
